@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
 func main() {
 	eg := gin.Default()
 
@@ -21,7 +20,6 @@ func main() {
 	config.AllowCredentials = true
 	eg.Use(cors.New(config)) 
 	// origin 설정하고 설정한 config를 gin engine에서 사용하겠다는 이 부분이 있어야 적용이 됨!
-
 
 	eg.GET("/api/test", func (c *gin.Context){
 		fmt.Fprint(c.Writer, "TEST")

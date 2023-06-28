@@ -2,18 +2,25 @@ version: '3'
 services:
   backend:
     build:
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
       context: ./backend
+      # docker-compose.yml파일의 directory 기준으로 상대경로 작성
     ports:
       - "8080:8080"
 
   frontend:
     build:
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
       context: ./frontend
     volumes:
       - /app/node_modules
-      - ./frontend:/app
+      - .frontend/:/app
+    # 다 설정 마치고 react의 코드를 수정했는데 volumes가 적용되지 않았음
+    # 이건 운영환경용 도커파일이어서 빌드된 이미지를 컨테이너화 하는 거라서
+    # 이미 빌드된 이미지에 아무리 코드 수정을 한다고 한들
+    # 코드가 바뀔리가 없었음
+    # 그래서 개발환경용 도커파일을 따로 만들어서 거기서는 빌드하지 않고 npm run start로 하는 거였음!!
+    # 대박, 그래서 백엔드와 프론트엔드 모두 Dockerfile.dev를 추가해서 작성해줬음
     stdin_open: true
 
   nginx:
@@ -23,18 +30,20 @@ services:
       context: ./nginx
     ports:
       - "80:80"
-
-  # mysql:
-  #   build: ./mysql
-  #   restart: unless-stopped
-  #   ports:
-  #     - "3306:3306"
-  #   volumes:
-  #     - ./mysql/mysql_data:/var/lib/mysql
-  #     - ./mysql/sqls/:/docker-entrypoint-initdb.d/
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: password
-  #     MYSQL_DATABASE: chat
+    depends_on:
+      - frontend
+      
+  mysql:
+    build: ./mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql/mysql_data:/var/lib/mysql
+      - ./mysql/sqls/:/docker-entrypoint-initdb.d/
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: chat
 
 # build는 docker-compose up
 # 두 번째부터는 docker-compose up --build

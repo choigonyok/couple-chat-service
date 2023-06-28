@@ -19,9 +19,6 @@ const Example=()=> {
         return <div>
                 {test}
                 {test}
-                {test}
-                {test}
-                {test}
         </div>
 }
 

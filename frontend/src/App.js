@@ -13,7 +13,7 @@ function App() {
         </p>
         <Example/>
         <div>
-          PPPPP
+          PP
         </div>
       </header>
     </div>

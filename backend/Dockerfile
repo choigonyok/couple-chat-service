@@ -13,11 +13,13 @@ RUN go mod download
 COPY . .
 # go mod, go.sum 제외한 파일 모두 복사
 
-RUN go build -o /build
+RUN cd src && go build main.go
 
 EXPOSE 8080
 
-CMD [ "/build" ]
+WORKDIR /app/src
+
+CMD ["./main" ]
 
 # RUN go build -o /main 대신 go build main.go 로 빌드 가능
 # 이렇게 하면 CMD ["/main"] 대신 CMD ["./main] 써야함
@@ -30,3 +32,44 @@ CMD [ "/build" ]
 
 #docker build -t 이미지이름 ->으로 이미지 빌드하고
 #docker run -d -p 8080:8080 이미지이름 -> 으로 해당 이미지로 컨테이너를 만들고 실행
+
+
+
+# RUN cd src
+# go build main.go
+# EXPOSE 8080
+# CMD ["./main" ]
+# 이렇게 하면 src 안에 있는 main.go가 빌드가 안됨
+# 로컬에서는 잘 되는데 왜인지 찾아보니
+# 도커의 RUN command는 이전 RUN을 기억하지 않는다는거!
+# 그래서 아래처럼 바꿔줌
+
+# RUN cd src && go build main.go
+# EXPOSE 8080
+# CMD ["./main" ]
+# 그랬더니 빌드는 됐는데, CMD에서 main 빌드 파일을 실행하려고 하니까
+# 또 directory가 초기화돼서 main파일을 찾을 수 없다고 함
+# 그래서 아래처럼 바꿔줌
+
+# RUN cd src && go build main.go
+# EXPOSE 8080
+# CMD ["cd", "src", "./main" ]
+# 이거도 안됨. 한 줄에 디렉토리 변경과 빌드파일 실행을 한 줄의 명령어로 할 수는 없는 듯힘
+# 그래서 아래처럼 바꿔줌
+
+# RUN cd src && go build main.go
+# EXPOSE 8080
+# WORKDIR /app/backend/src
+# CMD ["./main" ]
+# 이것도 빌드는 되는데 이미지로 컨테이너 실행하면 ./main을 찾을 수 없다고 함
+# 그래서 아래처럼 바꿔줌
+
+# RUN cd src && go build main.go
+# EXPOSE 8080
+# WORKDIR /app/src
+# CMD ["./main" ]
+# 이랬더니 됨!!!!!!!!!!!!!!!
+# 도커파일에서 처음에 WORKDIR을 /app으로 설정해주고 COPY . . 을 할 때
+# DOCKERFILE이 있는 디렉토리의 모든 파일과 폴더가 app으로 복사 되었고,
+# 그래서 backend폴더는 컨테이너에는 복사되지 않고 app 다음 바로 src 폴더가 위치하게 된 것
+# 그리고 WORKDIR을 /app/src로 설정해주면서 CMD가 제 위치에서 실행될 수 있었던 것!

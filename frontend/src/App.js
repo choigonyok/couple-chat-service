@@ -13,7 +13,7 @@ function App() {
         </p>
         <Example/>
         <div>
-          PP
+          WORLD
         </div>
       </header>
     </div>

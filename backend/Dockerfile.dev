@@ -2,19 +2,20 @@ FROM golang:1.18.1-buster
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
-# go.mod를 따로 먼저 카피해서 종속성을 설치해줘야 함
-# 안그러면 나중에 종속성과 관련 없는 부분이 수정되어도 빌드하면 종속성까지 다 다시 다운 받게 됨
-# go.sum도 여기 넣어줘야함 이거 안넣어주면 컨테이너 빌드할 때 오류남
+COPY go.mod ./
+COPY go.sum ./
 
 RUN go mod download
-# go mod tidy 같은 느낌
+
+RUN go install -mod=mod github.com/githubnemo/CompileDaemon
+# go get github~ 로는 설치가 안됨
+# 특히 저 -mod=mod가 뭔지 찾아봐야할 듯
 
 COPY . .
-# go mod, go.sum 제외한 파일 모두 복사
+# CMD ["go", "run", "main.go" ]
+# build 뿐만 아니라 run도 코드 수정을 반영할 수 없음 이유는 찾아봐야할 듯
+# 그래서 CompileDaemon 오픈 소스 활용
 
-WORKDIR /app/src
-
-EXPOSE 8080
-
-CMD ["go", "run", "*.go" ]
+ENTRYPOINT CompileDaemon -polling -log-prefix=false -build="go build ./src/main.go" -command="./main" -directory="./"
+# build로 build 명령어 작성하고
+# command로 빌드한 빌드파일을 실행할 명령어 작성

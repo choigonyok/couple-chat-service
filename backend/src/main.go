@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -22,8 +20,8 @@ func main() {
 	// origin 설정하고 설정한 config를 gin engine에서 사용하겠다는 이 부분이 있어야 적용이 됨!
 
 	eg.GET("/api/test", func (c *gin.Context){
-		fmt.Fprint(c.Writer, "TEST")
 		c.Writer.WriteHeader(200)
+		c.Writer.Write([]byte("HELLO!"))
 	})
 	eg.Run(":8080")
 }

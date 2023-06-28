@@ -11,13 +11,13 @@ const Example=()=> {
                 .then((response)=>{
                         console.log("SUCCESS");
                         setTest(response.data);
-                        
                 })
                 .catch((error)=>{
                         console.log("FAILED");
                 })
         return <div>
                 {test}
+                <br/>
                 {test}
         </div>
 }

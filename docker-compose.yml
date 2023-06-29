@@ -16,6 +16,8 @@ services:
       - "8080:8080"
       # react는 이미지로 컨테이너 생성시 포트지정을 안해줘도 nginx가 3000을 listen하고 있어서
       # 실행이 가능한데 go는 그렇지 않아서 포트 지정을 해줘야함
+    depends_on:
+      - mysql
 
   frontend:
     build:
@@ -31,6 +33,8 @@ services:
     # 그래서 개발환경용 도커파일을 따로 만들어서 거기서는 빌드하지 않고 npm run start로 하는 거였음!!
     # 대박, 그래서 백엔드와 프론트엔드 모두 Dockerfile.dev를 추가해서 작성해줬음
     stdin_open: true
+    environment:
+      - WDS_SOCKET_PORT=80
 
   nginx:
     restart: always
@@ -45,9 +49,9 @@ services:
     restart: unless-stopped
     ports:
       - "3306:3306"
-    volumes:
-      - ./mysql/mysql_data:/var/lib/mysql
-      - ./mysql/sqls/:/docker-entrypoint-initdb.d/
+    # volumes:
+    #   - ./mysql/mysql_data:/var/lib/mysql
+    #   - ./mysql/sqls/:/docker-entrypoint-initdb.d/
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: chat

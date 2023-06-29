@@ -45,28 +45,32 @@ func main() {
 	// https://covenant.tistory.com/198 보고 설정하기
 	// 처음에 로컬 서버 ip 적었다가
 	// 안돼서 docker inspect로 mysql 컨테이너 ip 확인하고 적었는데 계속 핑이 안감
-	// 그래서 그냥 컨테이너 이름을 적어줌
+	// 그래서 컨테이너 이름을 적어줌. 이러면 도커가 알아서 ip주소와 포트까지 연결해줌
 	if err != nil {
 		fmt.Println(err.Error())
 		fmt.Println("DB CONNECTING ERROR OCCURED")
 	}
 	defer db.Close()
-	// DB와 서버 연결
 
+// DB와 서버가 연결 되었는지 확인
 	err = db.Ping()
-		if err != nil {
-			fmt.Println(err.Error())
-			fmt.Println("Ping to DB rejected")
-		}
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("PING TO DB REJECTED")
+	}
+
+// TEST용 table 생성
 	_, err = db.Query(`CREATE TABLE test (id int)`)
+	// err를 선언해놓고 에러처리 등으로 err를 사용하지 않으면 오류가 발생함
 	if err != nil {
 		fmt.Println(err.Error())
 		fmt.Println("FAILED TO CREATE TEST TABLE ERROR OCCURED")
 	}
-	// TEST를 위한 레코드 삽입
+
+// TEST를 위한 레코드 삽입
 	_, _ = db.Query(`INSERT INTO test (id) VALUES (100)`)
 
-	// DB 연결 확인을 위한 테스트 API
+// DB-SERVER 연결 확인용 테스트 API
 	eg.GET("/api/usr", func (c *gin.Context){
 		data, err := db.Query("SELECT id FROM test")
 		if err != nil {
@@ -90,10 +94,11 @@ func main() {
 		c.Writer.Write(send_data)
 	})
 
-
+// CLIENT-SERVER 연결 확인용 테스트 API
 	eg.GET("/api/test", func (c *gin.Context){
 		c.Writer.WriteHeader(200)
 		c.Writer.Write([]byte("TEST"))
 	})
+
 	eg.Run(":8080")
 }

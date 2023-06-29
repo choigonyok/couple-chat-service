@@ -7,6 +7,9 @@ COPY go.mod go.sum ./
 # go.mod를 따로 먼저 카피해서 종속성을 설치해줘야 함
 # 안그러면 나중에 종속성과 관련 없는 부분이 수정되어도 빌드하면 종속성까지 다 다시 다운 받게 됨
 # go.sum도 여기 넣어줘야함 이거 안넣어주면 컨테이너 빌드할 때 오류남
+# 로컬에서 Dockerfile.dev로 개발하면서 필요한 종속성은 다 go.mod, go.sum 안에 넣어두기 때문에
+# 도커파일에서 go get github.com/gin-gonic/gin 같은 명령어 작성 안해줘도 됨
+# 근데 저 CompileDaemon은 왜 작성해야하는거? 거참
 
 RUN go mod download
 # go mod tidy 같은 느낌
@@ -33,8 +36,6 @@ CMD ["./main" ]
 
 #docker build -t 이미지이름 ->으로 이미지 빌드하고
 #docker run -d -p 8080:8080 이미지이름 -> 으로 해당 이미지로 컨테이너를 만들고 실행
-
-
 
 # RUN cd src
 # go build main.go

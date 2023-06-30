@@ -4,6 +4,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"os"
+
+	"github.com/joho/godotenv"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -30,6 +33,31 @@ type db_test struct {
 
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("LOADING ENV FILE ERROR OCCURED")
+	}
+
+// 환경변수 잘 불러와지는지 테스트
+	DB_PASSWORD, isExist := os.LookupEnv("DB_PASSWORD")
+	fmt.Println(DB_PASSWORD)
+	if isExist == false {
+		fmt.Println("LOADING ENV VAR DB_PASSWORD ERROR OCCURED")
+	}
+	DB_NAME, isExist := os.LookupEnv("DB_NAME")
+	if isExist == false {
+		fmt.Println("LOADING ENV VAR DB_NAME ERROR OCCURED")
+	}
+	fmt.Println(DB_NAME)
+	// GO의 환경변수 설정은 os 패키지 이용
+	// godotenv 패키지를 이용해서 .env파일에 환경변수를 설정해주고
+	// .env파일은 보안을 위해서 공유저장소에 올라가지 않도록 .gitignore에 설정
+	// os.Getenv() 메서드는 환경변수가 없어도 empty, 있는데 설정이 안되어있어도 empty를 리턴하기 때문에
+	// ambiguity를 줄이기 위해서 os.LookupEnv() 메서드를 사용
+	// 환경변수의 존재 여부를 두 번째 파라미터 boolean으로 알려줌
+	// os.Setenv()와 os.UnSetenv()로 환경변수를 생성/삭제 할 수 있음
+
 	eg := gin.Default()
 	// 엔진 생성
 

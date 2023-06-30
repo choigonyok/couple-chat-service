@@ -1,3 +1,4 @@
+
 version: '3'
 services:
   backend:
@@ -34,7 +35,7 @@ services:
     # 대박, 그래서 백엔드와 프론트엔드 모두 Dockerfile.dev를 추가해서 작성해줬음
     stdin_open: true
     environment:
-      - WDS_SOCKET_PORT=80
+      - WDS_SOCKET_PORT=${WS_PORT}
 
   nginx:
     restart: always
@@ -53,8 +54,10 @@ services:
     #   - ./mysql/mysql_data:/var/lib/mysql
     #   - ./mysql/sqls/:/docker-entrypoint-initdb.d/
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: chat
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      # .env를 활용해 환경변수를 설정하고 
+      # .env는 .gitignore로 공유저장소에 올라가지 않도록 설정
 
 # build는 docker-compose up
 # 두 번째부터는 docker-compose up --build

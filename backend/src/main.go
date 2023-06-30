@@ -16,7 +16,7 @@ import (
 // Origin CORS 설정
 func OriginConfig() cors.Config{
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost"} 
+	config.AllowOrigins = []string{os.Getenv("ORIGIN1")} 
 	// 허용할 오리진 설정, 원래 리액트의 port가 아니라 리액트가 있는 container의 port 번호를 origin allow 해줘야함
 	// localhost:3000로 origin allow 하면 통신 안됨
 
@@ -67,7 +67,7 @@ func main() {
 
 	//db := makeDbConn()
 	
-	db, err := sql.Open("mysql", "root:password@tcp(mysql)/chat")
+	db, err := sql.Open("mysql", os.Getenv("DB_USER")+":"+os.Getenv("DB_PASSWORD")+"@tcp(mysql)/"+os.Getenv("DB_NAME"))
 	// 도커에서는 localhost가 안먹혀서 통신이 안됨
 	// ip는 terminal에서 curl ifconfig.me 로 확인가능
 	// https://covenant.tistory.com/198 보고 설정하기

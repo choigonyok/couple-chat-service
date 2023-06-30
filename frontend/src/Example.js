@@ -6,13 +6,12 @@ const Example = () => {
   const [test, setTest] = useState();
   const [data, setData] = useState([]);
 
-  const HOST_URL = process.env.HOST_URL
-
   useEffect(() => {
     axios
-      .get(HOST_URL+"/api/test")
+      .get(process.env.REACT_APP_HOST_URL+"/api/test")
       // api호출은 go port num인 8080이 아니라 container port num인 1000으로 요청해야 통신이 됨
       // localhost:8080으로 요청하면 통신 안됨
+      // -> 환경변수 설정, 환경변수는 설정 이후 docker-compose를 restart해줘야 적용이 제대로 됨
       .then((response) => {
         setTest(response.data);
       })
@@ -21,7 +20,7 @@ const Example = () => {
       });
 
     axios
-      .get(HOST_URL+"/api/usr")
+      .get(process.env.REACT_APP_HOST_URL+"/api/usr")
       .then((response) => {
         setData(response.data);
         // 서버에서 보낼 때 Marshaling으로 JSON 형식 인코딩을 해서 보냈기 때문에

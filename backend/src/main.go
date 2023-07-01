@@ -4,14 +4,21 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 
+	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 )
+
+// 클라이언트에서 채팅 본문을 받는 구조체
+type ChatBody struct {
+	Chat_body string `json:"chat_body"`
+}
 
 // Origin CORS 설정
 func OriginConfig() cors.Config{
@@ -26,6 +33,7 @@ func OriginConfig() cors.Config{
 	return config
 }
 
+// TEST : TEST를 위한 db 스트럭쳐
 type db_test struct {
 	Id int	`json:"id"`
 	// 클라이언트랑 통신하려면 field name을 UPPER로 적어야함
@@ -33,13 +41,15 @@ type db_test struct {
 
 
 func main() {
+
+// 환경변수 로딩
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Println(err.Error())
 		fmt.Println("LOADING ENV FILE ERROR OCCURED")
 	}
 
-// 환경변수 잘 불러와지는지 테스트
+// TEST : 환경변수 잘 불러와지는지 테스트
 	DB_PASSWORD, isExist := os.LookupEnv("DB_PASSWORD")
 	fmt.Println(DB_PASSWORD)
 	if isExist == false {
@@ -57,6 +67,7 @@ func main() {
 	// ambiguity를 줄이기 위해서 os.LookupEnv() 메서드를 사용
 	// 환경변수의 존재 여부를 두 번째 파라미터 boolean으로 알려줌
 	// os.Setenv()와 os.UnSetenv()로 환경변수를 생성/삭제 할 수 있음
+	
 
 	eg := gin.Default()
 	// 엔진 생성
@@ -76,7 +87,7 @@ func main() {
 	// 그래서 컨테이너 이름을 적어줌. 이러면 도커가 알아서 ip주소와 포트까지 연결해줌
 	if err != nil {
 		fmt.Println(err.Error())
-		fmt.Println("DB CONNECTING ERROR OCCURED")
+		fmt.Println("DB CONNECTING ERROR OCCURED!")
 	}
 	defer db.Close()
 
@@ -87,18 +98,11 @@ func main() {
 		fmt.Println("PING TO DB REJECTED")
 	}
 
-// TEST용 table 생성
-	_, err = db.Query(`CREATE TABLE test (id int)`)
-	// err를 선언해놓고 에러처리 등으로 err를 사용하지 않으면 오류가 발생함
-	if err != nil {
-		fmt.Println(err.Error())
-		fmt.Println("FAILED TO CREATE TEST TABLE ERROR OCCURED")
-	}
-
-// TEST를 위한 레코드 삽입
+// TEST : TEST를 위한 레코드 삽입
+	_, _ = db.Query(`DELETE FROM test WHERE id = 100`)
 	_, _ = db.Query(`INSERT INTO test (id) VALUES (100)`)
 
-// DB-SERVER 연결 확인용 테스트 API
+// TEST : DB-SERVER 연결 확인용 테스트 API
 	eg.GET("/api/usr", func (c *gin.Context){
 		data, err := db.Query("SELECT id FROM test")
 		if err != nil {
@@ -122,11 +126,67 @@ func main() {
 		c.Writer.Write(send_data)
 	})
 
-// CLIENT-SERVER 연결 확인용 테스트 API
+// TEST : CLIENT-SERVER 연결 확인용 테스트 API
 	eg.GET("/api/test", func (c *gin.Context){
 		c.Writer.WriteHeader(200)
 		c.Writer.Write([]byte("TEST"))
 	})
 
+
+
+
+	eg.POST("/api/chat", func (c *gin.Context){
+		data := ChatBody{}
+		err := c.ShouldBindJSON(&data)
+		if err != nil{
+			fmt.Println("CHAT BODY JSON BINDING ERROR OCCURED")
+		}
+		fmt.Println(data.Chat_body)
+		fmt.Println(data.Chat_body)
+		fmt.Println(data.Chat_body)
+		fmt.Println(data.Chat_body)
+		fmt.Println(data.Chat_body)
+		c.Writer.WriteHeader(200)
+	})
+
+	
+	
+// Websocket 프로토콜로 업그레이드
+	eg.GET("/ws", func(c *gin.Context){
+
+		
+		var upgrader  = websocket.Upgrader{
+			WriteBufferSize: 1024,
+			ReadBufferSize: 1024,
+			CheckOrigin: func(r *http.Request) bool {
+				origin := r.Header.Get("Origin")
+				return origin == os.Getenv("ORIGIN1")
+			    },
+			    // Websocket의 Origin 검증은 서버에서 진행
+			    // 브라우저는 호스트 상관없이 막 요청 보냄
+		}
+		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("WEBSOCKET UPGRADING ERROR OCCURED")
+			return
+		}
+		defer conn.Close()
+		for {
+			_, read_text, err := conn.ReadMessage()	
+			if err != nil {
+				fmt.Println("READING FROM CONNECTION ERROR OCCURED")
+				break;
+			}
+			err = conn.WriteJSON(string(read_text))
+			fmt.Println("READ_TEXT : ", string(read_text))
+			if err != nil {
+				fmt.Println(err.Error())
+				fmt.Println("WRITING TO CONN ERROR OCCURED")
+			}
+		}
+		
+	})
+	
 	eg.Run(":8080")
 }

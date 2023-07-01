@@ -1,0 +1,17 @@
+.inputbox-container{
+        display: flex;
+        
+}
+
+.inputbox{
+        background-color: transparent;
+        border: 3px solid white;
+        width: 70vw;
+        margin-top: 1vh;
+        border-radius: 30px;
+        flex-direction: column;
+        padding: 1vw;
+        font-size: 20px;
+        background-color: rgb(174, 214, 255);
+        font-weight: 600;
+}

@@ -5,9 +5,11 @@ CREATE DATABASE chat;
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
-DROP TABLE IF EXISTS `usrs`;
+USE chat;
 
-CREATE TABLE `usrs` (`id` int NOT NULL);
+DROP TABLE IF EXISTS `test`;
+
+CREATE TABLE test (`id` INT NOT NULL);
 -- 이거 작동 안함 왜 그런겨? chat DB create까지만 작동함
 
 -- https://devpress.csdn.net/cloudnative/63055e53c67703293080f68c.html

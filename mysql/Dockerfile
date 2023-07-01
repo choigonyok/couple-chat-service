@@ -1,4 +1,4 @@
-FROM mysql:latest
+FROM mysql:8.0
 # 5.7 version으로 했다가 오류나서 수정
 
 ADD ./sqls/my.cnf ./etc/mysql/conf.d/my.cnf

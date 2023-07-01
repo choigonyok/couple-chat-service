@@ -1,0 +1,84 @@
+.page-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chat-container {
+  display: flex;
+  border: 3px solid white !important;
+  width: 70vw;
+  height: 70vh;
+  flex-direction:column;
+  overflow-y: scroll;
+  flex-wrap: nowrap;
+  padding: 20px;
+}
+
+.chat-container__chat__usr {
+  display: flex;
+  width: auto;
+  flex-direction: row;
+  justify-content: right;
+  align-items: center;
+  height: fit-content;
+}
+
+.chat-container__chat__other {
+  display: flex;
+  width: auto;
+  flex-direction: row;
+  justify-content: left;
+  align-items: center;
+  height: fit-content;
+}
+
+.chat-container__usr {
+  display: flex;
+  background-color: rgb(174, 214, 255);
+  font-size: 20px;
+  color: black;
+  font-weight: 600;
+  align-items: center;
+  justify-content: center;
+  text-align: start;
+  border: 3px solid white;
+  border-radius: 30px;
+  padding: 1vh;
+  padding-left: 1vw;
+  padding-right: 1vw;
+  max-width: 30vw;
+  word-break: break-all;
+  height: fit-content;
+  margin-top: 1vh;
+  margin-bottom: 1vh;
+}
+
+.chat-container__other {
+  display: flex;
+  background-color: rgb(249, 176, 150);
+  font-size: 20px;
+  color: black;
+  font-weight: 600;
+  align-items: center;
+  justify-content: center;
+  text-align: start;
+  border: 3px solid white;
+  border-radius: 30px;
+  padding: 1vh;
+  padding-left: 1vw;
+  padding-right: 1vw;
+  max-width: 30vw;
+  word-break: break-all;
+  height: auto;
+  margin-top: 1vh;
+  margin-bottom: 1vh;
+}
+
+.chat__usr {
+  width: inherit;
+  height: inherit;
+}

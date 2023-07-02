@@ -1,5 +1,6 @@
 import './App.css';
 import Chatpage from './Chatpage';
+import Login from './Login';
 import Signup from './Signup';
 
 
@@ -9,6 +10,7 @@ function App() {
       <header className="App-header">
         <Chatpage/>
         <Signup/>
+        <Login/>
       </header>
     </div>
   );

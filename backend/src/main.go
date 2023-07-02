@@ -24,6 +24,8 @@ type ReadData struct {
 	Text_body string `json:"text_body"`
         Writer_id string `json:"writer_id"`
         Write_time string `json:"write_time"`
+	Conn_id string `json:"conn_id"`
+	Chat_id int `json:"chat_id"`
 }
 
 type UsrInfo struct {
@@ -119,7 +121,7 @@ func main() {
 	r, err := db.Query("SELECT id, password FROM usrs")
 	if err != nil {
 		fmt.Println(err.Error())
-		fmt.Println("TEST ERROR")
+		fmt.Println("USR TEST ERROR")
 	}
 	for r.Next()  {
 		r.Scan(&test.Usr_ID, &test.Usr_PW)
@@ -128,9 +130,19 @@ func main() {
 	fmt.Println("NOW STORED USR ID AND PW : ", tests)
 
 // TEST : DB에 chat data가 잘 저장되는지 테스트
-	// chattest := ReadData{}
-	// chattests := []ReadData{} 
-	// r, _ = db.Query("SELECT ")
+	chattest := ReadData{}
+	chattests := []ReadData{} 
+	r, err = db.Query("SELECT chat_id, writer_id, write_time, text_body FROM chat")
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("CHAT TEST ERROR")
+	}
+	for r.Next() {
+		r.Scan(&chattest.Chat_id,&chattest.Writer_id,&chattest.Write_time,&chattest.Text_body)
+		chattests = append(chattests, chattest)
+	}
+	fmt.Println("NOW STORED CHAT : ", chattests)
+
 
 // 회원가입 시 아이디 중복체크
 	eg.POST("/api/id", func (c *gin.Context){
@@ -153,7 +165,7 @@ func main() {
 			c.Writer.WriteHeader(200)
 		}
 		
-	})
+	})	
 
 // 회원가입	
 	eg.POST("/api/usr", func (c *gin.Context){
@@ -163,17 +175,37 @@ func main() {
 			fmt.Println(err.Error())
 			fmt.Println("BINDING SIGNUP DATA ERROR OCCURED")
 		} else {
-			_, err = db.Query(`INSERT INTO usrs (id, password) VALUES ("`+data.Usr_ID+`", "`+data.Usr_PW+`")`)
+			// 사용자의 uuid를 생성
+			uuid := GenerateUserID()
+			_, err = db.Query(`INSERT INTO usrs (id, password, uuid) VALUES ("`+data.Usr_ID+`", "`+data.Usr_PW+`", "`+uuid+`")`)
 			if err != nil {
 				fmt.Println(err.Error())
 				fmt.Println("STORING SIGNUP DATA TO DB ERROR OCCURED")
 			} else {
 				c.Writer.WriteHeader(http.StatusOK)
 			}
-
 		}
-
 	})
+
+// 로그인
+	eg.POST("/api/login", func (c *gin.Context){
+		data := UsrInfo{}
+		err := c.ShouldBindJSON(&data)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("LOGIN DATA BINDING ERROR OCCURED")
+		}
+		r, err := db.Query(`SELECT * FROM usrs WHERE id = "`+data.Usr_ID+`" and password = "`+data.Usr_PW+`"`)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("FINDING USR DATA TO LOGIN FROM DB ERROR OCCURED")
+		}
+		if r.Next() {
+			c.Writer.WriteHeader(200)
+		} else {
+			c.Writer.WriteHeader(400)
+		}
+	})	
 	
 // Websocket 프로토콜로 업그레이드
 	eg.GET("/ws", func(c *gin.Context){
@@ -196,20 +228,6 @@ func main() {
 			return
 		}
 		defer conn.Close()
-
-		// 사용자에게 uuid를 생성해서 전달
-		uuid := GenerateUserID()
-		fmt.Println("USRID : ", uuid)
-		conn.WriteJSON(struct{
-			ID string `json:"created_id"`
-		}{
-			uuid,
-		})
-		// usrID := struct {
-		// 	Usr_id string `json:"usr_id"`
-		// }{
-		// 	uuid,
-		// }
 		
 		// 메시지를 읽고 쓰는 부분, 읽은 메시지는 DB에 저장됨
 		for {

@@ -14,15 +14,19 @@ const Signup = () => {
                 // 아이디 중복 확인을 위해서 작성값이 바뀌면 다시 중복 검사를 하도록 함
         }
 
-        const inputPWHandler = () => {
+        const inputPWHandler = (e) => {
                 setInputPW(e.target.value);
         }
 
         const checkIDHandler = () => {
+                const data = {
+                        input_id : inputID,
+                }
                 axios
-                        .post(process.env.REACT_APP_HOST_URL+"/api/id", inputID)
+                        .post(process.env.REACT_APP_HOST_URL+"/api/id", JSON.stringify(data))
                         .then((response)=>{
                                 console.log("중복된 아이디 없음. 사용가능");
+                                setIsIDChecked(true);
                         })
                         .catch((error)=>{
                                 console.log("아이디 중복 확인 에러 발생");
@@ -47,7 +51,7 @@ const Signup = () => {
                         .catch((error)=>{
                                 alert("회원가입에 실패했습니다.")
                         })
-                }
+                };
         }
 
         return <div>

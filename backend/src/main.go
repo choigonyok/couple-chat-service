@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -26,6 +25,11 @@ type ReadData struct {
         Writer_id string `json:"writer_id"`
         Write_time string `json:"write_time"`
 }
+
+type UsrInfo struct {
+	Usr_ID string `json:"usr_id"`
+	Usr_PW string `json:"usr_pw"`
+ }
 
 // Origin CORS 설정
 func OriginConfig() cors.Config{
@@ -53,7 +57,7 @@ func GenerateUserID() string {
 }
 
 
-func main() {
+func main() {	
 
 // 환경변수 로딩
 	err := godotenv.Load()
@@ -88,8 +92,6 @@ func main() {
 	config := OriginConfig()
 	eg.Use(cors.New(config)) 
 	// origin 설정하고 설정한 config를 gin engine에서 사용하겠다는 이 부분이 있어야 적용이 됨!
-
-	//db := makeDbConn()
 	
 	db, err := sql.Open("mysql", os.Getenv("DB_USER")+":"+os.Getenv("DB_PASSWORD")+"@tcp(mysql)/"+os.Getenv("DB_NAME"))
 	// 도커에서는 localhost가 안먹혀서 통신이 안됨
@@ -111,39 +113,67 @@ func main() {
 		fmt.Println("PING TO DB REJECTED")
 	}
 
-// TEST : TEST를 위한 레코드 삽입
-	_, _ = db.Query(`DELETE FROM test WHERE id = 100`)
-	_, _ = db.Query(`INSERT INTO test (id) VALUES (100)`)
+// TEST : DB에 usr 정보가 잘 저장되는지 테스트
+	test := UsrInfo{}
+	tests := []UsrInfo{}
+	r, err := db.Query("SELECT id, password FROM usrs")
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("TEST ERROR")
+	}
+	for r.Next()  {
+		r.Scan(&test.Usr_ID, &test.Usr_PW)
+		tests = append(tests, test)
+	}
+	fmt.Println("NOW STORED USR ID AND PW : ", tests)
 
-// TEST : DB-SERVER 연결 확인용 테스트 API
-	eg.GET("/api/usr", func (c *gin.Context){
-		data, err := db.Query("SELECT id FROM test")
+// TEST : DB에 chat data가 잘 저장되는지 테스트
+	// chattest := ReadData{}
+	// chattests := []ReadData{} 
+	// r, _ = db.Query("SELECT ")
+
+// 회원가입 시 아이디 중복체크
+	eg.POST("/api/id", func (c *gin.Context){
+		temp := struct {
+			InputID string `json:"input_id"`
+		}{}
+		
+		err := c.ShouldBindJSON(&temp)
 		if err != nil {
 			fmt.Println(err.Error())
-			fmt.Println("READING DATA FROM DB ERROR OCCURED")
-
+			fmt.Println("BIDING ID FOR SIGNUP ERROR OCCURED")
 		}
-		var test_data db_test
-		var test_datas []db_test
-		for data.Next() {
-			data.Scan(&test_data.Id)
-			test_datas = append(test_datas, test_data)
-		}
-		fmt.Println(test_datas)
-		send_data, err := json.Marshal(test_datas)
+		r, err = db.Query(`SELECT * FROM usrs WHERE id = "`+temp.InputID+`"`)
 		if err != nil {
 			fmt.Println(err.Error())
-			fmt.Println("DATA MARSHALING ERROR OCCURED")
 		}
-		c.Writer.WriteHeader(200)
-		c.Writer.Write(send_data)
+		if r.Next() {
+			c.Writer.WriteHeader(400)
+		} else {
+			c.Writer.WriteHeader(200)
+		}
+		
 	})
 
-// TEST : CLIENT-SERVER 연결 확인용 테스트 API
-	eg.GET("/api/test", func (c *gin.Context){
-		c.Writer.WriteHeader(200)
-		c.Writer.Write([]byte("TEST"))
-	})	
+// 회원가입	
+	eg.POST("/api/usr", func (c *gin.Context){
+		data := UsrInfo{}
+		err := c.ShouldBindJSON(&data)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("BINDING SIGNUP DATA ERROR OCCURED")
+		} else {
+			_, err = db.Query(`INSERT INTO usrs (id, password) VALUES ("`+data.Usr_ID+`", "`+data.Usr_PW+`")`)
+			if err != nil {
+				fmt.Println(err.Error())
+				fmt.Println("STORING SIGNUP DATA TO DB ERROR OCCURED")
+			} else {
+				c.Writer.WriteHeader(http.StatusOK)
+			}
+
+		}
+
+	})
 	
 // Websocket 프로토콜로 업그레이드
 	eg.GET("/ws", func(c *gin.Context){
@@ -200,7 +230,7 @@ func main() {
 			fmt.Println("READ_TIME : ", read_data.Write_time)
 
 			// DB에 메시지 저장
-			_, err = db.Query(`INSERT INTO chat (text_body, writer_id, write_time) VALUES (`+read_data.Text_body+`, `+read_data.Writer_id+`, `+read_data.Write_time+`)`)
+			_, err = db.Query(`INSERT INTO chat (text_body, writer_id, write_time) VALUES ("`+read_data.Text_body+`", "`+read_data.Writer_id+`", "`+read_data.Write_time+`")`)
 			if err != nil {
 				fmt.Println(err.Error())
 				fmt.Println("ADD CHAT TO DB ERROR OCCURED")

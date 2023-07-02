@@ -181,7 +181,7 @@ func main() {
 		// 	uuid,
 		// }
 		
-		
+		// 메시지를 읽고 쓰는 부분, 읽은 메시지는 DB에 저장됨
 		for {
 			var read_data ReadData
 			err := conn.ReadJSON(&read_data)
@@ -198,8 +198,13 @@ func main() {
 			fmt.Println("READ_TEXT : ", read_data.Text_body)
 			fmt.Println("READ_ID : ", read_data.Writer_id)
 			fmt.Println("READ_TIME : ", read_data.Write_time)
-			
-			
+
+			_, err = db.Query(`INSERT INTO chat (text_body, writer_id, write_time) VALUES (`+read_data.Text_body+`, `+read_data.Writer_id+`, `+read_data.Write_time+`)`)
+			if err != nil {
+				fmt.Println(err.Error())
+				fmt.Println("ADD CHAT TO DB ERROR OCCURED")
+			}
+
 			err = conn.WriteJSON(read_data)
 			if err != nil {
 				fmt.Println(err.Error())

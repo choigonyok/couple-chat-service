@@ -2,6 +2,7 @@ import logo from './logo.svg';
 import './App.css';
 import Example from './Example';
 import Chatpage from './Chatpage';
+import Signup from './Signup';
 
 
 function App() {
@@ -10,6 +11,7 @@ function App() {
       <header className="App-header">
         <Chatpage/>
         <Example/>
+        <Signup/>
       </header>
     </div>
   );

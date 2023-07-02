@@ -199,6 +199,7 @@ func main() {
 			fmt.Println("READ_ID : ", read_data.Writer_id)
 			fmt.Println("READ_TIME : ", read_data.Write_time)
 
+			// DB에 메시지 저장
 			_, err = db.Query(`INSERT INTO chat (text_body, writer_id, write_time) VALUES (`+read_data.Text_body+`, `+read_data.Writer_id+`, `+read_data.Write_time+`)`)
 			if err != nil {
 				fmt.Println(err.Error())

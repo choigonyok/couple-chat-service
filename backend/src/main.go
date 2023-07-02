@@ -13,6 +13,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/google/uuid"
 )
 
 // 클라이언트에서 채팅 본문을 받는 구조체
@@ -37,6 +38,12 @@ func OriginConfig() cors.Config{
 type db_test struct {
 	Id int	`json:"id"`
 	// 클라이언트랑 통신하려면 field name을 UPPER로 적어야함
+}
+
+// 커넥션 별 uuid 생성
+func GenerateUserID() string {
+	u := uuid.New()
+	return u.String()
 }
 
 
@@ -130,26 +137,7 @@ func main() {
 	eg.GET("/api/test", func (c *gin.Context){
 		c.Writer.WriteHeader(200)
 		c.Writer.Write([]byte("TEST"))
-	})
-
-
-
-
-	eg.POST("/api/chat", func (c *gin.Context){
-		data := ChatBody{}
-		err := c.ShouldBindJSON(&data)
-		if err != nil{
-			fmt.Println("CHAT BODY JSON BINDING ERROR OCCURED")
-		}
-		fmt.Println(data.Chat_body)
-		fmt.Println(data.Chat_body)
-		fmt.Println(data.Chat_body)
-		fmt.Println(data.Chat_body)
-		fmt.Println(data.Chat_body)
-		c.Writer.WriteHeader(200)
-	})
-
-	
+	})	
 	
 // Websocket 프로토콜로 업그레이드
 	eg.GET("/ws", func(c *gin.Context){
@@ -172,6 +160,22 @@ func main() {
 			return
 		}
 		defer conn.Close()
+
+		// 사용자에게 uuid를 생성해서 전달
+		uuid := GenerateUserID()
+		fmt.Println("USRID : ", uuid)
+		conn.WriteJSON(struct{
+			ID string `json:"created_id"`
+		}{
+			uuid,
+		})
+		// usrID := struct {
+		// 	Usr_id string `json:"usr_id"`
+		// }{
+		// 	uuid,
+		// }
+		
+		
 		for {
 			_, read_text, err := conn.ReadMessage()	
 			if err != nil {

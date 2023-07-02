@@ -21,6 +21,12 @@ type ChatBody struct {
 	Chat_body string `json:"chat_body"`
 }
 
+type ReadData struct {
+	Text_body string `json:"text_body"`
+        Writer_id string `json:"writer_id"`
+        Write_time string `json:"write_time"`
+}
+
 // Origin CORS 설정
 func OriginConfig() cors.Config{
 	config := cors.DefaultConfig()
@@ -177,13 +183,24 @@ func main() {
 		
 		
 		for {
-			_, read_text, err := conn.ReadMessage()	
+			var read_data ReadData
+			err := conn.ReadJSON(&read_data)
 			if err != nil {
+				fmt.Println(err.Error())
 				fmt.Println("READING FROM CONNECTION ERROR OCCURED")
 				break;
 			}
-			err = conn.WriteJSON(string(read_text))
-			fmt.Println("READ_TEXT : ", string(read_text))
+			//invalid character 'o' looking for beginning of value 에러 발생
+			// ReadJSON에서 문제 발생
+			// 출처 : https://austindewey.com/2020/12/11/troubleshooting-invalid-character-looking-for-beginning-of-value/
+			// json패키지가 json형식이 아닌 스트링을 언마샬링하려고 할 때 발생하는 에러
+			// 리액트코드 원인 : newSocket.send(JSON.stringify(sendData)); 객체만 만들고 객체를 json형식으로 변환을 안시켜줬음
+			fmt.Println("READ_TEXT : ", read_data.Text_body)
+			fmt.Println("READ_ID : ", read_data.Writer_id)
+			fmt.Println("READ_TIME : ", read_data.Write_time)
+			
+			
+			err = conn.WriteJSON(read_data)
 			if err != nil {
 				fmt.Println(err.Error())
 				fmt.Println("WRITING TO CONN ERROR OCCURED")

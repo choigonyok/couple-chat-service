@@ -2,6 +2,7 @@ import REACT, { useEffect, useRef, useState } from "react";
 // NULL을 사용하려면 REACT를 import 해줘야함
 import "./Chatpage.css";
 import Inputbox from "./Inputbox";
+import { formToJSON } from "axios";
 
 const Chatpage = () => {
   const [newSocket, setNewSocket] = useState(null);
@@ -35,13 +36,15 @@ const Chatpage = () => {
 
   const sendMessageHandler = (data) => {
     if (newSocket !== null) {
-      let now = Date("2023-06-06 12:00:00");
+      let now = new Date();
+      let nowformat = now.getFullYear()+"/"+now.getMonth()+"/"+now.getDate()+" "+now.getHours()+":"+now.getMinutes()
       const sendData = {
-        text_body: data,
-        writer_id: usrID,
-        write_time: now,
+        text_body: String(data),
+        writer_id: String(usrID),
+        write_time: nowformat,
       };
-      newSocket.send(sendData);
+      console.log(sendData);
+      newSocket.send(JSON.stringify(sendData));
     } else alert("상대방에게 메세지를 보낼 수 없는 상태입니다.");
   };
 

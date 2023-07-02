@@ -22,7 +22,7 @@ const Chatpage = () => {
         setUsrID(parsedData.created_id);
         console.log("CREATED ID : ", parsedData.created_id);
       } else {
-        setRecievedMessage((prev) => [...prev, String(parsedData)]);
+        setRecievedMessage((prev) => [...prev, parsedData]);
       }
     };
     socket.onclose = () => {
@@ -37,7 +37,16 @@ const Chatpage = () => {
   const sendMessageHandler = (data) => {
     if (newSocket !== null) {
       let now = new Date();
-      let nowformat = now.getFullYear()+"/"+now.getMonth()+"/"+now.getDate()+" "+now.getHours()+":"+now.getMinutes()
+      let nowformat =
+        now.getFullYear() +
+        "/" +
+        now.getMonth() +
+        "/" +
+        now.getDate() +
+        " " +
+        now.getHours() +
+        ":" +
+        now.getMinutes();
       const sendData = {
         text_body: String(data),
         writer_id: String(usrID),
@@ -53,8 +62,11 @@ const Chatpage = () => {
       <div className="chat-container">
         {recievedMessage &&
           recievedMessage.map((item, index) => (
-            <div className="chat-container__chat__usr">
-              <p className="chat-container__usr">{item}</p>
+            <div>
+              <div className="chat-container__chat__usr">
+                <div className="chat-container__usr__chat">{item.text_body}</div>
+                <div className="chat-container__usr__time">{item.write_time}</div>
+              </div>
             </div>
           ))}
       </div>

@@ -6,7 +6,7 @@ import Inputbox from "./Inputbox";
 const Chatpage = () => {
   const [newSocket, setNewSocket] = useState(null);
   const [recievedMessage, setRecievedMessage] = useState([]);
-  const [usrID, setUsrID] = useState([]);
+  const [myUUID, setMyUUID] = useState("");
 
   useEffect(() => {
     const socket = new WebSocket("ws://localhost:8080/ws");
@@ -17,7 +17,12 @@ const Chatpage = () => {
 
     socket.onmessage = (e) => {
       const parsedData = JSON.parse(e.data);
+      if (parsedData.uuid) {
+        setMyUUID(parsedData.uuid);
+      } else {
         setRecievedMessage((prev) => [...prev, parsedData]);
+        console.log("RECIEVED MESSAGE : ", parsedData);
+      }
     };
     socket.onclose = () => {
       console.log("CONNECTION CLOSED");
@@ -43,8 +48,8 @@ const Chatpage = () => {
         now.getMinutes();
       const sendData = {
         text_body: String(data),
-        writer_id: String(usrID),
         write_time: nowformat,
+        writer_id: myUUID,
       };
       console.log(sendData);
       newSocket.send(JSON.stringify(sendData));
@@ -58,8 +63,12 @@ const Chatpage = () => {
           recievedMessage.map((item, index) => (
             <div>
               <div className="chat-container__chat__usr">
-                <div className="chat-container__usr__chat">{item.text_body}</div>
-                <div className="chat-container__usr__time">{item.write_time}</div>
+                <div className="chat-container__usr__chat">
+                  {item.text_body}
+                </div>
+                <div className="chat-container__usr__time">
+                  {item.write_time}
+                </div>
               </div>
             </div>
           ))}

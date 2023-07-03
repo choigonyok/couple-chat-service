@@ -21,7 +21,7 @@ type ChatBody struct {
 	Chat_body string `json:"chat_body"`
 }
 
-type ReadData struct {
+type MessageData struct {
 	Text_body string `json:"text_body"`
         Writer_id string `json:"writer_id"`
         Write_time string `json:"write_time"`
@@ -139,8 +139,8 @@ func main() {
 	fmt.Println("NOW STORED USR ID AND PW : ", tests)
 
 // TEST : DB에 chat data가 잘 저장되는지 테스트
-	chattest := ReadData{}
-	chattests := []ReadData{} 
+	chattest := MessageData{}
+	chattests := []MessageData{} 
 	r, err = db.Query("SELECT chat_id, writer_id, write_time, text_body FROM chat")
 	if err != nil {
 		fmt.Println(err.Error())
@@ -280,11 +280,25 @@ func main() {
 			return
 		}
 		defer conn.Close()
+
+		// 클라이언트에 uuid 전달, 그래야 클라이언트에게 채팅을 표시할 때
+		// 누가 보낸 채팅인지 UUID로 구분해서 표시할 수 있음
+		json_uuid := struct {
+			Uuid string `json:"uuid"`
+		}{
+			uuid,
+		}
+		err = conn.WriteJSON(json_uuid)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("SENDING UUID TO CLIENT ERROR OCCURED")
+			return
+		}
 		
 		// 메시지를 읽고 쓰는 부분, 읽은 메시지는 DB에 저장됨
-		for {
-			var read_data ReadData
-			err := conn.ReadJSON(&read_data)
+		for { 
+			var messageData MessageData
+			err := conn.ReadJSON(&messageData)
 			if err != nil {
 				fmt.Println(err.Error())
 				fmt.Println("READING FROM CONNECTION ERROR OCCURED")
@@ -295,18 +309,19 @@ func main() {
 			// 출처 : https://austindewey.com/2020/12/11/troubleshooting-invalid-character-looking-for-beginning-of-value/
 			// json패키지가 json형식이 아닌 스트링을 언마샬링하려고 할 때 발생하는 에러
 			// 리액트코드 원인 : newSocket.send(JSON.stringify(sendData)); 객체만 만들고 객체를 json형식으로 변환을 안시켜줬음
-			fmt.Println("READ_TEXT : ", read_data.Text_body)
-			fmt.Println("READ_TIME : ", read_data.Write_time)
-			fmt.Println("READ_ID : ", uuid)
 
+			fmt.Println(messageData)
+			fmt.Println(messageData)
+			fmt.Println(messageData)
+		
 			// DB에 메시지 저장
-			_, err = db.Query(`INSERT INTO chat (text_body, writer_id, write_time) VALUES ("`+read_data.Text_body+`", "`+uuid+`", "`+read_data.Write_time+`")`)
+			_, err = db.Query(`INSERT INTO chat (text_body, writer_id, write_time) VALUES ("`+messageData.Text_body+`", "`+uuid+`", "`+messageData.Write_time+`")`)
 			if err != nil {
 				fmt.Println(err.Error())
 				fmt.Println("ADD CHAT TO DB ERROR OCCURED")
 			}
 
-			err = conn.WriteJSON(read_data)
+			err = conn.WriteJSON(messageData)
 			if err != nil {
 				fmt.Println(err.Error())
 				fmt.Println("WRITING TO CONN ERROR OCCURED")

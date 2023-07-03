@@ -223,7 +223,7 @@ func main() {
 	})
 
 // 로그인
-	eg.POST("/api/login", func (c *gin.Context){
+	eg.POST("/api/log", func (c *gin.Context){
 		data := UsrInfo{}
 		err := c.ShouldBindJSON(&data)
 		if err != nil {
@@ -243,6 +243,17 @@ func main() {
 		} else {
 			c.Writer.WriteHeader(400)
 		}
+	})
+
+// 로그아웃
+	eg.DELETE("/api/log", func (c *gin.Context){
+		uuid, err := c.Cookie("uuid")
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("LOADING COOKIE TO DELETE ERROR OCCURED")
+		}
+		c.SetCookie("uuid", uuid, -1, "/", os.Getenv("ORIGIN1"), false, true)
+		c.String(200, "로그아웃 되었습니다.")
 	})
 	
 // Websocket 프로토콜로 업그레이드 및 메시지 read/write

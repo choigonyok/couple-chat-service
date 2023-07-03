@@ -20,7 +20,7 @@ const Login = () => {
                 usr_pw: inputPW,
               };
         axios
-        .post(process.env.REACT_APP_HOST_URL+"/api/login", usrData)
+        .post(process.env.REACT_APP_HOST_URL+"/api/log", usrData)
         .then((response)=>{
                 alert("로그인에 성공했습니다.");
                 setInputPW("");

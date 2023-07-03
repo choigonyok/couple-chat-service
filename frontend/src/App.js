@@ -1,6 +1,7 @@
 import './App.css';
 import Chatpage from './Chatpage';
 import Login from './Login';
+import Logout from './Logout';
 import Signup from './Signup';
 
 
@@ -11,6 +12,7 @@ function App() {
         <Chatpage/>
         <Signup/>
         <Login/>
+        <Logout/>
       </header>
     </div>
   );

@@ -20,8 +20,7 @@ const Chatpage = () => {
       if (parsedData.uuid) {
         setMyUUID(parsedData.uuid);
       } else {
-        setRecievedMessage((prev) => [...prev, parsedData]);
-        console.log("RECIEVED MESSAGE : ", parsedData);
+        setRecievedMessage((prev) => [...prev, ...parsedData]);
       }
     };
     socket.onclose = () => {
@@ -46,11 +45,13 @@ const Chatpage = () => {
         now.getHours() +
         ":" +
         now.getMinutes();
-      const sendData = {
-        text_body: String(data),
-        write_time: nowformat,
-        writer_id: myUUID,
-      };
+      const sendData = [
+        {
+          text_body: String(data),
+          write_time: nowformat,
+          writer_id: myUUID,
+        },
+      ];
       console.log(sendData);
       newSocket.send(JSON.stringify(sendData));
     } else alert("상대방에게 메세지를 보낼 수 없는 상태입니다.");
@@ -62,14 +63,26 @@ const Chatpage = () => {
         {recievedMessage &&
           recievedMessage.map((item, index) => (
             <div>
-              <div className="chat-container__chat__usr">
-                <div className="chat-container__usr__chat">
-                  {item.text_body}
+              {item.writer_id === myUUID && (
+                <div className="chat-container__chat__usr">
+                  <div className="chat-container__chat">
+                    {item.text_body}
+                  </div>
+                  <div className="chat-container__time">
+                    {item.write_time}
+                  </div>
                 </div>
-                <div className="chat-container__usr__time">
-                  {item.write_time}
+              )}
+              {item.writer_id !== myUUID && (
+                <div className="chat-container__chat__other">
+                  <div className="chat-container__chat">
+                    {item.text_body}
+                  </div>
+                  <div className="chat-container__time">
+                    {item.write_time}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           ))}
       </div>

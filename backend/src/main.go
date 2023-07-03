@@ -294,10 +294,32 @@ func main() {
 			fmt.Println("SENDING UUID TO CLIENT ERROR OCCURED")
 			return
 		}
-		
+
+		// 기존 저장되어있던 채팅 DB에서 불러와서 표시
+		initialChat := MessageData{}
+		initialChats := []MessageData{}
+		r, err := db.Query(`SELECT chat_id, writer_id, write_time, text_body FROM chat`)
+		// LATER : 나중에 여러 conn 구현하면 쿼리문에 조건절이랑 conn_id 넣기
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("LOADING INITIAL CHATS FROM DB ERROR OCCURED")
+		}
+		for r.Next() {
+			r.Scan(&initialChat.Chat_id, &initialChat.Writer_id, &initialChat.Write_time, &initialChat.Text_body)
+			initialChats = append(initialChats, initialChat)
+		}
+		err = conn.WriteJSON(initialChats)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("WRITING INITIAL CHATS TO CLIENTS ERROR OCCURED")
+		}
+
 		// 메시지를 읽고 쓰는 부분, 읽은 메시지는 DB에 저장됨
 		for { 
-			var messageData MessageData
+			var messageData []MessageData
+			// 메시지 하나씩 주고받는데 slice로 메시지 read하는 이유
+			// : 기존 DB에 저장되어있던 메시지를 보낼 때 slice 형태로 전송하는데
+			// 클라이언트에서 기존 메시지나, 새로운 입력 메시지나 하나의 코드로 처리할 수 있게 하려고 이렇게 작성함
 			err := conn.ReadJSON(&messageData)
 			if err != nil {
 				fmt.Println(err.Error())
@@ -309,18 +331,13 @@ func main() {
 			// 출처 : https://austindewey.com/2020/12/11/troubleshooting-invalid-character-looking-for-beginning-of-value/
 			// json패키지가 json형식이 아닌 스트링을 언마샬링하려고 할 때 발생하는 에러
 			// 리액트코드 원인 : newSocket.send(JSON.stringify(sendData)); 객체만 만들고 객체를 json형식으로 변환을 안시켜줬음
-
-			fmt.Println(messageData)
-			fmt.Println(messageData)
-			fmt.Println(messageData)
-		
 			// DB에 메시지 저장
-			_, err = db.Query(`INSERT INTO chat (text_body, writer_id, write_time) VALUES ("`+messageData.Text_body+`", "`+uuid+`", "`+messageData.Write_time+`")`)
+			_, err = db.Query(`INSERT INTO chat (text_body, writer_id, write_time) VALUES ("`+messageData[0].Text_body+`", "`+uuid+`", "`+messageData[0].Write_time+`")`)
+			// 어차피 커넥션 당 메시지 하나씩 전송 받으니까 slice index는 0으로 설정
 			if err != nil {
 				fmt.Println(err.Error())
 				fmt.Println("ADD CHAT TO DB ERROR OCCURED")
 			}
-
 			err = conn.WriteJSON(messageData)
 			if err != nil {
 				fmt.Println(err.Error())

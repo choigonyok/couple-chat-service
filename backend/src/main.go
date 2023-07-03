@@ -198,7 +198,7 @@ func main() {
 				fmt.Println("ID REGEXP ERROR OCCURED")
 			}
 			if !idCorrect {
-				c.String(400, "%v", "ID는 첫 글자가 영어인, 영어와 숫자 조합의 1~20자로만 사용할 수 있습니다.")
+				c.String(400, "%v", "ID는 첫 글자가 영어 소문자인, 영어 소문자와 숫자 조합의 1~20자로만 사용할 수 있습니다.")
 				return
 			}
 			pwCorrect, err := regexp.MatchString("^[a-z0-9]*$", data.Usr_ID)
@@ -207,7 +207,7 @@ func main() {
 				fmt.Println("ID REGEXP ERROR OCCURED")
 			}
 			if !pwCorrect {
-				c.String(400, "%v", "PW는 첫 글자가 영어인, 영어와 숫자 조합의 1~20자로만 사용할 수 있습니다.")
+				c.String(400, "%v", "PW는 첫 글자가 영어 소문자인, 영어 소문자와 숫자 조합의 1~20자로만 사용할 수 있습니다.")
 				return
 			}
 			// 사용자의 uuid를 생성
@@ -230,21 +230,28 @@ func main() {
 			fmt.Println(err.Error())
 			fmt.Println("LOGIN DATA BINDING ERROR OCCURED")
 		}
-		r, err := db.Query(`SELECT * FROM usrs WHERE id = "`+data.Usr_ID+`" and password = "`+data.Usr_PW+`"`)
+		r, err := db.Query(`SELECT uuid FROM usrs WHERE id = "`+data.Usr_ID+`" and password = "`+data.Usr_PW+`"`)
 		if err != nil {
 			fmt.Println(err.Error())
 			fmt.Println("FINDING USR DATA TO LOGIN FROM DB ERROR OCCURED")
 		}
 		if r.Next() {
+			var uuid_data string
+			r.Scan(&uuid_data)
+			c.SetCookie("uuid", uuid_data, 60*60, "/", os.Getenv("ORIGIN1"),false,true)
 			c.Writer.WriteHeader(200)
 		} else {
 			c.Writer.WriteHeader(400)
 		}
 	})
 	
-// Websocket 프로토콜로 업그레이드
+// Websocket 프로토콜로 업그레이드 및 메시지 read/write
 	eg.GET("/ws", func(c *gin.Context){
-		
+		uuid, err := c.Cookie("uuid")
+		if err != nil {
+			c.String(400, "로그인을 한 이후에 서비스를 이용할 수 있습니다.")
+			return
+		}
 		var upgrader  = websocket.Upgrader{
 			WriteBufferSize: 1024,
 			ReadBufferSize: 1024,
@@ -278,11 +285,11 @@ func main() {
 			// json패키지가 json형식이 아닌 스트링을 언마샬링하려고 할 때 발생하는 에러
 			// 리액트코드 원인 : newSocket.send(JSON.stringify(sendData)); 객체만 만들고 객체를 json형식으로 변환을 안시켜줬음
 			fmt.Println("READ_TEXT : ", read_data.Text_body)
-			fmt.Println("READ_ID : ", read_data.Writer_id)
 			fmt.Println("READ_TIME : ", read_data.Write_time)
+			fmt.Println("READ_ID : ", uuid)
 
 			// DB에 메시지 저장
-			_, err = db.Query(`INSERT INTO chat (text_body, writer_id, write_time) VALUES ("`+read_data.Text_body+`", "`+read_data.Writer_id+`", "`+read_data.Write_time+`")`)
+			_, err = db.Query(`INSERT INTO chat (text_body, writer_id, write_time) VALUES ("`+read_data.Text_body+`", "`+uuid+`", "`+read_data.Write_time+`")`)
 			if err != nil {
 				fmt.Println(err.Error())
 				fmt.Println("ADD CHAT TO DB ERROR OCCURED")
@@ -294,7 +301,6 @@ func main() {
 				fmt.Println("WRITING TO CONN ERROR OCCURED")
 			}
 		}
-		
 	})
 	
 	eg.Run(":8080")

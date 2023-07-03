@@ -17,12 +17,7 @@ const Chatpage = () => {
 
     socket.onmessage = (e) => {
       const parsedData = JSON.parse(e.data);
-      if (parsedData.created_id) {
-        setUsrID(parsedData.created_id);
-        console.log("CREATED ID : ", parsedData.created_id);
-      } else {
         setRecievedMessage((prev) => [...prev, parsedData]);
-      }
     };
     socket.onclose = () => {
       console.log("CONNECTION CLOSED");

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"regexp"
 
 	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
@@ -56,6 +57,14 @@ type db_test struct {
 func GenerateUserID() string {
 	u := uuid.New()
 	return u.String()
+}
+
+func checkIDandPWLength(idorpw string) bool {
+	if len(idorpw) >= 21 {
+		return false
+	} else {
+		return true
+	}
 }
 
 
@@ -175,6 +184,32 @@ func main() {
 			fmt.Println(err.Error())
 			fmt.Println("BINDING SIGNUP DATA ERROR OCCURED")
 		} else {
+			if !checkIDandPWLength(data.Usr_ID) {
+				c.String(400, "%v", "ID의 최대 길이는 20자로 제한됩니다.")
+				return
+			}
+			if !checkIDandPWLength(data.Usr_PW) {
+				c.String(400, "%v", "PASSWORD의 최대 길이는 20자로 제한됩니다.")
+				return
+			}
+			idCorrect, err := regexp.MatchString("^[a-z][a-z0-9]+$", data.Usr_ID)
+			if err != nil {
+				fmt.Println(err.Error())
+				fmt.Println("ID REGEXP ERROR OCCURED")
+			}
+			if !idCorrect {
+				c.String(400, "%v", "ID는 첫 글자가 영어인, 영어와 숫자 조합의 1~20자로만 사용할 수 있습니다.")
+				return
+			}
+			pwCorrect, err := regexp.MatchString("^[a-z0-9]*$", data.Usr_ID)
+			if err != nil {
+				fmt.Println(err.Error())
+				fmt.Println("ID REGEXP ERROR OCCURED")
+			}
+			if !pwCorrect {
+				c.String(400, "%v", "PW는 첫 글자가 영어인, 영어와 숫자 조합의 1~20자로만 사용할 수 있습니다.")
+				return
+			}
 			// 사용자의 uuid를 생성
 			uuid := GenerateUserID()
 			_, err = db.Query(`INSERT INTO usrs (id, password, uuid) VALUES ("`+data.Usr_ID+`", "`+data.Usr_PW+`", "`+uuid+`")`)
@@ -205,11 +240,10 @@ func main() {
 		} else {
 			c.Writer.WriteHeader(400)
 		}
-	})	
+	})
 	
 // Websocket 프로토콜로 업그레이드
 	eg.GET("/ws", func(c *gin.Context){
-
 		
 		var upgrader  = websocket.Upgrader{
 			WriteBufferSize: 1024,

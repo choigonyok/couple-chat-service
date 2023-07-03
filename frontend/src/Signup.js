@@ -54,7 +54,7 @@ const Signup = () => {
           setIsIDChecked(false);
         })
         .catch((error) => {
-          alert("회원가입에 실패했습니다.");
+          alert(error.response.data);
           setInputID("");
           setInputPW("");
           setIsIDChecked(false);
@@ -72,10 +72,13 @@ const Signup = () => {
           onChange={inputIDHandler}
         />
         <input type="button" value="중복 확인" onClick={checkIDHandler} />
+        <div>
+                <h6>(ID는 알파벳 소문자로 시작하는, 알파벳 소문자와 숫자의 최대 20자 조합)</h6>
+        </div>
       </div>
       {isIDChecked && (
         <div>
-          <h5>사용 가능한 아이디 입니다.</h5>
+          <h5>현재 사용중이지 않은 아이디 입니다.</h5>
         </div>
       )}
       {isAlready && (

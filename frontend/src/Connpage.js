@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import Logout from "./Logout";
 import axios from "axios";
 import { useEffect } from "react";
+import Connsend from "./Connsend";
 
 const Connpage = () => {
   const navigator = useNavigate();
@@ -28,7 +29,7 @@ const Connpage = () => {
   return (
     <div>
       <div>받은 커넥션</div>
-      <div>보낸 커넥션</div>
+      <Connsend/>
       <div>
         <Logout />
       </div>

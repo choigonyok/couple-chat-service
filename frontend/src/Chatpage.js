@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 const Chatpage = () => {
   const navigator = useNavigate();
-  
+
   const [newSocket, setNewSocket] = useState(null);
   const [recievedMessage, setRecievedMessage] = useState([]);
   const [myUUID, setMyUUID] = useState("");
@@ -29,7 +29,6 @@ const Chatpage = () => {
         } else {
           console.log(error);
         }
-        
      })
   },[])
 

@@ -314,6 +314,43 @@ func main() {
 			c.Writer.WriteHeader(500)
 		}
 	})
+
+// 상대방에게 connection 연결 요청	
+	eg.POST("/api/request", func (c *gin.Context){
+		data := struct {
+			UsrID string `json:"input_id"`
+		}{}
+		err := c.ShouldBindJSON(&data)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("JSON BINDING TO REQUEST ERROR OCCURED")
+		}
+		fmt.Println(data.UsrID) // for TEST
+
+		r, err := db.Query(`SELECT id, conn_id FROM usrs WHERE id = "`+data.UsrID+`"`)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("FINDING ID, CONN_ID TO SEND REQUEST ERROR OCCURED")
+		} 
+
+		// ID가 존재하는 ID면 이미 연결되어있진 않은지 conn_id를 확인
+		if r.Next() {
+			var id_temp string
+			var conn_id_temp string
+			
+			r.Scan(&id_temp, &conn_id_temp)
+			if conn_id_temp != "0" {
+				c.String(400, "%v", "ALREADY_CONNECTED")
+				return
+			} else {
+				c.Writer.WriteHeader(200)
+				return
+			}
+		} else {
+		// ID가 존재하지 않는 ID면
+			c.String(400, "%v", "NOT_EXIST")
+		}
+	})
 	
 // Websocket 프로토콜로 업그레이드 및 메시지 read/write
 	eg.GET("/ws", func(c *gin.Context){

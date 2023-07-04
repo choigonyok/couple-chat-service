@@ -317,17 +317,21 @@ func main() {
 
 // 상대방에게 connection 연결 요청	
 	eg.POST("/api/request", func (c *gin.Context){
+		uuid, err := c.Cookie("uuid")
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("LOAD COOKIE TO CHECK CALL YOURSELF ERROR OCCURED")
+		}
 		data := struct {
 			UsrID string `json:"input_id"`
 		}{}
-		err := c.ShouldBindJSON(&data)
+		err = c.ShouldBindJSON(&data)
 		if err != nil {
 			fmt.Println(err.Error())
 			fmt.Println("JSON BINDING TO REQUEST ERROR OCCURED")
 		}
-		fmt.Println(data.UsrID) // for TEST
 
-		r, err := db.Query(`SELECT id, conn_id FROM usrs WHERE id = "`+data.UsrID+`"`)
+		r, err := db.Query(`SELECT id, conn_id, uuid FROM usrs WHERE id = "`+data.UsrID+`"`)
 		if err != nil {
 			fmt.Println(err.Error())
 			fmt.Println("FINDING ID, CONN_ID TO SEND REQUEST ERROR OCCURED")
@@ -337,9 +341,12 @@ func main() {
 		if r.Next() {
 			var id_temp string
 			var conn_id_temp string
-			
-			r.Scan(&id_temp, &conn_id_temp)
-			if conn_id_temp != "0" {
+			var uuid_temp string
+
+			r.Scan(&id_temp, &conn_id_temp, &uuid_temp)
+			if uuid_temp == uuid {
+				c.String(400, "%v", "NOT_YOURSELF")
+			} else if conn_id_temp != "0" {
 				c.String(400, "%v", "ALREADY_CONNECTED")
 				return
 			} else {

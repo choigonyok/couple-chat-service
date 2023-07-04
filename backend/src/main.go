@@ -25,7 +25,7 @@ type MessageData struct {
 	Text_body string `json:"text_body"`
         Writer_id string `json:"writer_id"`
         Write_time string `json:"write_time"`
-	Conn_id string `json:"conn_id"`
+	Conn_id int `json:"conn_id"`
 	Chat_id int `json:"chat_id"`
 }
 
@@ -67,6 +67,32 @@ func checkIDandPWLength(idorpw string) bool {
 	}
 }
 
+// usr가 상대방과 연결된 상태인지 아닌지 체크
+func isConnected(c *gin.Context, db *sql.DB) bool {
+	// 함수명과 파라미터 띄어쓰면 오류 생김
+
+	uuid, err := c.Cookie("uuid")
+	fmt.Println(uuid)
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("COOKIE LOADING TO CHECK CONNECTED ERROR OCCURED")
+	}
+	r, err := db.Query(`SELECT conn_id FROM usrs WHERE uuid = "`+uuid+`"`)
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("LOAD DB TO CHECK CONNECTED ERROR OCCURED")
+	}
+	var conn_id int
+	for r.Next() {
+		r.Scan(&conn_id)
+	}
+	if conn_id == 0 {
+		return false
+	} else {
+		return true
+	}
+}
+
 
 func main() {	
 // 커넥션 집합 슬라이스
@@ -97,7 +123,6 @@ func main() {
 	// ambiguity를 줄이기 위해서 os.LookupEnv() 메서드를 사용
 	// 환경변수의 존재 여부를 두 번째 파라미터 boolean으로 알려줌
 	// os.Setenv()와 os.UnSetenv()로 환경변수를 생성/삭제 할 수 있음
-	
 
 	eg := gin.Default()
 	// 엔진 생성
@@ -214,7 +239,9 @@ func main() {
 			}
 			// 사용자의 uuid를 생성
 			uuid := GenerateUserID()
-			_, err = db.Query(`INSERT INTO usrs (id, password, uuid) VALUES ("`+data.Usr_ID+`", "`+data.Usr_PW+`", "`+uuid+`")`)
+
+			// DB에 사용자 데이터 저장
+			_, err = db.Query(`INSERT INTO usrs (id, password, uuid, conn_id) VALUES ("`+data.Usr_ID+`", "`+data.Usr_PW+`", "`+uuid+`", 0)`)
 			if err != nil {
 				fmt.Println(err.Error())
 				fmt.Println("STORING SIGNUP DATA TO DB ERROR OCCURED")
@@ -240,7 +267,7 @@ func main() {
 		if r.Next() {
 			var uuid_data string
 			r.Scan(&uuid_data)
-			c.SetCookie("uuid", uuid_data, 60*60, "/", os.Getenv("ORIGIN1"),false,true)
+			c.SetCookie("uuid", uuid_data, 60*60, "/", os.Getenv("ORIGIN1"),false,true)	
 			c.Writer.WriteHeader(200)
 		} else {
 			c.Writer.WriteHeader(400)
@@ -260,20 +287,31 @@ func main() {
 
 // 기존 로그인 되있던 상태인지 쿠키 확인	
 	eg.GET("/api/log", func (c *gin.Context){
+		// 쿠키의 uuid 확인
 		uuid, err := c.Cookie("uuid")
 		if err != nil {
 			fmt.Println(err.Error())
 			fmt.Println("LOADING COOKIE TO CHECK LOGIN ERROR OCCURED")
+			c.Writer.WriteHeader(400)
+			return
 		}
+
+		// 그 uuid가 진짜 db에 있는 회원정보인지 확인
 		r, err := db.Query(`SELECT * FROM usrs WHERE uuid = "`+uuid+`"`)
 		if err != nil {
 			fmt.Println(err.Error())
 			fmt.Println("CHECKING DB TO CHECK LOGGED IN ERROR OCCURED")
 		}
+
+		// 있으면 상대와 connection이 연결된 상태인지 확인 후 응답
 		if r.Next() {
-			c.String(200, "%v", "LOGIN")
+			if isConnected(c, db) {
+				c.String(200, "%v", "CONNECTED")
+			} else {
+				c.String(200, "%v", "NOT_CONNECTED")
+			}	
 		} else {
-			c.Writer.WriteHeader(200)
+			c.Writer.WriteHeader(500)
 		}
 	})
 	

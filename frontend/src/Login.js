@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Signup from "./Signup";
 
 
 const Login = () => {
@@ -14,9 +15,11 @@ const Login = () => {
     axios
      .get(process.env.REACT_APP_HOST_URL+"/api/log")
      .then((response)=>{
-      if (response.data === "LOGIN") {
+      if (response.data === "CONNECTED") {
         navigator('/chat');
-      }
+      } else if (response.data === "NOT_CONNECTED") {
+        navigator('/conn');
+      } 
      })
      .catch((errer)=>{
       console.log("쿠키 확인 중 서버 에러");
@@ -42,7 +45,7 @@ const Login = () => {
                 alert("로그인에 성공했습니다.");
                 setInputPW("");
                 setInputID("");
-                setIsLogined(true);
+                setIsLogined(!isLogined);
         })
         .catch((error)=>{
                 alert("ID 혹은 PASSWORD가 틀렸습니다.");
@@ -70,6 +73,8 @@ const Login = () => {
       <div>
         <input type="button" value="로그인하기" onClick={loginHandler} />
       </div>
+      <br/>
+      <Signup/>
     </div>
   );
 };

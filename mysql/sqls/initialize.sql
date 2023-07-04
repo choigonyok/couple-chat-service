@@ -12,7 +12,7 @@ DROP TABLE IF EXISTS `usrs`;
 CREATE TABLE `usrs` (
         `id` VARCHAR(20), 
         `password` VARCHAR(255) NOT NULL, 
-        `conn_id` VARCHAR(255),
+        `conn_id` VARCHAR(255) NOT NULL,
         `uuid` VARCHAR(255) NOT NULL PRIMARY KEY);
 
 DROP TABLE IF EXISTS `chat`;

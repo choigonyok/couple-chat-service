@@ -1,13 +1,37 @@
-import REACT, { useEffect, useRef, useState } from "react";
+import REACT, { useEffect, useState } from "react";
 // NULL을 사용하려면 REACT를 import 해줘야함
 import "./Chatpage.css";
 import Inputbox from "./Inputbox";
 import Logout from "./Logout";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Chatpage = () => {
+  const navigator = useNavigate();
+  
   const [newSocket, setNewSocket] = useState(null);
   const [recievedMessage, setRecievedMessage] = useState([]);
   const [myUUID, setMyUUID] = useState("");
+
+  useEffect (()=>{
+    axios
+     .get(process.env.REACT_APP_HOST_URL+"/api/log")
+     .then((response)=>{
+      if (response.data === "CONNECTED") {
+        navigator('/chat');
+      } else if (response.data === "NOT_CONNECTED") {
+        navigator('/conn');
+      } 
+     })
+     .catch((error)=>{
+        if (error.response.status === 400) {
+          navigator('/');
+        } else {
+          console.log(error);
+        }
+        
+     })
+  },[])
 
   useEffect(() => {
     const socket = new WebSocket("ws://localhost:8080/ws");

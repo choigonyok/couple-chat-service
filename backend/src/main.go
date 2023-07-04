@@ -69,6 +69,8 @@ func checkIDandPWLength(idorpw string) bool {
 
 
 func main() {	
+// 커넥션 집합 슬라이스
+	var conns []*websocket.Conn
 
 // 환경변수 로딩
 	err := godotenv.Load()
@@ -263,6 +265,7 @@ func main() {
 			c.String(400, "로그인을 한 이후에 서비스를 이용할 수 있습니다.")
 			return
 		}
+
 		var upgrader  = websocket.Upgrader{
 			WriteBufferSize: 1024,
 			ReadBufferSize: 1024,
@@ -281,6 +284,11 @@ func main() {
 		}
 		defer conn.Close()
 
+		// 전체 커넥션 슬라이스에 커넥션 추가
+		conns = append(conns, conn)
+		// LATER : 커넥션 종료/삭제되면 슬라이스에서도 제외해야 함
+		
+		
 		// 클라이언트에 uuid 전달, 그래야 클라이언트에게 채팅을 표시할 때
 		// 누가 보낸 채팅인지 UUID로 구분해서 표시할 수 있음
 		json_uuid := struct {
@@ -331,6 +339,7 @@ func main() {
 			// 출처 : https://austindewey.com/2020/12/11/troubleshooting-invalid-character-looking-for-beginning-of-value/
 			// json패키지가 json형식이 아닌 스트링을 언마샬링하려고 할 때 발생하는 에러
 			// 리액트코드 원인 : newSocket.send(JSON.stringify(sendData)); 객체만 만들고 객체를 json형식으로 변환을 안시켜줬음
+
 			// DB에 메시지 저장
 			_, err = db.Query(`INSERT INTO chat (text_body, writer_id, write_time) VALUES ("`+messageData[0].Text_body+`", "`+uuid+`", "`+messageData[0].Write_time+`")`)
 			// 어차피 커넥션 당 메시지 하나씩 전송 받으니까 slice index는 0으로 설정
@@ -338,11 +347,21 @@ func main() {
 				fmt.Println(err.Error())
 				fmt.Println("ADD CHAT TO DB ERROR OCCURED")
 			}
-			err = conn.WriteJSON(messageData)
-			if err != nil {
-				fmt.Println(err.Error())
-				fmt.Println("WRITING TO CONN ERROR OCCURED")
+			
+			// 모든 커넥션에 메시지 write 
+			for index, item := range conns {
+				err := item.WriteJSON(messageData)
+				if err != nil {
+					fmt.Println(err.Error())
+					fmt.Println(index, "TH CONN WRITING ERROR OCCURED")
+				}
 			}
+
+			// err = conn.WriteJSON(messageData)
+			// if err != nil {
+			// 	fmt.Println(err.Error())
+			// 	fmt.Println("WRITING TO CONN ERROR OCCURED")
+			// }
 		}
 	})
 	

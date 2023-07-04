@@ -7,6 +7,7 @@ const Connrecieved = () => {
 
   const [requested, setRequested] = useState([]);
   const [requesting, setRequesting] = useState({});
+  const [render, setRender] = useState(false);
 
   useEffect(() => {
     axios
@@ -29,14 +30,26 @@ const Connrecieved = () => {
   }, []);
 
   const connectHandler = (value) => {
-    const sendData = {
+    const sendData_conn = {
       uuid_delete : value.Requester_uuid
     };
 
     axios
-      .put(process.env.REACT_APP_HOST_URL+"/api/request",JSON.stringify(sendData))
+      .put(process.env.REACT_APP_HOST_URL+"/api/request",JSON.stringify(sendData_conn))
       .then((response)=>{
         navigator("/chat");
+      })
+      .catch((error)=>{
+        console.log(error);
+      })
+  }
+
+  const deleteRequestHandler = (value) => {
+    
+    axios
+      .delete(process.env.REACT_APP_HOST_URL+"/api/request/"+value.Request_id)
+      .then((response)=>{
+        setRender(!render);
       })
       .catch((error)=>{
         console.log(error);
@@ -72,6 +85,7 @@ const Connrecieved = () => {
               </div>
               <div>
                 <input type="button" value="연결하기" onClick={() => connectHandler(item)}/>
+                <input type="button" value="요청삭제하기" onClick={() => deleteRequestHandler(item)}/>
               </div>
             </div>
           ))

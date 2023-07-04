@@ -110,6 +110,11 @@ func isConnected(c *gin.Context, db *sql.DB) bool {
 	}
 }
 
+type ConnUsr struct {
+	conn *websocket.Conn
+	usr string
+}
+
 
 func main() {	
 // 커넥션 집합 슬라이스
@@ -358,13 +363,13 @@ func main() {
 		requesting_data := RequestData{}
 		requesting_datas := []RequestData{}
 		// usr가 요청받은 커넥션 표시, 요청을 여러개 받을 수 있어서 slice 사용함
-		r, err := db.Query(`SELECT requester_uuid, request_time FROM request WHERE target_uuid = "`+uuid+`"`)
+		r, err := db.Query(`SELECT requester_uuid, request_time, request_id FROM request WHERE target_uuid = "`+uuid+`"`)
 		if err != nil {
 			fmt.Println(err.Error())
 			fmt.Println("DATA WHO REQUEST TO ME FROM DB ERROR OCCURED")
 		}
 		for r.Next() {
-			r.Scan(&requesting_data.Requester_uuid, &requesting_data.Request_time)
+			r.Scan(&requesting_data.Requester_uuid, &requesting_data.Request_time, &requesting_data.Request_id)
 
 			// uuid에 맞는 id 찾기
 			rr, err := db.Query(`SELECT id FROM usrs WHERE uuid = "`+requesting_data.Requester_uuid+`"`)
@@ -524,6 +529,16 @@ func main() {
 		}
 	})
 
+// 받은 요청 중 선택해서 요청을 삭제
+	eg.DELETE("/api/request/:param", func (c *gin.Context){
+		request_id := c.Param("param")
+
+		_, err = db.Query(`DELETE FROM request WHERE request_id = `+request_id)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("DELETE SPECIFIC REQUEST FROM DB ERROR OCCURED")
+		}
+	})
 	
 // Websocket 프로토콜로 업그레이드 및 메시지 read/write
 	eg.GET("/ws", func(c *gin.Context){

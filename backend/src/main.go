@@ -257,6 +257,25 @@ func main() {
 		c.SetCookie("uuid", uuid, -1, "/", os.Getenv("ORIGIN1"), false, true)
 		c.String(200, "로그아웃 되었습니다.")
 	})
+
+// 기존 로그인 되있던 상태인지 쿠키 확인	
+	eg.GET("/api/log", func (c *gin.Context){
+		uuid, err := c.Cookie("uuid")
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("LOADING COOKIE TO CHECK LOGIN ERROR OCCURED")
+		}
+		r, err := db.Query(`SELECT * FROM usrs WHERE uuid = "`+uuid+`"`)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("CHECKING DB TO CHECK LOGGED IN ERROR OCCURED")
+		}
+		if r.Next() {
+			c.String(200, "%v", "LOGIN")
+		} else {
+			c.Writer.WriteHeader(200)
+		}
+	})
 	
 // Websocket 프로토콜로 업그레이드 및 메시지 read/write
 	eg.GET("/ws", func(c *gin.Context){

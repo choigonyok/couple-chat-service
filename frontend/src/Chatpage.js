@@ -2,6 +2,7 @@ import REACT, { useEffect, useRef, useState } from "react";
 // NULL을 사용하려면 REACT를 import 해줘야함
 import "./Chatpage.css";
 import Inputbox from "./Inputbox";
+import Logout from "./Logout";
 
 const Chatpage = () => {
   const [newSocket, setNewSocket] = useState(null);
@@ -89,6 +90,7 @@ const Chatpage = () => {
       <Inputbox
         onSendMessage={(messageData) => sendMessageHandler(messageData)}
       />
+      <Logout/>
     </div>
   );
 };

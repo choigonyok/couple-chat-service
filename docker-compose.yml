@@ -1,25 +1,5 @@
-
 version: '3'
 services:
-  backend:
-    build:
-      dockerfile: Dockerfile.dev
-      # 안쓰면 Dockerfile만 읽음
-      context: ./backend
-      # docker-compose.yml파일의 directory 기준으로 상대경로 작성
-    volumes:
-      - ./backend/:/app
-      # 오른쪽 : 컨테이너의 해당 디렉토리가, 왼쪽 : 호스트(로컬)의 해당 디렉토리를 참조하도록 함
-      # 백엔드에선 go.mod나 go.sum을 node_modules처럼 제외시킬 필요가 없음
-      # -> 클라이언트에서는 package.json으로 종속성을 다시 설치하는데, 서버에서는 로컬의 go.mod, go.sum을 카피해와서 사용하기 때문
-      # CompileDaemon을 설치하고 빌드/실행 했다고해서 volumes을 안적어주면 데몬이 적용 안됨
-    ports:
-      - "8080:8080"
-      # react는 이미지로 컨테이너 생성시 포트지정을 안해줘도 nginx가 3000을 listen하고 있어서
-      # 실행이 가능한데 go는 그렇지 않아서 포트 지정을 해줘야함
-    depends_on:
-      - mysql
-
   frontend:
     build:
       dockerfile: Dockerfile.dev
@@ -58,6 +38,25 @@ services:
       MYSQL_DATABASE: ${DB_NAME}
       # .env를 활용해 환경변수를 설정하고 
       # .env는 .gitignore로 공유저장소에 올라가지 않도록 설정
+
+  backend:
+    build:
+      dockerfile: Dockerfile.dev
+      # 안쓰면 Dockerfile만 읽음
+      context: ./backend
+      # docker-compose.yml파일의 directory 기준으로 상대경로 작성
+    volumes:
+      - ./backend/:/app
+      # 오른쪽 : 컨테이너의 해당 디렉토리가, 왼쪽 : 호스트(로컬)의 해당 디렉토리를 참조하도록 함
+      # 백엔드에선 go.mod나 go.sum을 node_modules처럼 제외시킬 필요가 없음
+      # -> 클라이언트에서는 package.json으로 종속성을 다시 설치하는데, 서버에서는 로컬의 go.mod, go.sum을 카피해와서 사용하기 때문
+      # CompileDaemon을 설치하고 빌드/실행 했다고해서 volumes을 안적어주면 데몬이 적용 안됨
+    ports:
+      - "8080:8080"
+      # react는 이미지로 컨테이너 생성시 포트지정을 안해줘도 nginx가 3000을 listen하고 있어서
+      # 실행이 가능한데 go는 그렇지 않아서 포트 지정을 해줘야함
+    depends_on:
+      - mysql
 
 # build는 docker-compose up
 # 두 번째부터는 docker-compose up --build

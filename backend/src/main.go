@@ -27,7 +27,7 @@ type MessageData struct {
 	Text_body string `json:"text_body"`
         Writer_id string `json:"writer_id"`
         Write_time string `json:"write_time"`
-	Conn_id int `json:"conn_id"`
+	Conn_id string `json:"conn_id"`
 	Chat_id int `json:"chat_id"`
 }
 
@@ -41,9 +41,14 @@ type RequestData struct {
 	
 }
 
+type DeleteUUID struct {
+	Uuid string `json:"uuid_delete"`
+}
+
 type UsrInfo struct {
 	Usr_ID string `json:"usr_id"`
 	Usr_PW string `json:"usr_pw"`
+	Usr_ConnID string
  }
 
 // Origin CORS 설정
@@ -66,7 +71,7 @@ type db_test struct {
 }
 
 // 커넥션 별 uuid 생성
-func GenerateUserID() string {
+func GenerateUID() string {
 	u := uuid.New()
 	return u.String()
 }
@@ -94,11 +99,11 @@ func isConnected(c *gin.Context, db *sql.DB) bool {
 		fmt.Println(err.Error())
 		fmt.Println("LOAD DB TO CHECK CONNECTED ERROR OCCURED")
 	}
-	var conn_id int
+	var conn_id string
 	for r.Next() {
 		r.Scan(&conn_id)
 	}
-	if conn_id == 0 {
+	if conn_id == "0" {
 		return false
 	} else {
 		return true
@@ -166,16 +171,16 @@ func main() {
 // TEST : DB에 usr 정보가 잘 저장되는지 테스트
 	test := UsrInfo{}
 	tests := []UsrInfo{}
-	r, err := db.Query("SELECT id, password FROM usrs")
+	r, err := db.Query("SELECT id, password, conn_id FROM usrs")
 	if err != nil {
 		fmt.Println(err.Error())
-		fmt.Println("USR TEST ERROR")
+		fmt.Println("USER TEST ERROR")
 	}
 	for r.Next()  {
-		r.Scan(&test.Usr_ID, &test.Usr_PW)
+		r.Scan(&test.Usr_ID, &test.Usr_PW, &test.Usr_ConnID)
 		tests = append(tests, test)
 	}
-	fmt.Println("NOW STORED USR ID AND PW : ", tests)
+	fmt.Println("NOW STORED USR ID AND PW AND CONN_ID: ", tests)
 
 // TEST : DB에 chat data가 잘 저장되는지 테스트
 	chattest := MessageData{}
@@ -264,7 +269,7 @@ func main() {
 				return
 			}
 			// 사용자의 uuid를 생성
-			uuid := GenerateUserID()
+			uuid := GenerateUID()
 
 			// DB에 사용자 데이터 저장
 			_, err = db.Query(`INSERT INTO usrs (id, password, uuid, conn_id) VALUES ("`+data.Usr_ID+`", "`+data.Usr_PW+`", "`+uuid+`", 0)`)
@@ -485,6 +490,40 @@ func main() {
 			c.String(400, "%v", "NOT_EXIST")
 		}
 	})
+
+// 상대방과 연결 후, DB에 저장되어있던 자신과 상대 관련 요청 전체 삭제 + conn_id 생성
+	eg.PUT("/api/request", func (c *gin.Context){
+		// 승인usr의 request data를 삭제하기 위한 쿠키
+		firstUUID, err := c.Cookie("uuid")
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("LOADING COOKIE TO DELETE REQUEST ERROR OCCURED")
+			return
+		}
+		var data DeleteUUID
+		err = c.ShouldBindJSON(&data)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("BINDING JSON TO DELETE REQUEST ERROR OCCURED")
+			return
+		}
+		conn_id := GenerateUID()
+
+		_, err = db.Query(`UPDATE usrs SET conn_id = "`+conn_id+`" WHERE uuid = "`+firstUUID+`" or uuid = "`+data.Uuid+`"`)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("UPDATE CONN_ID ERROR OCCURED")
+			return
+		}
+
+		_, err = db.Query(`DELETE FROM request WHERE requester_uuid = "`+data.Uuid+`" or target_uuid = "`+data.Uuid+`" or requester_uuid = "`+firstUUID+`" or target_uuid = "`+firstUUID+`"`)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("DELETE REQUESTS FOR CONNECTION ERROR OCCURED")
+			return
+		}
+	})
+
 	
 // Websocket 프로토콜로 업그레이드 및 메시지 read/write
 	eg.GET("/ws", func(c *gin.Context){

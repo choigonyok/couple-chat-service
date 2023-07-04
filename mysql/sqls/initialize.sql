@@ -10,7 +10,7 @@ USE chatdb;
 DROP TABLE IF EXISTS `usrs`;
 
 CREATE TABLE `usrs` (
-        `id` VARCHAR(20), 
+        `id` VARCHAR(20) NOT NULL, 
         `password` VARCHAR(255) NOT NULL, 
         `conn_id` VARCHAR(255) NOT NULL,
         `uuid` VARCHAR(255) NOT NULL PRIMARY KEY);
@@ -19,7 +19,7 @@ DROP TABLE IF EXISTS `chat`;
 
 CREATE TABLE `chat` (
         `chat_id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-        `conn_id` VARCHAR(255),
+        `conn_id` VARCHAR(255) NOT NULL,
         `writer_id` VARCHAR(255) NOT NULL,
         `write_time` VARCHAR(100) NOT NULL,
         `text_body` TEXT NOT NULL);

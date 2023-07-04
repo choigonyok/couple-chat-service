@@ -355,6 +355,7 @@ func main() {
 					fmt.Println(err.Error())
 					fmt.Println(index, "TH CONN WRITING ERROR OCCURED")
 				}
+				fmt.Println("index : ", index)
 			}
 
 			// err = conn.WriteJSON(messageData)

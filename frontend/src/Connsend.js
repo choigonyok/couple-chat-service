@@ -16,9 +16,7 @@ const Connsend = () => {
           JSON.stringify(data)
         )
         .then((response) => {
-          alert(
-            "요청이 완료되었습니다. 상대방이 승인하면 채팅 서비스를 이용할 수 있습니다."
-          );
+          alert("요청이 완료되었습니다. 상대방이 승인하면 채팅 서비스를 이용할 수 있습니다.");
         })
         .catch((error) => {
           if (error.response.data === "ALREADY_REQUEST") {
@@ -44,8 +42,6 @@ const Connsend = () => {
 
   return (
     <div>
-      <div>보낸 커넥션</div>
-
       <div>
         <input
           type="text"

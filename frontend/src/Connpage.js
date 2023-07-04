@@ -1,10 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import Logout from "./Logout";
 import axios from "axios";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Connsend from "./Connsend";
+import Connrecieved from "./Connrecieved";
 
 const Connpage = () => {
+  const [reRender, setReRender] = useState(false);
   const navigator = useNavigate();
 
   useEffect(() => {
@@ -26,10 +28,13 @@ const Connpage = () => {
       });
   }, []);
 
+  const renderHandler = () => {
+    setReRender(!reRender);
+  };
+
   return (
     <div>
-      <div>받은 커넥션</div>
-      
+      <Connrecieved/>
       <Connsend/>
       <div>
         <Logout />

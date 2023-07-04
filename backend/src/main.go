@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -31,10 +32,13 @@ type MessageData struct {
 }
 
 type RequestData struct {
-	Request_id int `json:"request_id"`
-	Requester_uuid string `json:"requester_uuid"`
-	Target_uuid string `json:"target_uuid"`
-	Request_time string `json:"request_time"`
+	Request_id int
+	Requester_uuid string
+	Requester_id string
+	Target_uuid string
+	Target_id string
+	Request_time string
+	
 }
 
 type UsrInfo struct {
@@ -99,13 +103,6 @@ func isConnected(c *gin.Context, db *sql.DB) bool {
 	} else {
 		return true
 	}
-}
-
-type RequsetData struct {
-	Request_id int `json:"request_id"`
-	Requester_uuid string `json:"requester_uuid"`
-	Target_uuid string `json:"target_uuid"`
-	Request_time string `json:"request_time"`
 }
 
 
@@ -344,39 +341,87 @@ func main() {
 		}
 	})
 
-// 현재 신청중/요청받은 request 목록 가져오기
-	eg.GET("/api/request", func (c *gin.Context){
+// 현재 요청받은 request 목록 가져오기
+	eg.GET("/api/request/recieved", func (c *gin.Context){
 		uuid, err := c.Cookie("uuid")	
 		if err != nil {
 			fmt.Println(err.Error())
 			fmt.Println("LOAD COOKIE TO LOAD REQUEST LIST ERROR OCCURED")
 		}
 
+		// usr가 요청한 커넥션 표시, 요청 받은 것과 달리 요청은 한 번만 할 수 있어서 slice 안함
+		requesting_data := RequestData{}
+		requesting_datas := []RequestData{}
 		// usr가 요청받은 커넥션 표시, 요청을 여러개 받을 수 있어서 slice 사용함
-		r, err := db.Query(`SELECT requester_uuid, request_time WHERE target_uuid = "`+uuid+`"`)
+		r, err := db.Query(`SELECT requester_uuid, request_time FROM request WHERE target_uuid = "`+uuid+`"`)
 		if err != nil {
 			fmt.Println(err.Error())
 			fmt.Println("DATA WHO REQUEST TO ME FROM DB ERROR OCCURED")
 		}
-		requested_data := RequestData{}
-		requested_datas := []RequestData{}
 		for r.Next() {
-			r.Scan(&requested_data.Requester_uuid, &requested_data.Request_time)
-			requested_datas = append(requested_datas, requested_data)
-		}
-		fmt.Println("REQUESTED DATAS : ", requested_datas) // TEST
+			r.Scan(&requesting_data.Requester_uuid, &requesting_data.Request_time)
 
-		// usr가 요청한 커넥션 표시, 요청 받은 것과 달리 요청은 한 번만 할 수 있어서 slice 안함
-		requesting_data := RequestData{}
+			// uuid에 맞는 id 찾기
+			rr, err := db.Query(`SELECT id FROM usrs WHERE uuid = "`+requesting_data.Requester_uuid+`"`)
+			if err != nil {
+				fmt.Println(err.Error())
+				fmt.Println("FINDING ID BASED UUID ERROR OCCURED")
+			}
+			var id string
+			rr.Next()
+			rr.Scan(&id)
+			requesting_data.Requester_id = id
+
+			requesting_datas = append(requesting_datas, requesting_data)
+		}
+
+		data, err := json.Marshal(requesting_datas)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("MARSHALING REQUESTING DATA ERROR OCCURED")
+		}
+
+		c.Writer.Write(data)
+	})
+
+
+// 현재 신청중인 request 가져오기
+	eg.GET("/api/request/send", func (c *gin.Context){
+		uuid, err := c.Cookie("uuid")	
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("LOAD COOKIE TO LOAD REQUEST LIST ERROR OCCURED")
+		}
+
 		r, err = db.Query(`SELECT target_uuid, request_time FROM request WHERE requester_uuid = "`+uuid+`"`)
 		if err != nil {
 			fmt.Println(err.Error())
-			fmt.Println("DATA I REQUESTED FROM DB ERROR OCCURED")
+			fmt.Println("DATA REQUESTING FROM DB ERROR OCCURED")
 		}
+
+		requesting_data := RequestData{}
 		for r.Next(){
 			r.Scan(&requesting_data.Target_uuid, &requesting_data.Request_time)
 		}
-		fmt.Println("REQUESTING DATA : ", requesting_data) // TEST
+
+		// uuid 기반으로 id 찾기
+		r, err = db.Query(`SELECT id FROM usrs WHERE uuid = "`+requesting_data.Target_uuid+`"`)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("FINDING ID BASED UUID ERROR OCCURED")
+		}
+		var id string
+		r.Next()
+		r.Scan(&id)
+		requesting_data.Target_id = id
+
+		data, err := json.Marshal(requesting_data)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("MARSHALING REQUESTING DATA ERROR OCCURED")
+		}
+		
+		c.Writer.Write(data)
 	})	
 
 // 상대방에게 connection 연결 요청	
@@ -394,6 +439,7 @@ func main() {
 		}
 		if r.Next() {
 			c.String(400, "%v", "ALREADY_REQUEST")
+			return
 		}
 
 		data := struct {

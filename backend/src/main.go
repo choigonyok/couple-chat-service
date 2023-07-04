@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
@@ -27,6 +28,13 @@ type MessageData struct {
         Write_time string `json:"write_time"`
 	Conn_id int `json:"conn_id"`
 	Chat_id int `json:"chat_id"`
+}
+
+type RequestData struct {
+	Request_id int `json:"request_id"`
+	Requester_uuid string `json:"requester_uuid"`
+	Target_uuid string `json:"target_uuid"`
+	Request_time string `json:"request_time"`
 }
 
 type UsrInfo struct {
@@ -178,6 +186,20 @@ func main() {
 		chattests = append(chattests, chattest)
 	}
 	fmt.Println("NOW STORED CHAT : ", chattests)
+
+// TEST : DB에 request data가 잘 저장되는지 테스트
+	requesttest := RequestData{}
+	requesttests := []RequestData{}
+	r, err = db.Query("SELECT request_id, requester_uuid, target_uuid, request_time FROM request")
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("REQUEST TEST ERROR")
+	}
+	for r.Next() {
+		r.Scan(&requesttest.Request_id, &requesttest.Requester_uuid, &requesttest.Target_uuid, &requesttest.Request_time)
+		requesttests = append(requesttests, requesttest)
+	}
+	fmt.Println("NOW STORED REQUEST : ", requesttests)
 
 
 // 회원가입 시 아이디 중복체크
@@ -350,6 +372,12 @@ func main() {
 				c.String(400, "%v", "ALREADY_CONNECTED")
 				return
 			} else {
+				// 요청된 정보를 DB에 저장
+				_, err = db.Query(`INSERT INTO request (requester_uuid, target_uuid, request_time) VALUES ("`+uuid+`", "`+uuid_temp+`", "`+time.Now().Format("01/02 15:04")+`")`)
+				if err != nil {
+					fmt.Println(err.Error())
+					fmt.Println("STORING REQUEST DATA TO DB ERROR OCCURED")
+				}
 				c.Writer.WriteHeader(200)
 				return
 			}

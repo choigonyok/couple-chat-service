@@ -24,6 +24,11 @@ CREATE TABLE `chat` (
         `write_time` VARCHAR(100) NOT NULL,
         `text_body` TEXT NOT NULL);
 
+CREATE TABLE `request` (
+        `request_id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+        `requester_uuid` VARCHAR(255) NOT NULL,
+        `target_uuid` VARCHAR(255) NOT NULL,
+        `request_time` VARCHAR(100) NOT NULL);
 
 -- 이거 작동 안함 왜 그런겨? chat DB create까지만 작동함
 

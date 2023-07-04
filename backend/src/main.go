@@ -101,6 +101,13 @@ func isConnected(c *gin.Context, db *sql.DB) bool {
 	}
 }
 
+type RequsetData struct {
+	Request_id int `json:"request_id"`
+	Requester_uuid string `json:"requester_uuid"`
+	Target_uuid string `json:"target_uuid"`
+	Request_time string `json:"request_time"`
+}
+
 
 func main() {	
 // 커넥션 집합 슬라이스
@@ -337,6 +344,41 @@ func main() {
 		}
 	})
 
+// 현재 신청중/요청받은 request 목록 가져오기
+	eg.GET("/api/request", func (c *gin.Context){
+		uuid, err := c.Cookie("uuid")	
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("LOAD COOKIE TO LOAD REQUEST LIST ERROR OCCURED")
+		}
+
+		// usr가 요청받은 커넥션 표시, 요청을 여러개 받을 수 있어서 slice 사용함
+		r, err := db.Query(`SELECT requester_uuid, request_time WHERE target_uuid = "`+uuid+`"`)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("DATA WHO REQUEST TO ME FROM DB ERROR OCCURED")
+		}
+		requested_data := RequestData{}
+		requested_datas := []RequestData{}
+		for r.Next() {
+			r.Scan(&requested_data.Requester_uuid, &requested_data.Request_time)
+			requested_datas = append(requested_datas, requested_data)
+		}
+		fmt.Println("REQUESTED DATAS : ", requested_datas) // TEST
+
+		// usr가 요청한 커넥션 표시, 요청 받은 것과 달리 요청은 한 번만 할 수 있어서 slice 안함
+		requesting_data := RequestData{}
+		r, err = db.Query(`SELECT target_uuid, request_time FROM request WHERE requester_uuid = "`+uuid+`"`)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("DATA I REQUESTED FROM DB ERROR OCCURED")
+		}
+		for r.Next(){
+			r.Scan(&requesting_data.Target_uuid, &requesting_data.Request_time)
+		}
+		fmt.Println("REQUESTING DATA : ", requesting_data) // TEST
+	})	
+
 // 상대방에게 connection 연결 요청	
 	eg.POST("/api/request", func (c *gin.Context){
 		uuid, err := c.Cookie("uuid")
@@ -344,6 +386,16 @@ func main() {
 			fmt.Println(err.Error())
 			fmt.Println("LOAD COOKIE TO CHECK CALL YOURSELF ERROR OCCURED")
 		}
+		// 이미 요청한 상태인지 확인
+		r, err := db.Query(`SELECT * FROM request WHERE requester_uuid = "`+uuid+`"`)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("CHECK WHETHER ALREADY REQUEST ERROR OCCURED")
+		}
+		if r.Next() {
+			c.String(400, "%v", "ALREADY_REQUEST")
+		}
+
 		data := struct {
 			UsrID string `json:"input_id"`
 		}{}
@@ -353,7 +405,8 @@ func main() {
 			fmt.Println("JSON BINDING TO REQUEST ERROR OCCURED")
 		}
 
-		r, err := db.Query(`SELECT id, conn_id, uuid FROM usrs WHERE id = "`+data.UsrID+`"`)
+		// 입력한 ID에 맞는 사용자 DATA DB에서 불러오기
+		r, err = db.Query(`SELECT id, conn_id, uuid FROM usrs WHERE id = "`+data.UsrID+`"`)
 		if err != nil {
 			fmt.Println(err.Error())
 			fmt.Println("FINDING ID, CONN_ID TO SEND REQUEST ERROR OCCURED")

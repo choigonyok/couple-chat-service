@@ -21,7 +21,9 @@ const Connsend = () => {
           );
         })
         .catch((error) => {
-          if (error.response.data === "NOT_YOURSELF") {
+          if (error.response.data === "ALREADY_REQUEST") {
+            alert("이미 진행중인 요청이 있습니다. 삭제 후 재시도해주세요.");
+          } else if (error.response.data === "NOT_YOURSELF") {
             alert("자기 자신과는 연결할 수 없습니다.");
           } else if (error.response.data === "ALREADY_CONNECTED") {
             alert("해당 사용자는 이미 다른 사람과 연결되어 있습니다.");

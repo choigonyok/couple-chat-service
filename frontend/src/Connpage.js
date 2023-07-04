@@ -29,6 +29,7 @@ const Connpage = () => {
   return (
     <div>
       <div>받은 커넥션</div>
+      
       <Connsend/>
       <div>
         <Logout />

@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -27,8 +29,9 @@ type MessageData struct {
 	Text_body string `json:"text_body"`
         Writer_id string `json:"writer_id"`
         Write_time string `json:"write_time"`
-	Conn_id string `json:"conn_id"`
+	Is_answer int `json:"is_answer"`
 	Chat_id int `json:"chat_id"`
+	Question_id int `json:"question_id"`
 }
 
 type RequestData struct {
@@ -48,7 +51,9 @@ type DeleteUUID struct {
 type UsrInfo struct {
 	Usr_ID string `json:"usr_id"`
 	Usr_PW string `json:"usr_pw"`
-	Usr_ConnID string
+	Usr_UUID string
+	Conn_id int
+	Order_usr int
  }
 
 // Origin CORS 설정
@@ -99,11 +104,11 @@ func isConnected(c *gin.Context, db *sql.DB) bool {
 		fmt.Println(err.Error())
 		fmt.Println("LOAD DB TO CHECK CONNECTED ERROR OCCURED")
 	}
-	var conn_id string
+	var conn_id int
 	for r.Next() {
 		r.Scan(&conn_id)
 	}
-	if conn_id == "0" {
+	if conn_id == 0 {
 		return false
 	} else {
 		return true
@@ -167,19 +172,25 @@ func main() {
 		fmt.Println("PING TO DB REJECTED")
 	}
 
+// TEST : Question 레코드 삽입	
+	_, err = db.Query("DELETE FROM question")
+	_, _ = db.Query(`INSERT INTO question (target_word, question_contents) VALUES ("동물", "동물을 좋아하시나요?")`)
+	_, _ = db.Query(`INSERT INTO question (target_word, question_contents) VALUES ("고양이", "고양이를 좋아하시나요?")`)
+	
+
 // TEST : DB에 usr 정보가 잘 저장되는지 테스트
 	test := UsrInfo{}
 	tests := []UsrInfo{}
-	r, err := db.Query("SELECT id, password, uuid FROM usrs")
+	r, err := db.Query("SELECT id, password, uuid, conn_id, order_usr FROM usrs")
 	if err != nil {
 		fmt.Println(err.Error())
 		fmt.Println("USER TEST ERROR")
 	}
 	for r.Next()  {
-		r.Scan(&test.Usr_ID, &test.Usr_PW, &test.Usr_ConnID)
+		r.Scan(&test.Usr_ID, &test.Usr_PW, &test.Usr_UUID, &test.Conn_id, &test.Order_usr)
 		tests = append(tests, test)
 	}
-	fmt.Println("NOW STORED USR ID AND PW AND CONN_ID: ", tests)
+	fmt.Println("NOW STORED USR ID / PW / UUID / CONN_ID / ORDER : ", tests)
 
 // TEST : DB에 chat data가 잘 저장되는지 테스트
 	chattest := MessageData{}
@@ -211,13 +222,13 @@ func main() {
 
 // TEST : DB에 connection data가 잘 저장되는지 테스트
 	connectiontest := struct {
-		connection_id string
+		connection_id int
 		first_usr string
 		second_usr string
 		start_date string
 	}{}
 	connectiontests := []struct {
-		connection_id string
+		connection_id int
 		first_usr string
 		second_usr string
 		start_date string
@@ -232,6 +243,57 @@ func main() {
 		connectiontests = append(connectiontests, connectiontest)
 	}
 	fmt.Println("NOW STORED CONNECTION : ", connectiontests)	
+
+// TEST : DB에 connection data가 잘 저장되는지 테스트
+	questiontest := struct {
+		question_id int
+		target_word string
+		question_contents string
+	}{}
+	questiontests := []struct {
+		question_id int
+		target_word string
+		question_contents string
+	}{}
+	r, err = db.Query("SELECT question_id, target_word, question_contents FROM question")
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("QUESTION TEST ERROR")
+	}
+	for r.Next() {
+		r.Scan(&questiontest.question_id, &questiontest.target_word, &questiontest.question_contents)
+		questiontests = append(questiontests, questiontest)
+	}
+	fmt.Println("NOW STORED QUESTION : ", questiontests)	
+
+// TEST : DB에 connection data가 잘 저장되는지 테스트
+	answertest := struct {
+		answer_id int
+		connection_id int
+		question_id int
+		first_answer string
+		second_answer string
+		answer_date string
+	}{}
+	answertests := []struct {
+		answer_id int
+		connection_id int
+		question_id int
+		first_answer string
+		second_answer string
+		answer_date string
+	}{}
+	r, err = db.Query("SELECT answer_id, connection_id, question_id, first_answer, second_answer, answer_date FROM answer")
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("ANSWER TEST ERROR")
+	}
+	for r.Next() {
+		r.Scan(&answertest.answer_id, &answertest.connection_id, &answertest.question_id, &answertest.first_answer, &answertest.second_answer, &answertest.answer_date)
+		answertests = append(answertests, answertest)
+	}
+	fmt.Println("NOW STORED ANSWER : ", answertests)		
+	
 
 	// _, err = db.Query("DELETE FROM chat")
 	// _, err = db.Query("DELETE FROM connection")
@@ -265,6 +327,7 @@ func main() {
 	eg.POST("/api/usr", func (c *gin.Context){
 		data := UsrInfo{}
 		err := c.ShouldBindJSON(&data)
+		fmt.Println(data)
 		if err != nil {
 			fmt.Println(err.Error())
 			fmt.Println("BINDING SIGNUP DATA ERROR OCCURED")
@@ -363,6 +426,7 @@ func main() {
 
 		// 있으면 상대와 connection이 연결된 상태인지 확인 후 응답
 		if r.Next() {
+			fmt.Println("TEST : ", isConnected(c, db))
 			if isConnected(c, db) {
 				c.String(200, "%v", "CONNECTED")
 			} else {
@@ -534,19 +598,34 @@ func main() {
 			fmt.Println("BINDING JSON TO DELETE REQUEST ERROR OCCURED")
 			return
 		}
-		conn_id := GenerateUID()
-
-		_, err = db.Query(`UPDATE usrs SET conn_id = "`+conn_id+`" WHERE uuid = "`+firstUUID+`" or uuid = "`+data.Uuid+`"`)
-		if err != nil {
-			fmt.Println(err.Error())
-			fmt.Println("UPDATE CONN_ID ERROR OCCURED")
-			return
-		}
 
 		_, err = db.Query(`INSERT INTO connection (first_usr, second_usr, start_date) VALUES ("`+data.Uuid+`", "`+firstUUID+`", "`+time.Now().Format("2006/01/02")+`")`)
 		if err != nil {
 			fmt.Println(err.Error())
 			fmt.Println("INSERTING CONNECTION DATA INTO DB ERROR OCCURED")
+		}
+
+		r, err = db.Query(`SELECT connection_id FROM connection WHERE first_usr = "`+data.Uuid+`" and second_usr = "`+firstUUID+`"`)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("INSERTING CONNECTION DATA INTO DB ERROR OCCURED")
+		}
+		r.Next()
+		var conn_id int
+		r.Scan(&conn_id)
+
+		_, err = db.Query(`UPDATE usrs SET order_usr = 1, conn_id = `+strconv.Itoa(conn_id)+` WHERE uuid = "`+data.Uuid+`"`)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("UPDATE FISRT USR ERROR OCCURED")
+			return
+		}
+
+		_, err = db.Query(`UPDATE usrs SET order_usr = 2, conn_id = `+strconv.Itoa(conn_id)+` WHERE uuid = "`+firstUUID+`"`)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("UPDATE SECOND USR ERROR OCCURED")
+			return
 		}
 
 		_, err = db.Query(`DELETE FROM request WHERE requester_uuid = "`+data.Uuid+`" or target_uuid = "`+data.Uuid+`" or requester_uuid = "`+firstUUID+`" or target_uuid = "`+firstUUID+`"`)
@@ -595,6 +674,8 @@ func main() {
 		}
 		defer conn.Close()
 
+
+
 		// 이 usr의 uuid를 키로 넣으면 현재 conn이 값으로 나오는 map
 		conns[uuid] = conn
 		// conn객체를 읽어야함
@@ -616,14 +697,15 @@ func main() {
 			return
 		}
 
-		r, err = db.Query(`SELECT first_usr, second_usr FROM connection WHERE first_usr = "`+uuid+`" or second_usr = "`+uuid+`"`)
+		r, err = db.Query(`SELECT first_usr, second_usr, connection_id FROM connection WHERE first_usr = "`+uuid+`" or second_usr = "`+uuid+`"`)
 		if err != nil {
 			fmt.Println(err.Error())
 			fmt.Println("FINDING CONNECITON UUID ERROR OCCURED")
 		}
 		r.Next()
 		var first_uuid, second_uuid string
-		r.Scan(&first_uuid, &second_uuid)
+		var conn_id int
+		r.Scan(&first_uuid, &second_uuid, &conn_id)
 
 		// 기존 저장되어있던 채팅 DB에서 불러와서 표시
 		initialChat := MessageData{}
@@ -662,35 +744,99 @@ func main() {
 			// json패키지가 json형식이 아닌 스트링을 언마샬링하려고 할 때 발생하는 에러
 			// 리액트코드 원인 : newSocket.send(JSON.stringify(sendData)); 객체만 만들고 객체를 json형식으로 변환을 안시켜줬음
 
-			// DB에 메시지 저장
-			_, err = db.Query(`INSERT INTO chat (text_body, writer_id, write_time) VALUES ("`+messageData[0].Text_body+`", "`+uuid+`", "`+messageData[0].Write_time+`")`)
-			// 어차피 커넥션 당 메시지 하나씩 전송 받으니까 slice index는 0으로 설정
-			if err != nil {
-				fmt.Println(err.Error())
-				fmt.Println("ADD CHAT TO DB ERROR OCCURED")
+
+			// 일반채팅이면 chat table에 저장, question에 대한 답이면 answer table에 저장
+			if messageData[0].Is_answer == 0 {
+				_, err = db.Query(`INSERT INTO chat (text_body, writer_id, write_time) VALUES ("`+messageData[0].Text_body+`", "`+uuid+`", "`+messageData[0].Write_time+`")`)
+				// 어차피 커넥션 당 메시지 하나씩 전송 받으니까 slice index는 0으로 설정
+				if err != nil {
+					fmt.Println(err.Error())
+					fmt.Println("ADD CHAT TO DB ERROR OCCURED")
+				}	
+			} else {
+				fmt.Println("TEST : ", messageData)
+				_, err = db.Query(`INSERT INTO answer (connection_id, question_id, answer_date) VALUES (`+strconv.Itoa(conn_id)+`,`+strconv.Itoa(messageData[0].Question_id)+`, "`+messageData[0].Write_time+`")`)
+				if err != nil {
+					fmt.Println(err.Error())
+					fmt.Println("ADD ANSWER TO DB ERROR OCCURED")
+				}
+				if first_uuid == uuid {
+					_, err = db.Query(`UPDATE answer SET first_answer = "`+messageData[0].Text_body+`"`)
+				} else {
+					_, err = db.Query(`UPDATE answer SET second_answer = "`+messageData[0].Text_body+`"`)
+				}
+				if err != nil {
+					fmt.Println(err.Error())
+					fmt.Println("ADD CHAT TO DB ERROR OCCURED")
+				}
 			}
+			
+			
 			
 			first_conn := conns[first_uuid]
 			second_conn := conns[second_uuid]
 
 			target_conn := []*websocket.Conn{}
 			target_conn = append(target_conn, first_conn, second_conn)
+			// 커넥션 연결이 안되어있으면 보내면 nil pointer 오류 생김
 
 			// 모든 커넥션에 메시지 write 
-			for index, item := range target_conn {
-				err := item.WriteJSON(messageData)
-				if err != nil {
-					fmt.Println(err.Error())
-					fmt.Println(index, "TH CONN WRITING ERROR OCCURED")
+			if messageData[0].Is_answer != 1 {
+				for index, item := range target_conn {
+					err := item.WriteJSON(messageData)
+					if err != nil {
+						fmt.Println(err.Error())
+						fmt.Println(index, "TH CONN WRITING ERROR OCCURED")
+					}
+					fmt.Println("index : ", index)
 				}
-				fmt.Println("index : ", index)
 			}
+			
+	// 채팅 중 단어가 발견되면 단어 관련된 질문을 커플에게 던지는 기능
+			// 1. 단어를 먼저 다 뽑아서
+			var target_word, question_contents string
+			var question_id int
+			r, err := db.Query("SELECT target_word, question_id, question_contents FROM question ORDER BY question_id ASC")
+			if err != nil {
+				fmt.Println(err.Error())
+				fmt.Println("LOADING QUESTION TARGET WORD ERROR OCCURED")
+			}
+			for r.Next() {
+				// 2. 방금 READ한 채팅에 단어가 있는지 돌면서 확인
+				r.Scan(&target_word, &question_id, &question_contents)	
+				if strings.Contains(messageData[0].Text_body, target_word) {
+					// 3. 단어가 발견되면 이전에 답을 한 전적이 있는지 검색
+					fmt.Println(target_word)
+					r, err := db.Query(`SELECT * FROM answer WHERE connection_id = `+strconv.Itoa(conn_id)+` and question_id = `+strconv.Itoa(question_id))
+					if err != nil {
+						fmt.Println(err.Error())
+						fmt.Println("LOADING ANSWER EXIST ERROR OCCURED")
+					}
+					// 4. 단어도 발견됐고, 이전에 했던 질문도 아니면 질문 WRITE
+					if !r.Next() {
+						questiondata := MessageData{
+							question_contents,
+							"question",
+							time.Now().Format("2006/01/02 03:04"),
+							1,
+							0,
+							question_id,
+						}
+						questiondatas := []MessageData{}
+						questiondatas = append(questiondatas, questiondata)
 
-			// err = conn.WriteJSON(messageData)
-			// if err != nil {
-			// 	fmt.Println(err.Error())
-			// 	fmt.Println("WRITING TO CONN ERROR OCCURED")
-			// }
+						for _, item := range target_conn {
+							err := item.WriteJSON(questiondatas)
+							if err != nil {
+								fmt.Println(err.Error())
+								fmt.Println("QUESTION MESSSAGE WRITING ERROR OCCURED")
+							}
+						}
+						// 5. answer에 답 적기 (는 위에 READ에서 처리)
+					}
+				}
+				
+			}
 		}
 	})
 	
@@ -709,3 +855,6 @@ func main() {
 // 브라우저에 focus가 안되어있기만 해도
 // websocket: close 1006 (abnormal closure): unexpected EOF
 // 라면서 커넥션이 close되어서 코드 문제인지 네트워크 문제인지 구분이 안가서 개발하기가 힘듦
+
+// 채팅어플리케이션 자체가 웹 어플리케이션으로 적합하진 않은 것 같음
+// 브라우저를 통해 접속해야하고, 푸시알림을 받기 까다롭다는 점

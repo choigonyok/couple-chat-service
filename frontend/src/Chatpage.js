@@ -12,24 +12,26 @@ const Chatpage = () => {
   const [newSocket, setNewSocket] = useState(null);
   const [recievedMessage, setRecievedMessage] = useState([]);
   const [myUUID, setMyUUID] = useState("");
+  const [inputAnswer, setInputAnswer] = useState("");
+  const [inputHide, setInputHide] = useState(false);
 
-  useEffect (()=>{
+  useEffect(() => {
     axios
-     .get(process.env.REACT_APP_HOST_URL+"/api/log")
-     .then((response)=>{
-      if (response.data === "CONNECTED") {
-      } else if (response.data === "NOT_CONNECTED") {
-        navigator('/conn');
-      } 
-     })
-     .catch((error)=>{
+      .get(process.env.REACT_APP_HOST_URL + "/api/log")
+      .then((response) => {
+        if (response.data === "CONNECTED") {
+        } else if (response.data === "NOT_CONNECTED") {
+          navigator("/conn");
+        }
+      })
+      .catch((error) => {
         if (error.response.status === 400) {
-          navigator('/');
+          navigator("/");
         } else {
           console.log(error);
         }
-     })
-  },[])
+      });
+  }, []);
 
   useEffect(() => {
     const socket = new WebSocket("ws://localhost:8080/ws");
@@ -73,11 +75,48 @@ const Chatpage = () => {
           text_body: String(data),
           write_time: nowformat,
           writer_id: myUUID,
+          is_answer: 0,
         },
       ];
-      console.log(sendData);
       newSocket.send(JSON.stringify(sendData));
     } else alert("상대방에게 메세지를 보낼 수 없는 상태입니다.");
+  };
+
+  const inputAnswerHandler = (e) => {
+    setInputAnswer(e.target.value);
+  };
+
+  const enterHandler = (item, e) => {
+    if (e.key === "Enter") {
+      if (inputAnswer !== "") {
+        if (e.nativeEvent.isComposing) {
+          return;
+        } else {
+          if (newSocket !== null) {
+            let now = new Date();
+            let nowformat =
+              now.getFullYear() +
+              "/" +
+              now.getMonth() +
+              "/" +
+              now.getDate() +
+              " " +
+              now.getHours() +
+              ":" +
+              now.getMinutes();
+            const sendData = [{
+              text_body: inputAnswer,
+              write_time: nowformat,
+              writer_id: myUUID,
+              is_answer: item.is_answer,
+              question_id: item.question_id,
+            }];
+            newSocket.send(JSON.stringify(sendData));
+            setInputAnswer("");
+          } else alert("상대방에게 메세지를 보낼 수 없는 상태입니다.");
+        }
+      }
+    }
   };
 
   return (
@@ -86,23 +125,34 @@ const Chatpage = () => {
         {recievedMessage &&
           recievedMessage.map((item, index) => (
             <div>
-              {item.writer_id === myUUID && (
+              {item.is_answer === 0 && item.writer_id === myUUID && (
                 <div className="chat-container__chat__usr">
-                  <div className="chat-container__chat">
-                    {item.text_body}
-                  </div>
-                  <div className="chat-container__time">
-                    {item.write_time}
-                  </div>
+                  <div className="chat-container__chat">{item.text_body}</div>
+                  <div className="chat-container__time">{item.write_time}</div>
                 </div>
               )}
-              {item.writer_id !== myUUID && (
+              {item.is_answer === 0 && item.writer_id !== myUUID && (
                 <div className="chat-container__chat__other">
-                  <div className="chat-container__chat">
-                    {item.text_body}
+                  <div className="chat-container__chat">{item.text_body}</div>
+                  <div className="chat-container__time">{item.write_time}</div>
+                </div>
+              )}
+              {item.is_answer === 1 && (
+                <div>
+                  <div className="chat-container__chat__question">
+                    <div className="chat-container__question">
+                      {item.text_body}
+                    </div>
                   </div>
-                  <div className="chat-container__time">
-                    {item.write_time}
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="답을 작성해주세요."
+                      autofocus
+                      value={inputAnswer}
+                      onChange={inputAnswerHandler}
+                      onKeyDownCapture={(e) => enterHandler(item, e)}
+                    />
                   </div>
                 </div>
               )}
@@ -112,7 +162,7 @@ const Chatpage = () => {
       <Inputbox
         onSendMessage={(messageData) => sendMessageHandler(messageData)}
       />
-      <Logout/>
+      <Logout />
     </div>
   );
 };

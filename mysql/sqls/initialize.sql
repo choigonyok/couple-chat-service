@@ -10,10 +10,11 @@ USE chatdb;
 DROP TABLE IF EXISTS `usrs`;
 
 CREATE TABLE `usrs` (
+        `uuid` VARCHAR(255) NOT NULL PRIMARY KEY,
         `id` VARCHAR(20) NOT NULL, 
         `password` VARCHAR(255) NOT NULL, 
-        `conn_id` VARCHAR(255) NOT NULL,
-        `uuid` VARCHAR(255) NOT NULL PRIMARY KEY);
+        `conn_id` INT NOT NULL,
+        `order_usr` INT(2) DEFAULT 0);
 
 DROP TABLE IF EXISTS `chat`;
 
@@ -21,7 +22,8 @@ CREATE TABLE `chat` (
         `chat_id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
         `writer_id` VARCHAR(255) NOT NULL,
         `write_time` VARCHAR(100) NOT NULL,
-        `text_body` TEXT NOT NULL);
+        `text_body` TEXT NOT NULL,
+        `is_answer` TINYINT(1) DEFAULT 0);
 
 DROP TABLE IF EXISTS `request`;
 
@@ -38,6 +40,19 @@ CREATE TABLE `connection` (
         `first_usr` VARCHAR(255) NOT NULL,
         `second_usr` VARCHAR(255) NOT NULL,
         `start_date` VARCHAR(100) NOT NULL);
+
+CREATE TABLE `question` (
+        `question_id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+        `target_word` VARCHAR(255) NOT NULL,
+        `question_contents` VARCHAR(255) NOT NULL);
+
+CREATE TABLE `answer` (
+        `answer_id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+        `connection_id` INT NOT NULL,
+        `question_id` INT NOT NULL,
+        `first_answer` VARCHAR(255),
+        `second_answer` VARCHAR(255),
+        `answer_date` VARCHAR(255) NOT NULL);
 
 -- 이거 작동 안함 왜 그런겨? chat DB create까지만 작동함
 

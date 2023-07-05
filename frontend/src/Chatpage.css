@@ -26,6 +26,15 @@
   height: fit-content;
 }
 
+.chat-container__chat__question {
+  display: flex;
+  flex-direction: column;
+  width: inherit;
+  align-items: center;
+  justify-content: center;
+  height: fit-content;
+}
+
 .chat-container__chat__usr {
   display: flex;
   flex-direction: column;
@@ -40,6 +49,27 @@
   font-size: 20px;
   color: black;
   font-weight: 600;
+  align-items: center;
+  justify-content: center;
+  text-align: start;
+  border: 3px solid white;
+  border-radius: 30px;
+  padding: 1vh;
+  padding-left: 1vw;
+  padding-right: 1vw;
+  max-width: 30vw;
+  width: fit-content;
+  word-break: break-all;
+  height: fit-content;
+  margin-top: 0.5vh;
+}
+
+.chat-container__question {
+  display: flex;
+  background-color: rgb(252, 174, 255);
+  font-size: 30px;
+  color: black;
+  font-weight: 800;
   align-items: center;
   justify-content: center;
   text-align: start;

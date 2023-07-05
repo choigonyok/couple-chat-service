@@ -87,7 +87,7 @@ func checkIDandPWLength(idorpw string) bool {
 // usr가 상대방과 연결된 상태인지 아닌지 체크
 func isConnected(c *gin.Context, db *sql.DB) bool {
 	// 함수명과 파라미터 띄어쓰면 오류 생김
-
+	
 	uuid, err := c.Cookie("uuid")
 	fmt.Println(uuid)
 	if err != nil {
@@ -110,15 +110,9 @@ func isConnected(c *gin.Context, db *sql.DB) bool {
 	}
 }
 
-type ConnUsr struct {
-	conn *websocket.Conn
-	usr string
-}
-
-
 func main() {	
 // 커넥션 집합 슬라이스
-	var conns []*websocket.Conn
+	conns := make(map[string]*websocket.Conn)
 
 // 환경변수 로딩
 	err := godotenv.Load()
@@ -176,7 +170,7 @@ func main() {
 // TEST : DB에 usr 정보가 잘 저장되는지 테스트
 	test := UsrInfo{}
 	tests := []UsrInfo{}
-	r, err := db.Query("SELECT id, password, conn_id FROM usrs")
+	r, err := db.Query("SELECT id, password, uuid FROM usrs")
 	if err != nil {
 		fmt.Println(err.Error())
 		fmt.Println("USER TEST ERROR")
@@ -215,6 +209,34 @@ func main() {
 	}
 	fmt.Println("NOW STORED REQUEST : ", requesttests)
 
+// TEST : DB에 connection data가 잘 저장되는지 테스트
+	connectiontest := struct {
+		connection_id string
+		first_usr string
+		second_usr string
+		start_date string
+	}{}
+	connectiontests := []struct {
+		connection_id string
+		first_usr string
+		second_usr string
+		start_date string
+	}{}
+	r, err = db.Query("SELECT connection_id, first_usr, second_usr, start_date FROM connection")
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("CONNECTION TEST ERROR")
+	}
+	for r.Next() {
+		r.Scan(&connectiontest.connection_id, &connectiontest.first_usr, &connectiontest.second_usr, &connectiontest.start_date)
+		connectiontests = append(connectiontests, connectiontest)
+	}
+	fmt.Println("NOW STORED CONNECTION : ", connectiontests)	
+
+	// _, err = db.Query("DELETE FROM chat")
+	// _, err = db.Query("DELETE FROM connection")
+	// _, err = db.Query("DELETE FROM usrs")
+	// _, err = db.Query("DELETE FROM request")
 
 // 회원가입 시 아이디 중복체크
 	eg.POST("/api/id", func (c *gin.Context){
@@ -521,6 +543,12 @@ func main() {
 			return
 		}
 
+		_, err = db.Query(`INSERT INTO connection (first_usr, second_usr, start_date) VALUES ("`+data.Uuid+`", "`+firstUUID+`", "`+time.Now().Format("2006/01/02")+`")`)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("INSERTING CONNECTION DATA INTO DB ERROR OCCURED")
+		}
+
 		_, err = db.Query(`DELETE FROM request WHERE requester_uuid = "`+data.Uuid+`" or target_uuid = "`+data.Uuid+`" or requester_uuid = "`+firstUUID+`" or target_uuid = "`+firstUUID+`"`)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -539,6 +567,7 @@ func main() {
 			fmt.Println("DELETE SPECIFIC REQUEST FROM DB ERROR OCCURED")
 		}
 	})
+
 	
 // Websocket 프로토콜로 업그레이드 및 메시지 read/write
 	eg.GET("/ws", func(c *gin.Context){
@@ -566,8 +595,10 @@ func main() {
 		}
 		defer conn.Close()
 
-		// 전체 커넥션 슬라이스에 커넥션 추가
-		conns = append(conns, conn)
+		// 이 usr의 uuid를 키로 넣으면 현재 conn이 값으로 나오는 map
+		conns[uuid] = conn
+		// conn객체를 읽어야함
+		
 		// LATER : 커넥션 종료/삭제되면 슬라이스에서도 제외해야 함
 		
 		
@@ -585,10 +616,19 @@ func main() {
 			return
 		}
 
+		r, err = db.Query(`SELECT first_usr, second_usr FROM connection WHERE first_usr = "`+uuid+`" or second_usr = "`+uuid+`"`)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("FINDING CONNECITON UUID ERROR OCCURED")
+		}
+		r.Next()
+		var first_uuid, second_uuid string
+		r.Scan(&first_uuid, &second_uuid)
+
 		// 기존 저장되어있던 채팅 DB에서 불러와서 표시
 		initialChat := MessageData{}
 		initialChats := []MessageData{}
-		r, err := db.Query(`SELECT chat_id, writer_id, write_time, text_body FROM chat`)
+		r, err := db.Query(`SELECT chat_id, writer_id, write_time, text_body FROM chat WHERE writer_id = "`+first_uuid+`" or writer_id = "`+second_uuid+`" ORDER BY chat_id ASC`)
 		// LATER : 나중에 여러 conn 구현하면 쿼리문에 조건절이랑 conn_id 넣기
 		if err != nil {
 			fmt.Println(err.Error())
@@ -630,8 +670,14 @@ func main() {
 				fmt.Println("ADD CHAT TO DB ERROR OCCURED")
 			}
 			
+			first_conn := conns[first_uuid]
+			second_conn := conns[second_uuid]
+
+			target_conn := []*websocket.Conn{}
+			target_conn = append(target_conn, first_conn, second_conn)
+
 			// 모든 커넥션에 메시지 write 
-			for index, item := range conns {
+			for index, item := range target_conn {
 				err := item.WriteJSON(messageData)
 				if err != nil {
 					fmt.Println(err.Error())
@@ -650,3 +696,16 @@ func main() {
 	
 	eg.Run(":8080")
 }
+
+// uuid와 conn 사이의 키-값 저장을 위해 redis 도입하면 좋을 것 같음
+// 서버 중지되면 conn 데이터 분실 위험
+
+// 도커로 개발환경 구성해서 개발하면 정확히 어느 부분에서 에러가 발생한 건지 확인이 어려움
+// 계속 fmt.Println(err.Error())를 반복해서 쓰니 코드 가독성도 안좋아지고 불필요하게 많은 코드가 작성됨
+// 테스트 코드 도입의 필요성
+
+
+// 백그라운드로 커넥션 실행하기
+// 브라우저에 focus가 안되어있기만 해도
+// websocket: close 1006 (abnormal closure): unexpected EOF
+// 라면서 커넥션이 close되어서 코드 문제인지 네트워크 문제인지 구분이 안가서 개발하기가 힘듦

@@ -12,14 +12,12 @@ const Chatpage = () => {
   const [newSocket, setNewSocket] = useState(null);
   const [recievedMessage, setRecievedMessage] = useState([]);
   const [myUUID, setMyUUID] = useState("");
-  const [connect, setConnect] = useState(false);
 
   useEffect (()=>{
     axios
      .get(process.env.REACT_APP_HOST_URL+"/api/log")
      .then((response)=>{
       if (response.data === "CONNECTED") {
-        setConnect(true);
       } else if (response.data === "NOT_CONNECTED") {
         navigator('/conn');
       } 
@@ -55,7 +53,7 @@ const Chatpage = () => {
     return () => {
       socket.close();
     };
-  }, [!connect]);
+  }, []);
 
   const sendMessageHandler = (data) => {
     if (newSocket !== null) {

@@ -19,16 +19,25 @@ DROP TABLE IF EXISTS `chat`;
 
 CREATE TABLE `chat` (
         `chat_id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-        `conn_id` VARCHAR(255) NOT NULL,
         `writer_id` VARCHAR(255) NOT NULL,
         `write_time` VARCHAR(100) NOT NULL,
         `text_body` TEXT NOT NULL);
+
+DROP TABLE IF EXISTS `request`;
 
 CREATE TABLE `request` (
         `request_id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
         `requester_uuid` VARCHAR(255) NOT NULL,
         `target_uuid` VARCHAR(255) NOT NULL,
         `request_time` VARCHAR(100) NOT NULL);
+
+DROP TABLE IF EXISTS `connection`;
+
+CREATE TABLE `connection` (
+        `connection_id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+        `first_usr` VARCHAR(255) NOT NULL,
+        `second_usr` VARCHAR(255) NOT NULL,
+        `start_date` VARCHAR(100) NOT NULL);
 
 -- 이거 작동 안함 왜 그런겨? chat DB create까지만 작동함
 

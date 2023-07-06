@@ -22,6 +22,7 @@ const Connrecieved = () => {
     axios
       .get(process.env.REACT_APP_HOST_URL + "/api/request/recieved")
       .then((response) => {
+        console.log("RR,", response.data);
         setRequested([...response.data]);
       })
       .catch((error) => {

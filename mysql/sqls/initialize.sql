@@ -30,7 +30,9 @@ DROP TABLE IF EXISTS `request`;
 CREATE TABLE `request` (
         `request_id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
         `requester_uuid` VARCHAR(255) NOT NULL,
+        `requester_id` VARCHAR(255) NOT NULL,
         `target_uuid` VARCHAR(255) NOT NULL,
+        `target_id` VARCHAR(255) NOT NULL,
         `request_time` VARCHAR(100) NOT NULL);
 
 DROP TABLE IF EXISTS `connection`;

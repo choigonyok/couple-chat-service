@@ -23,12 +23,14 @@ const Chatpage = () => {
         if (response.data === "CONNECTED") {
         } else if (response.data === "NOT_CONNECTED") {
           navigator("/conn");
-        } else if (response.data === "NOT_LOGINED") {
-          navigator("/");
         }
       })
       .catch((error) => {
-        console.log(error);
+        if (error.response.status === 401) {
+          navigator("/");
+        } else {
+          console.log(error);
+        }
       });
   }, []);
 
@@ -179,12 +181,17 @@ const Chatpage = () => {
       <div>
         ANSWER
         {answers.length > 0 &&
-          answers.map((item, index) => <div>
-            <div>{item.question_contents}</div>
-            <div>{item.first_answer}</div>
-            <div>{item.second_answer}</div>
-            <div>{item.answer_date}</div>
-          </div>)}
+          answers.map((item, index) => (
+            <div>
+              <div>
+                질문 {index + 1} : {item.question_contents}
+              </div>
+              <div>첫 번째 대답 : {item.first_answer}</div>
+              <div>두 번째 대답 : {item.second_answer}</div>
+              <div>대답한 날짜 : {item.answer_date}</div>
+              <br />
+            </div>
+          ))}
       </div>
       <Logout />
     </div>

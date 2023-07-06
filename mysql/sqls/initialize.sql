@@ -49,10 +49,11 @@ CREATE TABLE `question` (
 CREATE TABLE `answer` (
         `answer_id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
         `connection_id` INT NOT NULL,
-        `question_id` INT NOT NULL,
         `first_answer` VARCHAR(255),
         `second_answer` VARCHAR(255),
-        `answer_date` VARCHAR(255) NOT NULL);
+        `answer_date` VARCHAR(255) NOT NULL,
+        `question_id` INT,
+        FOREIGN KEY (`question_id`) REFERENCES `question`(`question_id`) ON UPDATE CASCADE ON DELETE CASCADE);
 
 -- 이거 작동 안함 왜 그런겨? chat DB create까지만 작동함
 

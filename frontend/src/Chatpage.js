@@ -14,6 +14,7 @@ const Chatpage = () => {
   const [myUUID, setMyUUID] = useState("");
   const [inputAnswer, setInputAnswer] = useState("");
   const [inputHide, setInputHide] = useState(false);
+  const [answers, setAnswers] = useState([]);
 
   useEffect(() => {
     axios
@@ -22,14 +23,12 @@ const Chatpage = () => {
         if (response.data === "CONNECTED") {
         } else if (response.data === "NOT_CONNECTED") {
           navigator("/conn");
+        } else if (response.data === "NOT_LOGINED") {
+          navigator("/");
         }
       })
       .catch((error) => {
-        if (error.response.status === 400) {
-          navigator("/");
-        } else {
-          console.log(error);
-        }
+        console.log(error);
       });
   }, []);
 
@@ -104,13 +103,15 @@ const Chatpage = () => {
               now.getHours() +
               ":" +
               now.getMinutes();
-            const sendData = [{
-              text_body: inputAnswer,
-              write_time: nowformat,
-              writer_id: myUUID,
-              is_answer: item.is_answer,
-              question_id: item.question_id,
-            }];
+            const sendData = [
+              {
+                text_body: inputAnswer,
+                write_time: nowformat,
+                writer_id: myUUID,
+                is_answer: item.is_answer,
+                question_id: item.question_id,
+              },
+            ];
             newSocket.send(JSON.stringify(sendData));
             setInputAnswer("");
           } else alert("상대방에게 메세지를 보낼 수 없는 상태입니다.");
@@ -118,6 +119,19 @@ const Chatpage = () => {
       }
     }
   };
+
+  useEffect(() => {
+    axios
+      .get(process.env.REACT_APP_HOST_URL + "/api/answer")
+      .then((response) => {
+        setAnswers([...response.data]);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, []);
+
+  console.log(answers);
 
   return (
     <div className="page-container">
@@ -162,6 +176,16 @@ const Chatpage = () => {
       <Inputbox
         onSendMessage={(messageData) => sendMessageHandler(messageData)}
       />
+      <div>
+        ANSWER
+        {answers.length > 0 &&
+          answers.map((item, index) => <div>
+            <div>{item.question_contents}</div>
+            <div>{item.first_answer}</div>
+            <div>{item.second_answer}</div>
+            <div>{item.answer_date}</div>
+          </div>)}
+      </div>
       <Logout />
     </div>
   );

@@ -32,7 +32,7 @@ func originConfig() cors.Config{
 
 func main() {
 	LoadEnv()	// 환경변수 로딩
-
+	
 	e := gin.Default()
 	
 	config := originConfig()	// Origin 설정

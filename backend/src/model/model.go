@@ -10,8 +10,8 @@ import (
 
 type ChatData struct {
 	Text_body string `json:"text_body"`
-        Writer_id string `json:"writer_id"`
-        Write_time string `json:"write_time"`
+	Writer_id string `json:"writer_id"`
+	Write_time string `json:"write_time"`
 	Is_answer int `json:"is_answer"`
 	Chat_id int `json:"chat_id"`
 	Question_id int `json:"question_id"`
@@ -33,7 +33,23 @@ type UsrsData struct {
 	UUID string
 	Conn_id int
 	Order_usr int
- }
+}
+
+type QuestionData struct {
+	Question_id int
+	Target_word string
+	Question_contents string
+}
+
+type AnswerData struct {
+	Answer_id int 
+	Connection_id int
+	QuestionContents string `json:"question_contents"`
+	FirstAnswer string `json:"first_answer"`
+	SecondAnswer string `json:"second_answer"`
+	AnswerDate string `json:"answer_date"`
+	Question_id int
+}
 
  var db *sql.DB
 
@@ -197,7 +213,75 @@ func SelectQuetions() (*sql.Rows, error) {
 	return r, err
 }
 
+func GetUsrOrderByUUID(uuid string) int {
+	r, err := db.Query(`SELECT order_usr FROM usrs WHERE uuid = "`+uuid+`"`)
+	if err != nil {
+		fmt.Println("ERROR #51 : ", err.Error())
+	}
+	r.Next()
+	var order_usr int
+	r.Scan(&order_usr)
+	return order_usr
+}
 
+func QuestionIDOfEmptyAnswerByOrder(order int) int {
+	question_id := 0
+	if order == 1 {
+		r, err := db.Query(`SELECT question_id FROM ANSWER WHERE first_answer = "not-written"`)
+		if err != nil {
+			fmt.Println("ERROR #52 : ", err.Error())
+		}
+		if r.Next() {
+			r.Scan(&question_id)
+			return question_id
+		}
+	} else {
+		r, err := db.Query(`SELECT question_id FROM ANSWER WHERE second_answer = "not-written"`)
+		if err != nil {
+			fmt.Println("ERROR #53 : ", err.Error())
+		}
+		if r.Next() {
+			r.Scan(&question_id)
+			return question_id
+		}
+	}
+	return question_id
+}
+
+func GetQuestionByQuestionID(questionID int) (string, string){
+	r, err := db.Query(`SELECT target_word, question_contents FROM question WHERE question_id = `+ strconv.Itoa(questionID))
+	if err != nil {
+		fmt.Println("ERROR #54 : ", err.Error())
+	}
+	r.Next()
+	var questionData QuestionData
+	r.Scan(&questionData.Target_word, &questionData.Question_contents)
+	return questionData.Target_word, questionData.Question_contents
+}
+
+func GetRecentAnswerByConnID(connection_id, num int) []AnswerData {
+	r, err := db.Query("SELECT * FROM answer ORDER BY answer_id DESC LIMIT " + strconv.Itoa(num))
+	if err != nil {
+		fmt.Println("ERROR #55 : ", err.Error())
+	}
+	var answerData AnswerData
+	var answerDatas []AnswerData
+	for r.Next() {
+		r.Scan(&answerData.Answer_id, &answerData.Connection_id, &answerData.FirstAnswer, &answerData.SecondAnswer, &answerData.AnswerDate, &answerData.Question_id)
+		answerDatas = append(answerDatas, answerData)
+	}
+	return answerDatas
+}
+
+// type AnswerData struct {
+// 	QuestionContents string `json:"question_contents"`
+// 	FirstAnswer string `json:"first_answer"`
+// 	SecondAnswer string `json:"second_answer"`
+// 	AnswerDate string `json:"answer_date"`
+// }
+// TEST
+// TEST
+// TEST
 
 func TestUsrs() (*sql.Rows, error) {
 	r, err := db.Query("SELECT * FROM usrs")

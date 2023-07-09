@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"choigonyok.com/couple-chat-service-project-docker/src/model"
@@ -18,7 +19,7 @@ import (
 )
 
 func Test(){
-	//model.DeleteAll()
+	// model.DeleteAll()
 
 	usrsData := model.UsrsData{}
 	usrsDatas := []model.UsrsData{}
@@ -91,7 +92,7 @@ func Test(){
 		r.Scan(&connectionData.connection_id, &connectionData.first_usr, &connectionData.second_usr,&connectionData.start_date)
 		connectionDatas = append(connectionDatas, connectionData)
 	}
-	fmt.Println(connectionDatas)
+	fmt.Println("connection DB : ", connectionDatas)
 
 	r, _ = model.TestQuestion()
 	for r.Next(){
@@ -109,6 +110,9 @@ func Test(){
 }
 
 var conns = make(map[string]*websocket.Conn)
+	
+var mutex = &sync.Mutex{}
+
 
 func ConnectDB(driverName, dbData string) {
 	model.OpenDB(driverName, dbData)
@@ -465,15 +469,8 @@ func GetAnswerHandler(c *gin.Context){
 	var connID string
 	r1.Scan(&connID)
 
-	type AnswerData struct {
-		QuestionContents string `json:"question_contents"`
-		FirstAnswer string `json:"first_answer"`
-		SecondAnswer string `json:"second_answer"`
-		AnswerDate string `json:"answer_date"`
-	}
-
-	answerData := AnswerData{}
-	answerDatas := []AnswerData{}
+	answerData := model.AnswerData{}
+	answerDatas := []model.AnswerData{}
 
 	var questionID string
 	r2, err := model.SelectAnswerByConnID(connID)
@@ -527,11 +524,15 @@ func UpgradeHandler(c *gin.Context){
 	}
 	defer conn.Close()
 	defer func(){
+		mutex.Lock()
 		conns[uuid] = nil
+		mutex.Unlock()
 	}()
-
+	
+	mutex.Lock()
 	conns[uuid] = conn
 	// conn객체를 읽어야함
+	mutex.Unlock()
 	
 	// 클라이언트에 uuid 전달, 그래야 클라이언트에게 채팅을 표시할 때
 	// 누가 보낸 채팅인지 UUID로 구분해서 표시할 수 있음
@@ -574,7 +575,28 @@ func UpgradeHandler(c *gin.Context){
 		fmt.Println("ERROR #38 : ", err.Error())
 	}
 
-	// 메시지를 읽고 쓰는 부분, 읽은 메시지는 DB에 저장됨
+	// 이전에 대답 안하고 커넥션 종료된 question 있는지 확인
+	order := model.GetUsrOrderByUUID(uuid)
+	question_id := model.QuestionIDOfEmptyAnswerByOrder(order)
+	if question_id != 0 {
+		_, question_contents := model.GetQuestionByQuestionID(question_id)
+		questiondata := model.ChatData{
+			Text_body: question_contents,
+			Writer_id: "question",
+			Write_time: time.Now().Format("2006/01/02 03:04"),
+			Is_answer: 1,
+			Chat_id: 0,
+			Question_id: question_id,
+		}
+		questiondatas := []model.ChatData{}
+		questiondatas = append(questiondatas, questiondata)
+		err := conn.WriteJSON(questiondatas)
+		if err != nil {
+			fmt.Println("ERROR #56 : ", err.Error())
+		}
+	}
+
+// 메시지를 읽고 쓰는 부분, 읽은 메시지는 DB에 저장됨
 	for { 
 		var chatData []model.ChatData
 
@@ -583,7 +605,7 @@ func UpgradeHandler(c *gin.Context){
 			fmt.Println("ERROR #39 : ", err.Error())
 			break;
 		}
-		
+
 		// 일반채팅이면 chat table에 저장, question에 대한 답이면 answer table에 저장
 		if chatData[0].Is_answer == 0 {
 			err := model.InsertChat(chatData[0].Text_body, uuid, chatData[0].Write_time)
@@ -596,19 +618,25 @@ func UpgradeHandler(c *gin.Context){
 		}
 
 		target_conn := []*websocket.Conn{}
-		
+
+		mutex.Lock()
 		if conns[first_uuid] != nil && conns[second_uuid] != nil {
 			first_conn := conns[first_uuid]
 			second_conn := conns[second_uuid]
 			target_conn = append(target_conn, first_conn, second_conn)
+		
 		} else if conns[first_uuid] != nil {
 			first_conn := conns[first_uuid]
 			target_conn = append(target_conn, first_conn)
+		
 		} else {
 			second_conn := conns[second_uuid]
-			target_conn = append(target_conn, second_conn)
+			target_conn = append(target_conn, second_conn)	
 		}
-		
+		mutex.Unlock()
+
+
+
 		// 커넥션 연결이 안되어있으면 보내면 nil pointer 오류 생김
 		// 모든 커넥션에 메시지 write
 		
@@ -619,7 +647,8 @@ func UpgradeHandler(c *gin.Context){
 					fmt.Println("ERROR #43 : ", err.Error())
 				}
 			}
-		}		
+		}
+
 		sendQuestion(chatData, conn_id, target_conn)
 	}
 }
@@ -663,9 +692,14 @@ func sendQuestion(chatData []model.ChatData, conn_id int, target_conn []*websock
 					}
 				}
 				// 5. answer에 답 적기 (는 위에 READ에서 처리)
+				err = model.InsertAnswer(chatData[0].Write_time, conn_id, question_id)
+				if err != nil {
+					fmt.Println("ERROR #42 : ", err.Error())
+				}
 			}
 		}
 	}
+
 }
 
 func recieveAnswer(uuid string, conn_id int, chatData []model.ChatData, first_uuid string){
@@ -674,25 +708,14 @@ func recieveAnswer(uuid string, conn_id int, chatData []model.ChatData, first_uu
 		fmt.Println("ERROR #41 : ", err.Error())
 	}
 	defer r3.Close()
-
-	if r3.Next() {
-		if first_uuid == uuid {
-			err = model.UpdateFirstAnswerByQuestionID(chatData[0].Text_body, chatData[0].Question_id)
-		} else {
-			err = model.UpdateSecondAnswerByQuestionID(chatData[0].Text_body, chatData[0].Question_id)
-		}
+	
+	r3.Next()
+	if first_uuid == uuid {
+		err = model.UpdateFirstAnswerByQuestionID(chatData[0].Text_body, chatData[0].Question_id)
 	} else {
-		err = model.InsertAnswer(chatData[0].Write_time, conn_id, chatData[0].Question_id)
-		if err != nil {
-			fmt.Println("ERROR #42 : ", err.Error())
-		}
-		if first_uuid == uuid {
-			err = model.UpdateFirstAnswerByQuestionID(chatData[0].Text_body, chatData[0].Question_id)
-		} else {
-			err = model.UpdateSecondAnswerByQuestionID(chatData[0].Text_body, chatData[0].Question_id)
-		}
-		if err != nil {
-			fmt.Println("ERROR #50 : ", err.Error())
-		}
+		err = model.UpdateSecondAnswerByQuestionID(chatData[0].Text_body, chatData[0].Question_id)
+	}
+	if err != nil {
+		fmt.Println("ERROR #50 : ", err.Error())
 	}
 }

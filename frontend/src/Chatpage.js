@@ -13,7 +13,8 @@ const Chatpage = () => {
   const [recievedMessage, setRecievedMessage] = useState([]);
   const [myUUID, setMyUUID] = useState("");
   const [inputAnswer, setInputAnswer] = useState("");
-  const [inputHide, setInputHide] = useState(false);
+  const [hideInputBox, setHideInputBox] = useState(false);
+  const [seeAnswerBox, setSeeAnswerBox] = useState(false);
   const [answers, setAnswers] = useState([]);
 
   useEffect(() => {
@@ -47,6 +48,12 @@ const Chatpage = () => {
         setMyUUID(parsedData.uuid);
       } else {
         setRecievedMessage((prev) => [...prev, ...parsedData]);
+        if (parsedData.length !== 0) {
+          if (parsedData[0].is_answer === 1) {
+            setHideInputBox(true);
+            setSeeAnswerBox(true);
+          }
+        }
       }
     };
     socket.onclose = () => {
@@ -116,6 +123,8 @@ const Chatpage = () => {
             ];
             newSocket.send(JSON.stringify(sendData));
             setInputAnswer("");
+            setHideInputBox(false);
+            setSeeAnswerBox(false);
           } else alert("상대방에게 메세지를 보낼 수 없는 상태입니다.");
         }
       }
@@ -153,7 +162,7 @@ const Chatpage = () => {
                   <div className="chat-container__time">{item.write_time}</div>
                 </div>
               )}
-              {item.is_answer === 1 && (
+              {seeAnswerBox && item.is_answer === 1 && (
                 <div>
                   <div className="chat-container__chat__question">
                     <div className="chat-container__question">
@@ -175,9 +184,11 @@ const Chatpage = () => {
             </div>
           ))}
       </div>
-      <Inputbox
-        onSendMessage={(messageData) => sendMessageHandler(messageData)}
-      />
+      {!hideInputBox && (
+        <Inputbox
+          onSendMessage={(messageData) => sendMessageHandler(messageData)}
+        />
+      )}
       <div>
         ANSWER
         {answers.length > 0 &&

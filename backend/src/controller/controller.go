@@ -17,6 +17,8 @@ import (
 	"github.com/google/uuid"
 )
 
+var conns = make(map[string]*websocket.Conn)
+
 func ConnectDB(driverName, dbData string) {
 	model.OpenDB(driverName, dbData)
 }
@@ -56,8 +58,7 @@ func isConnected(uuid string) bool {
 	r, err := model.SelectConnIDFromUsrsByUUID(uuid)
 	defer r.Close()
 	if err != nil {
-		fmt.Println(err.Error())
-		fmt.Println("LOAD DB TO CHECK CONNECTED ERROR OCCURED")
+		fmt.Println("ERROR #49 : ", err.Error())
 	}
 	var conn_id int
 	for r.Next() {
@@ -412,7 +413,6 @@ func GetAnswerHandler(c *gin.Context){
 
 // Websocket 프로토콜로 업그레이드 및 메시지 read/write
 func UpgradeHandler(c *gin.Context){
-	conns := make(map[string]*websocket.Conn)
 	uuid := cookieExist(c)
 
 	var upgrader  = websocket.Upgrader{
@@ -430,6 +430,9 @@ func UpgradeHandler(c *gin.Context){
 		return
 	}
 	defer conn.Close()
+	defer func(){
+		conns[uuid] = nil
+	}()
 
 	conns[uuid] = conn
 	// conn객체를 읽어야함
@@ -484,7 +487,7 @@ func UpgradeHandler(c *gin.Context){
 			fmt.Println("ERROR #39 : ", err.Error())
 			break;
 		}
-		fmt.Println("111") // TEST
+		
 		// 일반채팅이면 chat table에 저장, question에 대한 답이면 answer table에 저장
 		if chatData[0].Is_answer == 0 {
 			err := model.InsertChat(chatData[0].Text_body, uuid, chatData[0].Write_time)
@@ -516,27 +519,33 @@ func UpgradeHandler(c *gin.Context){
 					err = model.UpdateSecondAnswerByQuestionID(chatData[0].Text_body, chatData[0].Question_id)
 				}
 				if err != nil {
-					fmt.Println(err.Error())
-					fmt.Println("ADD CHAT TO DB ERROR OCCURED")
+					fmt.Println("ERROR #50 : ", err.Error())
 				}
 			}
 		}
-		fmt.Println("222") // TEST
-		first_conn := conns[first_uuid]
-		second_conn := conns[second_uuid]
-
 		target_conn := []*websocket.Conn{}
-		target_conn = append(target_conn, first_conn, second_conn)
+		
+		if conns[first_uuid] != nil && conns[second_uuid] != nil {
+			first_conn := conns[first_uuid]
+			second_conn := conns[second_uuid]
+			target_conn = append(target_conn, first_conn, second_conn)
+		} else if conns[first_uuid] != nil {
+			first_conn := conns[first_uuid]
+			target_conn = append(target_conn, first_conn)
+		} else {
+			second_conn := conns[second_uuid]
+			target_conn = append(target_conn, second_conn)
+		}
+		
 		// 커넥션 연결이 안되어있으면 보내면 nil pointer 오류 생김
-		fmt.Println("333") // TEST
 		// 모든 커넥션에 메시지 write
+		
 		if chatData[0].Is_answer != 1 {
-			for index, item := range target_conn {
+			for _, item := range target_conn {
 				err := item.WriteJSON(chatData)
 				if err != nil {
 					fmt.Println("ERROR #43 : ", err.Error())
 				}
-				fmt.Println("index : ", index)
 			}
 		}
 		
@@ -553,7 +562,6 @@ func UpgradeHandler(c *gin.Context){
 			r.Scan(&target_word, &question_id, &question_contents)	
 			if strings.Contains(chatData[0].Text_body, target_word) {
 				// 3. 단어가 발견되면 이전에 답을 한 전적이 있는지 검색
-				fmt.Println(target_word)
 				r, err := model.SelectAnswerByConnIDandQuestionID(conn_id, question_id)
 				if err != nil {
 					fmt.Println("ERROR #45 : ", err.Error())

@@ -17,6 +17,97 @@ import (
 	"github.com/google/uuid"
 )
 
+func Test(){
+	//model.DeleteAll()
+
+	usrsData := model.UsrsData{}
+	usrsDatas := []model.UsrsData{}
+	chatData := model.ChatData{}
+	chatDatas := []model.ChatData{}
+	requestData := model.RequestData{}
+	requestDatas := []model.RequestData{}
+	connectionData := struct {
+		connection_id int
+		first_usr string
+		second_usr string
+		start_date string
+	}{}
+	connectionDatas := []struct {
+		connection_id int
+		first_usr string
+		second_usr string
+		start_date string
+	}{}
+	questionData := struct {
+		question_id int
+		target_word string
+		question_contents string
+	}{}
+	questionDatas := []struct {
+		question_id int
+		target_word string
+		question_contents string
+	}{}
+	answerData := struct {
+		answer_id int
+		connection_id int
+		first_answer string
+		second_answer string
+		answer_date string
+		question_id int
+	}{}
+	answerDatas := []struct {
+		answer_id int
+		connection_id int
+		first_answer string
+		second_answer string
+		answer_date string
+		question_id int
+	}{}
+
+	r, _ := model.TestUsrs()
+	for r.Next() {
+		r.Scan(&usrsData.UUID, &usrsData.ID, &usrsData.Password, &usrsData.Conn_id, &usrsData.Order_usr)
+		usrsDatas = append(usrsDatas, usrsData)
+	}
+	fmt.Println("usrs DB : ", usrsDatas)
+
+	r, _ = model.TestChat()
+	for r.Next(){
+		r.Scan(&chatData.Chat_id, &chatData.Writer_id, &chatData.Write_time, &chatData.Text_body, &chatData.Is_answer)
+		chatDatas = append(chatDatas, chatData)
+	}
+	fmt.Println("chat DB : ", chatDatas)
+
+	r, _ = model.TestRequest()
+	for r.Next(){
+		r.Scan(&requestData.Request_id,&requestData.Requester_uuid,&requestData.Requester_id,&requestData.Target_uuid, &requestData.Target_id,&requestData.Request_time)
+		requestDatas = append(requestDatas, requestData)
+	}
+	fmt.Println("request DB : ", requestDatas)
+
+	r, _ = model.TestConnection()
+	for r.Next() {
+		r.Scan(&connectionData.connection_id, &connectionData.first_usr, &connectionData.second_usr,&connectionData.start_date)
+		connectionDatas = append(connectionDatas, connectionData)
+	}
+	fmt.Println(connectionDatas)
+
+	r, _ = model.TestQuestion()
+	for r.Next(){
+		r.Scan(&questionData.question_id, &questionData.target_word, &questionData.question_contents)
+		questionDatas = append(questionDatas, questionData)
+	}
+	fmt.Println("question DB : ", questionDatas)
+
+	r, _ = model.TestAnswer()
+	for r.Next() {
+		r.Scan(&answerData.answer_id, &answerData.connection_id, &answerData.first_answer, &answerData.second_answer, &answerData.answer_date, &answerData.question_id)
+		answerDatas = append(answerDatas, answerData)
+	}
+	fmt.Println("answer DB : ", answerDatas)
+}
+
 var conns = make(map[string]*websocket.Conn)
 
 func ConnectDB(driverName, dbData string) {
@@ -179,7 +270,7 @@ func AlreadyLogInCheckHandler(c *gin.Context){
 	r, err := model.SelectUsrByUUID(uuid)
 	if err != nil {
 		fmt.Println("ERROR #12 : ", err.Error())
-		c.Writer.WriteHeader(http.StatusInternalServerError)
+		c.Writer.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 	defer r.Close()

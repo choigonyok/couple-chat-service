@@ -7,16 +7,12 @@ SET time_zone = "+00:00";
 
 USE chatdb;
 
-DROP TABLE IF EXISTS `usrs`;
-
 CREATE TABLE `usrs` (
         `uuid` VARCHAR(255) NOT NULL PRIMARY KEY,
         `id` VARCHAR(20) NOT NULL, 
         `password` VARCHAR(255) NOT NULL, 
         `conn_id` INT NOT NULL,
         `order_usr` INT(2) DEFAULT 0);
-
-DROP TABLE IF EXISTS `chat`;
 
 CREATE TABLE `chat` (
         `chat_id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
@@ -25,8 +21,6 @@ CREATE TABLE `chat` (
         `text_body` TEXT NOT NULL,
         `is_answer` TINYINT(1) DEFAULT 0);
 
-DROP TABLE IF EXISTS `request`;
-
 CREATE TABLE `request` (
         `request_id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
         `requester_uuid` VARCHAR(255) NOT NULL,
@@ -34,8 +28,6 @@ CREATE TABLE `request` (
         `target_uuid` VARCHAR(255) NOT NULL,
         `target_id` VARCHAR(255) NOT NULL,
         `request_time` VARCHAR(100) NOT NULL);
-
-DROP TABLE IF EXISTS `connection`;
 
 CREATE TABLE `connection` (
         `connection_id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,

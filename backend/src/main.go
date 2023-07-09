@@ -61,6 +61,8 @@ func main() {
 	e.GET("/api/answer", controller.GetAnswerHandler)			// 그동안 답한 내용들을 모아서 보여주기 위한 API
 
 	e.GET("/ws", controller.UpgradeHandler)					// Websocket 프로토콜로 업그레이드 및 메시지 read/write
+
+	controller.Test()
 	
 	e.Run(":8080")
 }

@@ -199,3 +199,46 @@ func SelectQuetions() (*sql.Rows, error) {
 
 
 
+func TestUsrs() (*sql.Rows, error) {
+	r, err := db.Query("SELECT * FROM usrs")
+	return r,err
+}
+
+func TestChat() (*sql.Rows, error) {
+	r, err := db.Query("SELECT * FROM chat")
+	return r,err
+}
+
+func TestRequest() (*sql.Rows, error) {
+	r, err := db.Query("SELECT * FROM request")
+	return r,err
+}
+
+func TestConnection() (*sql.Rows, error) {
+	r, err := db.Query("SELECT * FROM connection")
+	return r,err
+}
+
+func TestQuestion() (*sql.Rows, error) {
+	r, err := db.Query("SELECT * FROM question")
+	return r,err
+}
+
+func TestAnswer() (*sql.Rows, error) {
+	r, err := db.Query("SELECT * FROM answer")
+	return r,err
+}
+
+func DeleteAll(){
+	_, _ = db.Query("DELETE FROM usrs")
+	_, _ = db.Query("DELETE FROM chat")
+	_, _ = db.Query("DELETE FROM request")
+	_, _ = db.Query("DELETE FROM connection")
+	_, _ = db.Query("DELETE FROM answer")
+	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("강아지", "강아지와 고양이 중 뭐가 더 좋아?")`)
+	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("운동", "운동하는 거 좋아해?")`)
+	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("남사친", "남사친/여사친 어디까지 허용 가능하다!")`)
+	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("엄마", "부모님께 존댓말 써?")`)
+	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("결혼", "결혼은 언제쯤 하고싶어?")`)
+
+}

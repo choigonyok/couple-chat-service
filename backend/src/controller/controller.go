@@ -491,6 +491,11 @@ func GetAnswerHandler(c *gin.Context){
 
 		r3.Next()
 		r3.Scan(&answerData.QuestionContents)
+
+		if answerData.FirstAnswer == "not-written" || answerData.SecondAnswer == "not-written" {
+			continue
+		}
+
 		answerDatas = append(answerDatas, answerData)
 	}
 
@@ -587,33 +592,9 @@ func UpgradeHandler(c *gin.Context){
 				fmt.Println("ERROR #40 : ", err.Error())
 			}	
 		} else {
-			r3, err := model.SelectAnswerByConnIDandQuestionID(conn_id, chatData[0].Question_id)
-			if err != nil {
-				fmt.Println("ERROR #41 : ", err.Error())
-			}
-			defer r3.Close()
-
-			if r3.Next() {
-				if first_uuid == uuid {
-					err = model.UpdateFirstAnswerByQuestionID(chatData[0].Text_body, chatData[0].Question_id)
-				} else {
-					err = model.UpdateSecondAnswerByQuestionID(chatData[0].Text_body, chatData[0].Question_id)
-				}
-			} else {
-				err = model.InsertAnswer(chatData[0].Write_time, conn_id, chatData[0].Question_id)
-				if err != nil {
-					fmt.Println("ERROR #42 : ", err.Error())
-				}
-				if first_uuid == uuid {
-					err = model.UpdateFirstAnswerByQuestionID(chatData[0].Text_body, chatData[0].Question_id)
-				} else {
-					err = model.UpdateSecondAnswerByQuestionID(chatData[0].Text_body, chatData[0].Question_id)
-				}
-				if err != nil {
-					fmt.Println("ERROR #50 : ", err.Error())
-				}
-			}
+			recieveAnswer(uuid, conn_id, chatData, first_uuid)
 		}
+
 		target_conn := []*websocket.Conn{}
 		
 		if conns[first_uuid] != nil && conns[second_uuid] != nil {
@@ -638,49 +619,80 @@ func UpgradeHandler(c *gin.Context){
 					fmt.Println("ERROR #43 : ", err.Error())
 				}
 			}
-		}
-		
-// 채팅 중 단어가 발견되면 단어 관련된 질문을 커플에게 던지는 기능
-		// 1. 단어를 먼저 다 뽑아서
-		var target_word, question_contents string
-		var question_id int
-		r, err := model.SelectQuetions()
-		if err != nil {
-			fmt.Println("ERROR #44 : ", err.Error())
-		}
-		for r.Next() {
-			// 2. 방금 READ한 채팅에 단어가 있는지 돌면서 확인
-			r.Scan(&target_word, &question_id, &question_contents)	
-			if strings.Contains(chatData[0].Text_body, target_word) {
-				// 3. 단어가 발견되면 이전에 답을 한 전적이 있는지 검색
-				r, err := model.SelectAnswerByConnIDandQuestionID(conn_id, question_id)
-				if err != nil {
-					fmt.Println("ERROR #45 : ", err.Error())
-				}
-				defer r.Close()
-				// 4. 단어도 발견됐고, 이전에 했던 질문도 아니면 질문 WRITE
-				if !r.Next() {
-					questiondata := model.ChatData{
-						Text_body: question_contents,
-						Writer_id: "question",
-						Write_time: time.Now().Format("2006/01/02 03:04"),
-						Is_answer: 1,
-						Chat_id: 0,
-						Question_id: question_id,
-					}
-					questiondatas := []model.ChatData{}
-					questiondatas = append(questiondatas, questiondata)
+		}		
+		sendQuestion(chatData, conn_id, target_conn)
+	}
+}
 
-					for _, item := range target_conn {
-						err := item.WriteJSON(questiondatas)
-						if err != nil {
-							fmt.Println("ERROR #46 : ", err.Error())
-						}
-					}
-					// 5. answer에 답 적기 (는 위에 READ에서 처리)
-				}
+func sendQuestion(chatData []model.ChatData, conn_id int, target_conn []*websocket.Conn){
+// 채팅 중 단어가 발견되면 단어 관련된 질문을 커플에게 던지는 기능
+	// 1. 단어를 먼저 다 뽑아서
+	var target_word, question_contents string
+	var question_id int
+	r, err := model.SelectQuetions()
+	if err != nil {
+		fmt.Println("ERROR #44 : ", err.Error())
+	}
+	for r.Next() {
+		// 2. 방금 READ한 채팅에 단어가 있는지 돌면서 확인
+		r.Scan(&target_word, &question_id, &question_contents)	
+		if strings.Contains(chatData[0].Text_body, target_word) {
+			// 3. 단어가 발견되면 이전에 답을 한 전적이 있는지 검색
+			r, err := model.SelectAnswerByConnIDandQuestionID(conn_id, question_id)
+			if err != nil {
+				fmt.Println("ERROR #45 : ", err.Error())
 			}
-			
+			defer r.Close()
+			// 4. 단어도 발견됐고, 이전에 했던 질문도 아니면 질문 WRITE
+			if !r.Next() {
+				questiondata := model.ChatData{
+					Text_body: question_contents,
+					Writer_id: "question",
+					Write_time: time.Now().Format("2006/01/02 03:04"),
+					Is_answer: 1,
+					Chat_id: 0,
+					Question_id: question_id,
+				}
+				questiondatas := []model.ChatData{}
+				questiondatas = append(questiondatas, questiondata)
+
+				for _, item := range target_conn {
+					err := item.WriteJSON(questiondatas)
+					if err != nil {
+						fmt.Println("ERROR #46 : ", err.Error())
+					}
+				}
+				// 5. answer에 답 적기 (는 위에 READ에서 처리)
+			}
+		}
+	}
+}
+
+func recieveAnswer(uuid string, conn_id int, chatData []model.ChatData, first_uuid string){
+	r3, err := model.SelectAnswerByConnIDandQuestionID(conn_id, chatData[0].Question_id)
+	if err != nil {
+		fmt.Println("ERROR #41 : ", err.Error())
+	}
+	defer r3.Close()
+
+	if r3.Next() {
+		if first_uuid == uuid {
+			err = model.UpdateFirstAnswerByQuestionID(chatData[0].Text_body, chatData[0].Question_id)
+		} else {
+			err = model.UpdateSecondAnswerByQuestionID(chatData[0].Text_body, chatData[0].Question_id)
+		}
+	} else {
+		err = model.InsertAnswer(chatData[0].Write_time, conn_id, chatData[0].Question_id)
+		if err != nil {
+			fmt.Println("ERROR #42 : ", err.Error())
+		}
+		if first_uuid == uuid {
+			err = model.UpdateFirstAnswerByQuestionID(chatData[0].Text_body, chatData[0].Question_id)
+		} else {
+			err = model.UpdateSecondAnswerByQuestionID(chatData[0].Text_body, chatData[0].Question_id)
+		}
+		if err != nil {
+			fmt.Println("ERROR #50 : ", err.Error())
 		}
 	}
 }

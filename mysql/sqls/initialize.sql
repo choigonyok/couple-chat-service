@@ -43,8 +43,8 @@ CREATE TABLE `question` (
 CREATE TABLE `answer` (
         `answer_id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
         `connection_id` INT NOT NULL,
-        `first_answer` VARCHAR(255),
-        `second_answer` VARCHAR(255),
+        `first_answer` VARCHAR(255) DEFAULT 'not-written',
+        `second_answer` VARCHAR(255) DEFAULT 'not-written',
         `answer_date` VARCHAR(255) NOT NULL,
         `question_id` INT,
         FOREIGN KEY (`question_id`) REFERENCES `question`(`question_id`) ON UPDATE CASCADE ON DELETE CASCADE);

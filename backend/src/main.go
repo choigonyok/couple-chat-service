@@ -12,36 +12,33 @@ import (
 )
 
 func LoadEnv(){
-	// 환경변수 로딩
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Println("ERROR #1 : ", err.Error())
 	}
 }
 
-// Origin CORS 설정
 func originConfig() cors.Config{
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{os.Getenv("ORIGIN")} 
 	// 허용할 오리진 설정, 원래 리액트의 port가 아니라 리액트가 있는 container의 port 번호를 origin allow 해줘야함
 	// localhost:3000로 origin allow 하면 통신 안됨
 
-	config.AllowMethods= []string{"GET"}
+	config.AllowMethods= []string{"GET", "POST", "DELETE", "PUT"}
 	config.AllowHeaders = []string{"Content-type"}
 	config.AllowCredentials = true
 	return config
 }
 
 func main() {
-// 환경변수 로딩
-	LoadEnv()
+	LoadEnv()	// 환경변수 로딩
 
 	e := gin.Default()
 	
-	config := originConfig()
-	e.Use(cors.New(config)) 
+	config := originConfig()	// Origin 설정
+	e.Use(cors.New(config)) 	// Origin 적용
 	
-	controller.ConnectDB("mysql", os.Getenv("DB_USER")+":"+os.Getenv("DB_PASSWORD")+"@tcp(mysql)/"+os.Getenv("DB_NAME"))		
+	controller.ConnectDB("mysql", os.Getenv("DB_USER")+":"+os.Getenv("DB_PASSWORD")+"@tcp(mysql)/"+os.Getenv("DB_NAME"))	// DB 초기 연결
 	defer controller.UnConnectDB()
 	
 	e.POST("/api/usr", controller.SignUpHandler)				// 회원가입
@@ -62,7 +59,7 @@ func main() {
 
 	e.GET("/ws", controller.UpgradeHandler)					// Websocket 프로토콜로 업그레이드 및 메시지 read/write
 
-	controller.Test()
+	controller.Test() // DB 저장 데이터 출력 TEST
 	
 	e.Run(":8080")
 }

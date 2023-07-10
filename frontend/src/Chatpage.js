@@ -17,7 +17,8 @@ const Chatpage = () => {
   const [seeAnswerBox, setSeeAnswerBox] = useState(false);
   const [answers, setAnswers] = useState([]);
   const [wordNum, setWordNum] = useState("3");
-  const [words, setWords] = useState([]);
+  const [otherWords, setOtherWords] = useState([]);
+  const [myWords, setMyWords] = useState([]);
 
   useEffect(() => {
     axios
@@ -148,23 +149,27 @@ const Chatpage = () => {
     axios
       .get(process.env.REACT_APP_HOST_URL + "/api/rank/" + wordNum)
       .then((response) => {
-        console.log(response.data);
-        setWords([...response.data]);
+        setMyWords([...response.data.mywords]);
+        setOtherWords([...response.data.otherwords]);
       })
       .catch((error) => {
-        console.log(error);
+        if (error.response.status === 411) {
+          alert("순위를 매기기엔 채팅의 수가 부족합니다.");
+        } else {
+          console.log(error);
+        }
       });
   }, [wordNum]);
 
   const threeWordsHandler = () => {
     setWordNum("3");
-  }
+  };
   const fiveWordsHandler = () => {
     setWordNum("5");
-  }
+  };
   const tenWordsHandler = () => {
     setWordNum("10");
-  }
+  };
 
   return (
     <div className="page-container">
@@ -226,15 +231,26 @@ const Chatpage = () => {
             </div>
           ))}
       </div>
+      <div>많이 쓴 단어 상위 {wordNum}개</div>
+      <input type="button" value="3개" onClick={threeWordsHandler} />
+      <input type="button" value="5개" onClick={fiveWordsHandler} />
+      <input type="button" value="10개" onClick={tenWordsHandler} />
       <div>
-        많이 쓴 단어 상위 {wordNum}개
+        내가 쓴 단어
+        <br />
+        {myWords.map((item, index) => (
+          <div>
+            {index + 1}위 : {item}
+          </div>
+        ))}
       </div>
-      <input type="button" value="3개" onClick={threeWordsHandler}/>
-      <input type="button" value="5개" onClick={fiveWordsHandler}/>
-      <input type="button" value="10개" onClick={tenWordsHandler}/>
       <div>
-        {words.map((item, index) => (
-          <div>{index+1}위 : {item}</div>
+        상대방이 쓴 단어
+        <br />
+        {otherWords.map((item, index) => (
+          <div>
+            {index + 1}위 : {item}
+          </div>
         ))}
       </div>
       <Logout />

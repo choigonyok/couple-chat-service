@@ -730,9 +730,37 @@ func GetMostUsedWordsHandler(c *gin.Context){
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 		return	
 	}
-	FrequentWords := model.GetFrequentFiveWord(uuid, rankNumInt)
+	r, err := model.SelectConnectionByUsrsUUID(uuid)
+	if err != nil {
+		fmt.Println("ERROR #61 : ", err.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return	
+	}
+	r.Next()
+	var firstUUID, secontUUID, connectionID string
+	r.Scan(&firstUUID, &secontUUID, connectionID)
+	var ohterFrequentWords []string
+	if firstUUID == uuid {
+		ohterFrequentWords = model.GetFrequentFiveWord(secontUUID, rankNumInt)	
+	} else {
+		ohterFrequentWords = model.GetFrequentFiveWord(firstUUID, rankNumInt)
+	}
+	myFrequentWords := model.GetFrequentFiveWord(uuid, rankNumInt)
 
-	marshaledData, err := json.Marshal(FrequentWords)
+	if myFrequentWords == nil || ohterFrequentWords == nil {
+		c.Writer.WriteHeader(http.StatusLengthRequired)
+		return
+	}
+
+	sendData := struct {
+		MyWords []string `json:"mywords"`
+		OtherWords []string `json:"otherwords"`
+	}{
+		myFrequentWords,
+		ohterFrequentWords,
+	}
+
+	marshaledData, err := json.Marshal(sendData)
 	if err != nil {
 		fmt.Println("ERROR #60 : ", err.Error())
 		c.Writer.WriteHeader(http.StatusInternalServerError)

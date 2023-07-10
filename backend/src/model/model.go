@@ -308,6 +308,10 @@ func GetFrequentFiveWord(uuid string, rankNum int) []string {
 
 	withOutRepeatSlice := strings.Fields(withOutRepeat)
 
+	if len(withOutRepeatSlice) < rankNum {
+		return nil
+	}
+
 	// bubble sort
 	for i := 0; i < len(withOutRepeatSlice)-1; i++ {
 		for i := len(withOutRepeatSlice)-1; i > 0; i-- {

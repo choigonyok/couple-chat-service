@@ -3,7 +3,6 @@ DROP DATABASE IF EXISTS chatdb;
 CREATE DATABASE chatdb;
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET time_zone = "+00:00";
 
 USE chatdb;
 
@@ -17,7 +16,7 @@ CREATE TABLE `usrs` (
 CREATE TABLE `chat` (
         `chat_id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
         `writer_id` VARCHAR(255) NOT NULL,
-        `write_time` VARCHAR(100) NOT NULL,
+        `write_time` DATETIME NOT NULL,
         `text_body` TEXT NOT NULL,
         `is_answer` TINYINT(1) DEFAULT 0);
 

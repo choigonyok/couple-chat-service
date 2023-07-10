@@ -74,7 +74,7 @@ const Chatpage = () => {
       let nowformat =
         now.getFullYear() +
         "/" +
-        now.getMonth() +
+        (now.getMonth()+1) +
         "/" +
         now.getDate() +
         " " +
@@ -107,9 +107,9 @@ const Chatpage = () => {
             let now = new Date();
             let nowformat =
               now.getFullYear() +
-              "/" +
-              now.getMonth() +
-              "/" +
+              "-" +
+              now.getMonth()+2 +
+              "-" +
               now.getDate() +
               " " +
               now.getHours() +

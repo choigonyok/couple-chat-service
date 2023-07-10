@@ -38,6 +38,7 @@ services:
       MYSQL_DATABASE: ${DB_NAME}
       # .env를 활용해 환경변수를 설정하고 
       # .env는 .gitignore로 공유저장소에 올라가지 않도록 설정
+      TZ: Asia/Seoul
 
   backend:
     build:

@@ -276,7 +276,7 @@ func GetRecentAnswerByConnID(connection_id, num int) []AnswerData {
 }
 
 func GetFrequentFiveWord(uuid string, rankNum int) []string {
-	r, err := db.Query(`SELECT text_body FROM chat WHERE writer_id = "`+uuid+`"`)
+	r, err := db.Query(`SELECT text_body FROM chat WHERE writer_id = "`+uuid+`" and DATE_ADD(NOW(), INTERVAL -7 DAY) < write_time`)
 	if err != nil {
 		fmt.Println("ERROR #56 : ", err.Error())
 	}
@@ -286,6 +286,7 @@ func GetFrequentFiveWord(uuid string, rankNum int) []string {
 		r.Scan(&recentChat)
 		recentChats = append(recentChats, recentChat)
 	}
+
 	chatSum := strings.Join(recentChats, " ")
 	regexpKorean := regexp.MustCompile("[^가-힣]+")
 	onlyKorean := regexpKorean.ReplaceAllString(chatSum, " ")
@@ -366,15 +367,16 @@ func TestAnswer() (*sql.Rows, error) {
 }
 
 func DeleteAll(){
-	_, _ = db.Query("DELETE FROM usrs")
-	_, _ = db.Query("DELETE FROM chat")
-	_, _ = db.Query("DELETE FROM request")
-	_, _ = db.Query("DELETE FROM connection")
-	_, _ = db.Query("DELETE FROM answer")
-	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("강아지", "강아지와 고양이 중 뭐가 더 좋아?")`)
-	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("운동", "운동하는 거 좋아해?")`)
-	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("남사친", "남사친/여사친 어디까지 허용 가능하다!")`)
-	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("엄마", "부모님께 존댓말 써?")`)
-	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("결혼", "결혼은 언제쯤 하고싶어?")`)
+	// _, _ = db.Query("DELETE FROM usrs")
+	// _, _ = db.Query("DELETE FROM chat")
+	// _, _ = db.Query("DELETE FROM request")
+	// _, _ = db.Query("DELETE FROM connection")
+	// _, _ = db.Query("DELETE FROM answer")
+	// _, _ = db.Query("DELETE FROM question")
+	_,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("강아지", "강아지와 고양이 중 뭐가 더 좋아?")`)
+	_,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("운동", "운동하는 거 좋아해?")`)
+	_,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("남사친", "남사친/여사친 어디까지 허용 가능하다!")`)
+	_,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("엄마", "부모님께 존댓말 써?")`)
+	_,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("결혼", "결혼은 언제쯤 하고싶어?")`)
 
 }

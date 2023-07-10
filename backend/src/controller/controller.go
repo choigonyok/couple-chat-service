@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -506,7 +507,6 @@ func GetAnswerHandler(c *gin.Context){
 
 // Websocket 프로토콜로 업그레이드 및 메시지 read/write
 func UpgradeHandler(c *gin.Context){
-	GetOnlyKorean(c)
 	
 	uuid := cookieExist(c)
 
@@ -721,7 +721,23 @@ func recieveAnswer(uuid string, conn_id int, chatData []model.ChatData, first_uu
 	}
 }
 
-func GetOnlyKorean(c *gin.Context){
+func GetMostUsedWordsHandler(c *gin.Context){
+	rankNumString := c.Param("ranknum")
 	uuid := cookieExist(c)
-	model.GetFrequentFiveWord(uuid)
+	rankNumInt, err := strconv.Atoi(rankNumString)
+	if err != nil {
+		fmt.Println("ERROR #59 : ", err.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return	
+	}
+	FrequentWords := model.GetFrequentFiveWord(uuid, rankNumInt)
+
+	marshaledData, err := json.Marshal(FrequentWords)
+	if err != nil {
+		fmt.Println("ERROR #60 : ", err.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return	
+	} 
+
+	c.Writer.Write(marshaledData)
 }

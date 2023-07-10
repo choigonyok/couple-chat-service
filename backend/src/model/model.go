@@ -275,8 +275,7 @@ func GetRecentAnswerByConnID(connection_id, num int) []AnswerData {
 	return answerDatas
 }
 
-func GetFrequentFiveWord(uuid string){
-
+func GetFrequentFiveWord(uuid string, rankNum int) []string {
 	r, err := db.Query(`SELECT text_body FROM chat WHERE writer_id = "`+uuid+`"`)
 	if err != nil {
 		fmt.Println("ERROR #56 : ", err.Error())
@@ -285,15 +284,41 @@ func GetFrequentFiveWord(uuid string){
 	var recentChats []string
 	for r.Next() {
 		r.Scan(&recentChat)
-		fmt.Println(recentChat)
-	fmt.Println(recentChat)
-	fmt.Println(recentChat)
 		recentChats = append(recentChats, recentChat)
 	}
 	chatSum := strings.Join(recentChats, " ")
 	regexpKorean := regexp.MustCompile("[^가-힣]+")
 	onlyKorean := regexpKorean.ReplaceAllString(chatSum, " ")
-	fmt.Println(onlyKorean)
+
+	addWordTimes := make(map[string]int)
+
+	wordSlice := strings.Split(onlyKorean, " ")
+
+	for i := 0; i < len(wordSlice); i++ {
+		addWordTimes[wordSlice[i]] = addWordTimes[wordSlice[i]] + 1
+	}
+
+	var withOutRepeat string
+
+	for i := 0; i < len(wordSlice); i++ {
+		if !strings.Contains(withOutRepeat, wordSlice[i]) {
+			withOutRepeat += " "+wordSlice[i]
+		}
+	}
+
+	withOutRepeatSlice := strings.Fields(withOutRepeat)
+
+	// bubble sort
+	for i := 0; i < len(withOutRepeatSlice)-1; i++ {
+		for i := len(withOutRepeatSlice)-1; i > 0; i-- {
+			if addWordTimes[withOutRepeatSlice[i]] > addWordTimes[withOutRepeatSlice[i-1]] {
+				temp := withOutRepeatSlice[i-1]
+				withOutRepeatSlice[i-1] = withOutRepeatSlice[i]
+				withOutRepeatSlice[i] = temp
+			}
+		}
+	}
+	return withOutRepeatSlice[:rankNum]
 }
 
 // type AnswerData struct {

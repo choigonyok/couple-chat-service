@@ -61,6 +61,10 @@ func main() {
 
 	e.GET("/ws", controller.UpgradeHandler)					// Websocket 프로토콜로 업그레이드 및 메시지 read/write
 
+	e.GET("/api/except", controller.GetExceptWordsHandler)
+	e.POST("/api/except", controller.InsertExceptWordHandler)
+	e.DELETE("/api/except/:param", controller.DeleteExceptWordHandler)
+
 	controller.Test() // DB 저장 데이터 출력 TEST
 
 	

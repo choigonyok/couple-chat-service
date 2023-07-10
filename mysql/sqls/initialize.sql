@@ -48,6 +48,11 @@ CREATE TABLE `answer` (
         `question_id` INT,
         FOREIGN KEY (`question_id`) REFERENCES `question`(`question_id`) ON UPDATE CASCADE ON DELETE CASCADE);
 
+CREATE TABLE `exceptionword` (
+        `exception_id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+        `connection_id` INT NOT NULL,
+        `except_word` TEXT NOT NULL);
+
 -- 이거 작동 안함 왜 그런겨? chat DB create까지만 작동함
 
 -- https://devpress.csdn.net/cloudnative/63055e53c67703293080f68c.html

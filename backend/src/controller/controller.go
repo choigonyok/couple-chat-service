@@ -66,6 +66,16 @@ func Test(){
 		answer_date string
 		question_id int
 	}{}
+	exceptionData := struct {
+		exception_id int
+		connection_id int
+		except_word string
+	}{}
+	exceptionDatas := []struct {
+		exception_id int
+		connection_id int
+		except_word string
+	}{}
 
 	r, _ := model.TestUsrs()
 	for r.Next() {
@@ -108,6 +118,13 @@ func Test(){
 		answerDatas = append(answerDatas, answerData)
 	}
 	fmt.Println("answer DB : ", answerDatas)
+
+	r, _ = model.TestExceptionWord()
+	for r.Next() {
+		r.Scan(&exceptionData.exception_id, &exceptionData.connection_id, &exceptionData.except_word)
+		exceptionDatas = append(exceptionDatas, exceptionData)
+	}
+	fmt.Println("exceptionword DB : ", exceptionDatas)
 }
 
 var conns = make(map[string]*websocket.Conn)
@@ -768,4 +785,73 @@ func GetMostUsedWordsHandler(c *gin.Context){
 	} 
 
 	c.Writer.Write(marshaledData)
+}
+
+func GetExceptWordsHandler(c *gin.Context){
+	uuid := cookieExist(c)
+	r, err1 := model.SelectConnIDByUUID(uuid)
+	if err1 != nil {
+		fmt.Println("ERROR #61 : ", err1.Error())
+	}
+	var conn_id int
+	r.Next()
+	r.Scan(&conn_id)
+	
+	exceptWords := model.GetExceptWords(conn_id)
+	marshaledData, err2 := json.Marshal(exceptWords)
+	if err2 != nil {
+		fmt.Println("ERROR #62 : ", err2.Error())
+	}
+	c.Writer.Write(marshaledData)
+}
+
+func InsertExceptWordHandler(c *gin.Context){
+	uuid := cookieExist(c)
+	r, err := model.SelectConnIDByUUID(uuid)
+	if err != nil {
+		fmt.Println("ERROR #66 : ", err.Error())
+	}
+	var conn_id int
+	r.Next()
+	r.Scan(&conn_id)
+
+	Input := struct {
+		Except_word string `json:"except_word"`
+	}{}
+	err1 := c.ShouldBindJSON(&Input)
+	if err1 != nil {
+		fmt.Println("ERROR #63 : ", err1.Error())
+	}
+	if model.CheckWordAlreadyExcepted(conn_id, Input.Except_word) {
+		c.Writer.WriteHeader(http.StatusBadRequest)
+		return
+	} else {
+		err2 := model.InsertExceptWord(conn_id, Input.Except_word)
+		if err2 != nil {
+		fmt.Println("ERROR #63 : ", err2.Error())
+		}
+		c.Writer.WriteHeader(http.StatusOK)
+	}
+}
+
+func DeleteExceptWordHandler(c *gin.Context){
+	uuid := cookieExist(c)
+	param := c.Param("param")
+
+	r, err2 := model.SelectConnIDByUUID(uuid)
+	if err2 != nil {
+		fmt.Println("ERROR #67 : ", err2.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	var conn_id int
+	r.Next()
+	r.Scan(&conn_id)
+	err3 := model.DeleteExceptWord(conn_id, param)
+	if err3 != nil {
+		fmt.Println("ERROR #68 : ", err3.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	c.Writer.WriteHeader(http.StatusOK)
 }

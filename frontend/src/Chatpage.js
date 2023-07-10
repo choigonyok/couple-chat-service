@@ -5,6 +5,7 @@ import Inputbox from "./Inputbox";
 import Logout from "./Logout";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import Exceptword from "./Exceptword";
 
 const Chatpage = () => {
   const navigator = useNavigate();
@@ -230,6 +231,9 @@ const Chatpage = () => {
               <br />
             </div>
           ))}
+      </div>
+      <div>
+        <Exceptword/>
       </div>
       <div>많이 쓴 단어 상위 {wordNum}개</div>
       <input type="button" value="3개" onClick={threeWordsHandler} />

@@ -326,6 +326,43 @@ func GetFrequentFiveWord(uuid string, rankNum int) []string {
 	return withOutRepeatSlice[:rankNum]
 }
 
+func InsertExceptWord(connection_id int, except_word string) error {
+	_, err := db.Query(`INSERT INTO exceptionword (connection_id, except_word) VALUES (`+strconv.Itoa(connection_id)+`, "`+except_word+`")`)
+	return err
+}
+
+func CheckWordAlreadyExcepted(connection_id int, except_word string) bool {
+	r, err := db.Query(`SELECT * FROM exceptionword WHERE connection_id = `+strconv.Itoa(connection_id)+` and except_word = "`+except_word+`"`)
+	if err != nil {
+		fmt.Println("ERROR #65 : ", err.Error())
+	}
+	if r.Next() {
+		return true
+	} else {
+		return false
+	}
+}
+
+func DeleteExceptWord(connection_id int, except_word string) error {
+	_, err := db.Query(`DELETE FROM exceptionword WHERE connection_id = `+strconv.Itoa(connection_id)+` and except_word = "`+except_word+`"`)
+	return err
+}
+
+func GetExceptWords(connection_id int) []string {
+	r, err := db.Query("SELECT except_word FROM exceptionword WHERE connection_id = "+strconv.Itoa(connection_id))
+	if err != nil {
+		fmt.Println("ERROR #70 : ", err.Error())
+	}
+	var exceptWord string
+	var exceptWords []string
+	for r.Next() {
+		r.Scan(&exceptWord)
+		exceptWords = append(exceptWords, exceptWord)
+	}
+	// fmt.Println(exceptWords)
+	return exceptWords
+}
+
 // type AnswerData struct {
 // 	QuestionContents string `json:"question_contents"`
 // 	FirstAnswer string `json:"first_answer"`
@@ -366,6 +403,11 @@ func TestAnswer() (*sql.Rows, error) {
 	return r,err
 }
 
+func TestExceptionWord() (*sql.Rows, error) {
+	r, err := db.Query("SELECT * FROM exceptionword")
+	return r,err
+}
+
 func DeleteAll(){
 	// _, _ = db.Query("DELETE FROM usrs")
 	// _, _ = db.Query("DELETE FROM chat")
@@ -373,10 +415,10 @@ func DeleteAll(){
 	// _, _ = db.Query("DELETE FROM connection")
 	// _, _ = db.Query("DELETE FROM answer")
 	// _, _ = db.Query("DELETE FROM question")
-	_,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("강아지", "강아지와 고양이 중 뭐가 더 좋아?")`)
-	_,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("운동", "운동하는 거 좋아해?")`)
-	_,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("남사친", "남사친/여사친 어디까지 허용 가능하다!")`)
-	_,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("엄마", "부모님께 존댓말 써?")`)
-	_,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("결혼", "결혼은 언제쯤 하고싶어?")`)
-
+	_, _ = db.Query("DELETE FROM exceptionword")
+	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("강아지", "강아지와 고양이 중 뭐가 더 좋아?")`)
+	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("운동", "운동하는 거 좋아해?")`)
+	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("남사친", "남사친/여사친 어디까지 허용 가능하다!")`)
+	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("엄마", "부모님께 존댓말 써?")`)
+	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("결혼", "결혼은 언제쯤 하고싶어?")`)
 }

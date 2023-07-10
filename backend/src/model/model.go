@@ -275,7 +275,7 @@ func GetRecentAnswerByConnID(connection_id, num int) []AnswerData {
 	return answerDatas
 }
 
-func GetFrequentFiveWord(uuid string, rankNum int) []string {
+func GetFrequentWords(uuid string, rankNum int) []string {
 	r, err := db.Query(`SELECT text_body FROM chat WHERE writer_id = "`+uuid+`" and DATE_ADD(NOW(), INTERVAL -7 DAY) < write_time`)
 	if err != nil {
 		fmt.Println("ERROR #56 : ", err.Error())
@@ -305,6 +305,19 @@ func GetFrequentFiveWord(uuid string, rankNum int) []string {
 		if !strings.Contains(withOutRepeat, wordSlice[i]) {
 			withOutRepeat += " "+wordSlice[i]
 		}
+	}
+
+	r, err = SelectConnIDByUUID(uuid)
+	if err!= nil {
+		fmt.Println("ERROR #74 : ", err.Error())
+	}
+	var conn_id int
+	r.Next()
+	r.Scan(&conn_id)
+
+	exceptWordsSlice := GetExceptWords(conn_id)
+	for i := 0; i < len(exceptWordsSlice); i++ {
+		withOutRepeat = strings.ReplaceAll(withOutRepeat, exceptWordsSlice[i], "")
 	}
 
 	withOutRepeatSlice := strings.Fields(withOutRepeat)
@@ -359,16 +372,9 @@ func GetExceptWords(connection_id int) []string {
 		r.Scan(&exceptWord)
 		exceptWords = append(exceptWords, exceptWord)
 	}
-	// fmt.Println(exceptWords)
 	return exceptWords
 }
 
-// type AnswerData struct {
-// 	QuestionContents string `json:"question_contents"`
-// 	FirstAnswer string `json:"first_answer"`
-// 	SecondAnswer string `json:"second_answer"`
-// 	AnswerDate string `json:"answer_date"`
-// }
 // TEST
 // TEST
 // TEST

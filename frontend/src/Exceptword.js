@@ -75,7 +75,7 @@ const Exceptword = () => {
       </div>
       <div>현재 순위에서 제외된 단어들</div>
       <div>
-        {exceptWords.length !== 0 &&
+        {exceptWords.length > 1 &&
           exceptWords.map((item, index) => (
             <div>
               {item}
@@ -86,6 +86,16 @@ const Exceptword = () => {
               />
             </div>
           ))}
+        {exceptWords.length === 1 && (
+          <div>
+            {item}
+            <input
+              type="button"
+              value="X"
+              onClick={() => deleteExceptWordHandler(item)}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

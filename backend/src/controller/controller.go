@@ -758,11 +758,11 @@ func GetMostUsedWordsHandler(c *gin.Context){
 	r.Scan(&firstUUID, &secontUUID, connectionID)
 	var ohterFrequentWords []string
 	if firstUUID == uuid {
-		ohterFrequentWords = model.GetFrequentFiveWord(secontUUID, rankNumInt)	
+		ohterFrequentWords = model.GetFrequentWords(secontUUID, rankNumInt)	
 	} else {
-		ohterFrequentWords = model.GetFrequentFiveWord(firstUUID, rankNumInt)
+		ohterFrequentWords = model.GetFrequentWords(firstUUID, rankNumInt)
 	}
-	myFrequentWords := model.GetFrequentFiveWord(uuid, rankNumInt)
+	myFrequentWords := model.GetFrequentWords(uuid, rankNumInt)
 
 	if myFrequentWords == nil || ohterFrequentWords == nil {
 		c.Writer.WriteHeader(http.StatusLengthRequired)

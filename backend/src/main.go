@@ -41,29 +41,29 @@ func main() {
 	controller.ConnectDB("mysql", os.Getenv("DB_USER")+":"+os.Getenv("DB_PASSWORD")+"@tcp(mysql)/"+os.Getenv("DB_NAME"))	// DB 초기 연결
 	defer controller.UnConnectDB()
 	
-	e.POST("/api/usr", controller.SignUpHandler)				// 회원가입
+	e.POST("/api/usr", controller.SignUpHandler)						// 회원가입
 	
-	e.POST("/api/id", controller.IDCheckHandler)				// 회원가입 시 아이디 중복체크
+	e.POST("/api/id", controller.IDCheckHandler)						// 회원가입 시 아이디 중복체크
 
-	e.POST("/api/log", controller.LogInHandler)				// 로그인
-	e.DELETE("/api/log", controller.LogOutHandler)				// 로그아웃
-	e.GET("/api/log", controller.AlreadyLogInCheckHandler)			// 기존 로그인 되있던 상태인지 쿠키 확인	
+	e.POST("/api/log", controller.LogInHandler)							// 로그인
+	e.DELETE("/api/log", controller.LogOutHandler)						// 로그아웃
+	e.GET("/api/log", controller.AlreadyLogInCheckHandler)				// 기존 로그인 되있던 상태인지 쿠키 확인	
 
-	e.POST("/api/request", controller.ConnRequestHandler)			// 상대방에게 connection 연결 요청	
+	e.POST("/api/request", controller.ConnRequestHandler)				// 상대방에게 connection 연결 요청	
 	e.GET("/api/request/recieved", controller.GetRecieveRequestHandler)	// 현재 요청받은 request 목록 가져오기
 	e.GET("/api/request/send", controller.GetSendRequestHandler)		// 현재 신청중인 request 가져오기
-	e.PUT("/api/request", controller.DeleteRestRequestHandler)		// 상대방과 연결 후, DB에 저장되어있던 자신과 상대 관련 요청 전체 삭제 + conn_id 생성
+	e.PUT("/api/request", controller.DeleteRestRequestHandler)			// 상대방과 연결 후, DB에 저장되어있던 자신과 상대 관련 요청 전체 삭제 + conn_id 생성
 	e.DELETE("/api/request/:param", controller.DeleteOneRequestHandler)	// 받은 요청 중 선택해서 요청을 삭제
 
-	e.GET("/api/answer", controller.GetAnswerHandler)			// 그동안 답한 내용들을 모아서 보여주기 위한 API
+	e.GET("/api/answer", controller.GetAnswerHandler)					// 그동안 답한 내용들을 모아서 보여주기 위한 API
 
-	e.GET("/api/rank/:ranknum", controller.GetMostUsedWordsHandler)			// 사용자가 가장 많이 사용한 단어 랭킹 보여주기
+	e.GET("/api/rank/:ranknum", controller.GetMostUsedWordsHandler)		// 사용자가 가장 많이 사용한 단어 랭킹 보여주기
 
-	e.GET("/ws", controller.UpgradeHandler)					// Websocket 프로토콜로 업그레이드 및 메시지 read/write
+	e.GET("/ws", controller.UpgradeHandler)								// Websocket 프로토콜로 업그레이드 및 메시지 read/write
 
-	e.GET("/api/except", controller.GetExceptWordsHandler)
-	e.POST("/api/except", controller.InsertExceptWordHandler)
-	e.DELETE("/api/except/:param", controller.DeleteExceptWordHandler)
+	e.GET("/api/except", controller.GetExceptWordsHandler)				// FrequentUsedWords에서 제외된 단어 불러오기
+	e.POST("/api/except", controller.InsertExceptWordHandler)			// FrequentUsedWords에서 제외할 단어 입력받기
+	e.DELETE("/api/except/:param", controller.DeleteExceptWordHandler)	// FrequentUsedWords에서 단어 제외 취소하기
 
 	controller.Test() // DB 저장 데이터 출력 TEST
 

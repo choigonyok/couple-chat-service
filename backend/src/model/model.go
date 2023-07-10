@@ -3,7 +3,9 @@ package model
 import (
 	"database/sql"
 	"fmt"
+	"regexp"
 	"strconv"
+	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -271,6 +273,27 @@ func GetRecentAnswerByConnID(connection_id, num int) []AnswerData {
 		answerDatas = append(answerDatas, answerData)
 	}
 	return answerDatas
+}
+
+func GetFrequentFiveWord(uuid string){
+
+	r, err := db.Query(`SELECT text_body FROM chat WHERE writer_id = "`+uuid+`"`)
+	if err != nil {
+		fmt.Println("ERROR #56 : ", err.Error())
+	}
+	var recentChat string
+	var recentChats []string
+	for r.Next() {
+		r.Scan(&recentChat)
+		fmt.Println(recentChat)
+	fmt.Println(recentChat)
+	fmt.Println(recentChat)
+		recentChats = append(recentChats, recentChat)
+	}
+	chatSum := strings.Join(recentChats, " ")
+	regexpKorean := regexp.MustCompile("[^가-힣]+")
+	onlyKorean := regexpKorean.ReplaceAllString(chatSum, " ")
+	fmt.Println(onlyKorean)
 }
 
 // type AnswerData struct {

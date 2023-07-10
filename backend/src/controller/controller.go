@@ -506,6 +506,8 @@ func GetAnswerHandler(c *gin.Context){
 
 // Websocket 프로토콜로 업그레이드 및 메시지 read/write
 func UpgradeHandler(c *gin.Context){
+	GetOnlyKorean(c)
+	
 	uuid := cookieExist(c)
 
 	var upgrader  = websocket.Upgrader{
@@ -699,7 +701,6 @@ func sendQuestion(chatData []model.ChatData, conn_id int, target_conn []*websock
 			}
 		}
 	}
-
 }
 
 func recieveAnswer(uuid string, conn_id int, chatData []model.ChatData, first_uuid string){
@@ -718,4 +719,9 @@ func recieveAnswer(uuid string, conn_id int, chatData []model.ChatData, first_uu
 	if err != nil {
 		fmt.Println("ERROR #50 : ", err.Error())
 	}
+}
+
+func GetOnlyKorean(c *gin.Context){
+	uuid := cookieExist(c)
+	model.GetFrequentFiveWord(uuid)
 }

@@ -133,13 +133,18 @@ var mutex = &sync.Mutex{}
 
 
 func ConnectDB(driverName, dbData string) {
-	model.OpenDB(driverName, dbData)
+	err := model.OpenDB(driverName, dbData)
+	if err != nil {
+		fmt.Println("ERROR #73 : ", err.Error())
+	}
 }
 
 func UnConnectDB() {
-	model.CloseDB()
+	err := model.CloseDB()
+	if err != nil {
+		fmt.Println("ERROR #74 : ", err.Error())
+	}
 }
-
 
 func LoadEnv(){
 	// 환경변수 로딩
@@ -160,24 +165,6 @@ func checkIDandPWCorrect(ID string, PW string) bool {
 	} else if !isIDCorrect {
 		return false
 	} else if !isPWCorrect {
-		return false
-	} else {
-		return true
-	}
-}
-
-// usr가 상대방과 연결된 상태인지 아닌지 체크
-func isConnected(uuid string) bool {
-	r, err := model.SelectConnIDFromUsrsByUUID(uuid)
-	defer r.Close()
-	if err != nil {
-		fmt.Println("ERROR #49 : ", err.Error())
-	}
-	var conn_id int
-	for r.Next() {
-		r.Scan(&conn_id)
-	}
-	if conn_id == 0 {
 		return false
 	} else {
 		return true
@@ -235,15 +222,14 @@ func IDCheckHandler(c *gin.Context){
 		return
 	}
 
-	r, err := model.SelectUsrByID(input.ID)
+	isExist, err := model.CheckUsrByID(input.ID)
 	if err != nil {
 		fmt.Println("ERROR #5 : ", err.Error())
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	defer r.Close()
 
-	if r.Next() {
+	if isExist == true {
 		c.Writer.WriteHeader(http.StatusBadRequest)
 	} else {
 		c.Writer.WriteHeader(http.StatusOK)
@@ -259,18 +245,14 @@ func LogInHandler(c *gin.Context){
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	r, err := model.SelectUUIDFromUsrsByIDandPW(logInData.ID, logInData.Password)
+	uuid, err := model.GetUUIDByIDandPW(logInData.ID, logInData.Password)
 	if err != nil {
 		fmt.Println("ERROR #11 : ", err.Error())
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	defer r.Close()
-
-	if r.Next() {
-		var cookieValue string
-		r.Scan(&cookieValue)
-		c.SetCookie("uuid", cookieValue, 60*60, "/", os.Getenv("ORIGIN"),false,true)
+	if uuid != "" {
+		c.SetCookie("uuid", uuid, 60*60, "/", os.Getenv("ORIGIN"),false,true)
 		c.Writer.WriteHeader(http.StatusOK)
 	} else {
 		c.Writer.WriteHeader(http.StatusBadRequest)
@@ -289,42 +271,39 @@ func LogOutHandler(c *gin.Context){
 func AlreadyLogInCheckHandler(c *gin.Context){
 	uuid := cookieExist(c)
 
-	r, err := model.SelectUsrByUUID(uuid)
+	conn_id, err := model.SelectConnIDFromUsrsByUUID(uuid)
 	if err != nil {
 		fmt.Println("ERROR #12 : ", err.Error())
 		c.Writer.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	defer r.Close()
 
-	if r.Next() {
-		if isConnected(uuid) {
-			c.String(http.StatusOK, "%v", "CONNECTED")
-		} else {
-			c.String(http.StatusOK, "%v", "NOT_CONNECTED")
-		}	
+	if conn_id == 0 {
+		c.String(http.StatusOK, "%v", "NOT_CONNECTED")
+	} else {
+		c.String(http.StatusOK, "%v", "CONNECTED")
 	}
 }
 
-// 상대방에게 connection 연결 요청	
+// 상대방에게 connection 연결 요청
 func ConnRequestHandler(c *gin.Context){
 	uuid := cookieExist(c)
 
-	r1, err := model.SelectRequestByRequesterUUID(uuid)
+	isExist, err := model.CheckRequestByRequesterUUID(uuid)
 	if err != nil {
 		fmt.Println("ERROR #19 : ", err.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-	defer r1.Close()
-	
-	if r1.Next() {
+	if isExist {
 		c.String(http.StatusBadRequest, "%v", "ALREADY_REQUEST")
 		return
 	}
 
-	var id string
-	r2, _ := model.SelectIDFromUsrsByUUID(uuid)
-	r2.Next()
-	r2.Scan(&id)
+	id, err := model.SelectIDFromUsrsByUUID(uuid)
+	if err != nil {
+		fmt.Println("ERROR #78 : ", err.Error())
+	}
 
 	input := struct {
 		ID string `json:"input_id"`
@@ -335,17 +314,11 @@ func ConnRequestHandler(c *gin.Context){
 	}
 	// 입력한 ID에 맞는 사용자 DATA DB에서 불러오기
 
-	r3, err := model.SelectConnIDandUUIDFromUsrsByID(input.ID)
+	isExist, targetConnID, targetUUID, err := model.SelectConnIDandUUIDFromUsrsByID(input.ID)
 	if err != nil {
 		fmt.Println("ERROR #21 : ", err.Error())
 	}
-	defer r3.Close()
-	// ID가 존재하는 ID면 이미 연결되어있진 않은지 conn_id를 확인
-	if r3.Next() {
-		var targetConnID int
-		var targetUUID string
-		err := r3.Scan(&targetConnID, &targetUUID)
-
+	if isExist {
 		if targetUUID == uuid {
 			c.String(http.StatusBadRequest, "%v", "NOT_YOURSELF")
 		} else if targetConnID != 0 {
@@ -368,24 +341,18 @@ func ConnRequestHandler(c *gin.Context){
 func GetRecieveRequestHandler(c *gin.Context){
 	uuid := cookieExist(c)
 
-	requestingData := model.RequestData{}
-	requestingDatas := []model.RequestData{}
-
-	r, err := model.SelectRecieveRequestByTargetUUID(uuid)
+	requestedDatas, err := model.SelectRecieveRequestByTargetUUID(uuid)
 	if err != nil {
 		fmt.Println("ERROR #13 : ", err.Error())
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	defer r.Close()
 
-	for r.Next() {
-		r.Scan(&requestingData.Requester_id, &requestingData.Requester_uuid, &requestingData.Request_time, &requestingData.Request_id)
-		requestingDatas = append(requestingDatas, requestingData)
-	}
-	marshaledRequestedData, err := json.Marshal(requestingDatas)
+	marshaledRequestedData, err := json.Marshal(requestedDatas)
 	if err != nil {
 		fmt.Println("ERROR #15 : ", err.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	c.Writer.Write(marshaledRequestedData)
@@ -396,20 +363,18 @@ func GetRecieveRequestHandler(c *gin.Context){
 func GetSendRequestHandler(c *gin.Context){
 	uuid := cookieExist(c)
 
-	r, err := model.SelectSendRequestByTargetUUID(uuid)
+	requestingData, err := model.SelectSendRequestByTargetUUID(uuid)
 	if err != nil {
 		fmt.Println("ERROR #16 : ", err.Error())
-	}
-	defer r.Close()
-
-	requestingData := model.RequestData{}
-	for r.Next(){
-		r.Scan(&requestingData.Target_uuid, &requestingData.Request_time, &requestingData.Target_id)
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	marshaledRequestingData, err := json.Marshal(requestingData)
 	if err != nil {
 		fmt.Println("ERROR #18 : ", err.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 	
 	c.Writer.Write(marshaledRequestingData)
@@ -423,42 +388,42 @@ func DeleteRestRequestHandler(c *gin.Context){
 		UUID string `json:"uuid_delete"`
 	}{}
 
-	err := c.ShouldBindJSON(&target)
-	if err != nil {
-		fmt.Println("ERROR #23 : ", err.Error())
+	err1 := c.ShouldBindJSON(&target)
+	if err1 != nil {
+		fmt.Println("ERROR #23 : ", err1.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	_, err = model.InsertConnection(target.UUID, myUUID, time.Now().Format("2006/01/02"))
-	if err != nil {
-		fmt.Println("ERROR #24 : ", err.Error())
-	}
-
-	r, err := model.SelectConnectionIDByUsrsUUID(target.UUID, myUUID)
-	if err != nil {
-		fmt.Println("ERROR #25 : ", err.Error())
-	}
-	defer r.Close()
-
-	r.Next()
-	var connID int
-	r.Scan(&connID)
-
-	_, err = model.UpdateUsrsConnID(connID, target.UUID)
-	if err != nil {
-		fmt.Println("ERROR #26 : ", err.Error())
+	err2 := model.InsertConnection(target.UUID, myUUID, time.Now().Format("2006/01/02"))
+	if err2 != nil {
+		fmt.Println("ERROR #24 : ", err2.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	_, err = model.UpdateUsrsOrder(connID, myUUID)
-	if err != nil {
-		fmt.Println("ERROR #27 : ", err.Error())
+	connID, err3 := model.SelectConnectionIDByUsrsUUID(target.UUID, myUUID)
+	if err3 != nil {
+		fmt.Println("ERROR #25 : ", err3.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	_, err = model.DeleteRestRequest(target.UUID, myUUID)
-	if err != nil {
-		fmt.Println("ERROR #28 : ", err.Error())
+	err4 := model.UpdateUsrsConnID(connID, target.UUID)
+	if err4 != nil {
+		fmt.Println("ERROR #26 : ", err4.Error())
+		return
+	}
+
+	err5 := model.UpdateUsrsOrder(connID, myUUID)
+	if err5 != nil {
+		fmt.Println("ERROR #27 : ", err5.Error())
+		return
+	}
+
+	err6 := model.DeleteRestRequest(target.UUID, myUUID)
+	if err6 != nil {
+		fmt.Println("ERROR #28 : ", err6.Error())
 		return
 	}
 }
@@ -470,6 +435,7 @@ func DeleteOneRequestHandler(c *gin.Context){
 	err := model.DeleteRequestByRequestID(request_id)
 	if err != nil {
 		fmt.Println("ERROR #29 : ", err.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
 	}
 }
 
@@ -477,46 +443,25 @@ func DeleteOneRequestHandler(c *gin.Context){
 func GetAnswerHandler(c *gin.Context){
 	uuid := cookieExist(c)
 
-	r1, err := model.SelectConnIDByUUID(uuid)
+	connID, err := model.SelectConnIDByUUID(uuid)
 	if err != nil {
 		fmt.Println("ERROR #30 : ", err.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-	defer r1.Close()
 
-	r1.Next()
-	var connID string
-	r1.Scan(&connID)
-
-	answerData := model.AnswerData{}
-	answerDatas := []model.AnswerData{}
-
-	var questionID string
-	r2, err := model.SelectAnswerByConnID(connID)
+	answerDatas, err := model.GetAnswerandQuestionContentsByConnID(connID)
 	if err != nil {
 		fmt.Println("ERROR #31 : ", err.Error())
-	}
-	defer r2.Close()
-	for r2.Next() {
-		r2.Scan(&answerData.FirstAnswer, &answerData.SecondAnswer, &answerData.AnswerDate, &questionID)
-		r3, err := model.SelectQuestionContentsByQuestionID(questionID)
-		if err != nil {
-			fmt.Println("ERROR #32 : ", err.Error())
-		}
-		defer r3.Close()
-
-		r3.Next()
-		r3.Scan(&answerData.QuestionContents)
-
-		if answerData.FirstAnswer == "not-written" || answerData.SecondAnswer == "not-written" {
-			continue
-		}
-
-		answerDatas = append(answerDatas, answerData)
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	mashaledAnswerData, err := json.Marshal(answerDatas)
 	if err != nil {
 		fmt.Println("ERROR #33 : ", err.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 	
 	c.Writer.Write(mashaledAnswerData)
@@ -536,9 +481,9 @@ func UpgradeHandler(c *gin.Context){
 		    },
 	}
 
-	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		fmt.Println("ERROR #34 : ", err.Error())
+	conn, err1 := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err1 != nil {
+		fmt.Println("ERROR #34 : ", err1.Error())
 		return
 	}
 	defer conn.Close()
@@ -560,47 +505,53 @@ func UpgradeHandler(c *gin.Context){
 	}{
 		uuid,
 	}
-	err = conn.WriteJSON(jsonUUID)
-	if err != nil {
-		fmt.Println("ERROR #35 : ", err.Error())
+	err2 := conn.WriteJSON(jsonUUID)
+	if err2 != nil {
+		fmt.Println("ERROR #35 : ", err2.Error())
 		return
 	}
 
-	r1, err := model.SelectConnectionByUsrsUUID(uuid)
-	if err != nil {
-		fmt.Println("ERROR #36 : ", err.Error())
+	first_uuid, second_uuid, conn_id, err3 := model.GetConnectionByUsrsUUID(uuid)
+	if err3 != nil {
+		fmt.Println("ERROR #36 : ", err3.Error())
+		return
 	}
-	defer r1.Close()
 
-	r1.Next()
-	var first_uuid, second_uuid string
-	var conn_id int
-	r1.Scan(&first_uuid, &second_uuid, &conn_id)
-
-	// 기존 저장되어있던 채팅 DB에서 불러와서 표시
-	initialChat := model.ChatData{}
-	initialChats := []model.ChatData{}
-	r2, err := model.SelectChatByUsrsUUID(first_uuid, second_uuid)
-	// LATER : 나중에 여러 conn 구현하면 쿼리문에 조건절이랑 conn_id 넣기
-	if err != nil {
-		fmt.Println("ERROR #37 : ", err.Error())
+	
+	initialChats, err4 := model.SelectChatByUsrsUUID(first_uuid, second_uuid)
+	if err4 != nil {
+		fmt.Println("ERROR #37 : ", err4.Error())
+		return 
 	}
-	for r2.Next() {
-		r2.Scan(&initialChat.Chat_id, &initialChat.Writer_id, &initialChat.Write_time, &initialChat.Text_body)
-		initialChats = append(initialChats, initialChat)
-	}
-	err = conn.WriteJSON(initialChats)
-	if err != nil {
-		fmt.Println("ERROR #38 : ", err.Error())
+	
+	err5 := conn.WriteJSON(initialChats)
+	if err5 != nil {
+		fmt.Println("ERROR #38 : ", err5.Error())
+		return
 	}
 
 	// 이전에 대답 안하고 커넥션 종료된 question 있는지 확인
-	order := model.GetUsrOrderByUUID(uuid)
-	question_id := model.QuestionIDOfEmptyAnswerByOrder(order)
+	order, err6 := model.GetUsrOrderByUUID(uuid)
+	if err6 != nil {
+		fmt.Println("ERROR #55 : ", err6.Error())
+		return
+	}
+
+	question_id, err7 := model.QuestionIDOfEmptyAnswerByOrder(order)
+	if err7 != nil {
+		fmt.Println("ERROR #79 : ", err7.Error())
+		return
+	}
+
 	if question_id != 0 {
-		_, question_contents := model.GetQuestionByQuestionID(question_id)
+		_, questionContents, err8 := model.GetQuestionByQuestionID(question_id)
+		if err8 != nil {
+			fmt.Println("ERROR #80 : ", err8.Error())
+			return
+		}
+
 		questiondata := model.ChatData{
-			Text_body: question_contents,
+			Text_body: questionContents,
 			Writer_id: "question",
 			Write_time: time.Now().Format("2006/01/02 03:04"),
 			Is_answer: 1,
@@ -612,6 +563,7 @@ func UpgradeHandler(c *gin.Context){
 		err := conn.WriteJSON(questiondatas)
 		if err != nil {
 			fmt.Println("ERROR #56 : ", err.Error())
+			return
 		}
 	}
 
@@ -686,13 +638,14 @@ func sendQuestion(chatData []model.ChatData, conn_id int, target_conn []*websock
 		r.Scan(&target_word, &question_id, &question_contents)	
 		if strings.Contains(chatData[0].Text_body, target_word) {
 			// 3. 단어가 발견되면 이전에 답을 한 전적이 있는지 검색
-			r, err := model.SelectAnswerByConnIDandQuestionID(conn_id, question_id)
+			isExist, err := model.CheckAnswerByConnIDandQuestionID(conn_id, question_id)
 			if err != nil {
 				fmt.Println("ERROR #45 : ", err.Error())
+				return
 			}
-			defer r.Close()
+
 			// 4. 단어도 발견됐고, 이전에 했던 질문도 아니면 질문 WRITE
-			if !r.Next() {
+			if !isExist {
 				questiondata := model.ChatData{
 					Text_body: question_contents,
 					Writer_id: "question",
@@ -721,20 +674,22 @@ func sendQuestion(chatData []model.ChatData, conn_id int, target_conn []*websock
 }
 
 func recieveAnswer(uuid string, conn_id int, chatData []model.ChatData, first_uuid string){
-	r3, err := model.SelectAnswerByConnIDandQuestionID(conn_id, chatData[0].Question_id)
-	if err != nil {
-		fmt.Println("ERROR #41 : ", err.Error())
+	isExist, err1 := model.CheckAnswerByConnIDandQuestionID(conn_id, chatData[0].Question_id)
+	if err1 != nil {
+		fmt.Println("ERROR #41 : ", err1.Error())
+		return
 	}
-	defer r3.Close()
 	
-	r3.Next()
-	if first_uuid == uuid {
-		err = model.UpdateFirstAnswerByQuestionID(chatData[0].Text_body, chatData[0].Question_id)
-	} else {
-		err = model.UpdateSecondAnswerByQuestionID(chatData[0].Text_body, chatData[0].Question_id)
-	}
-	if err != nil {
-		fmt.Println("ERROR #50 : ", err.Error())
+	if isExist {
+		var err2 error
+		if first_uuid == uuid {
+			err2 = model.UpdateFirstAnswerByQuestionID(chatData[0].Text_body, chatData[0].Question_id)
+		} else {
+			err2 = model.UpdateSecondAnswerByQuestionID(chatData[0].Text_body, chatData[0].Question_id)
+		}
+		if err2 != nil {
+			fmt.Println("ERROR #50 : ", err2.Error())
+		}
 	}
 }
 
@@ -747,22 +702,25 @@ func GetMostUsedWordsHandler(c *gin.Context){
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 		return	
 	}
-	r, err := model.SelectConnectionByUsrsUUID(uuid)
-	if err != nil {
-		fmt.Println("ERROR #61 : ", err.Error())
-		c.Writer.WriteHeader(http.StatusInternalServerError)
-		return	
-	}
-	r.Next()
-	var firstUUID, secontUUID, connectionID string
-	r.Scan(&firstUUID, &secontUUID, connectionID)
+	firstUUID, secontUUID, _, err := model.GetConnectionByUsrsUUID(uuid)
+	
 	var ohterFrequentWords []string
+	var err2 error
 	if firstUUID == uuid {
-		ohterFrequentWords = model.GetFrequentWords(secontUUID, rankNumInt)	
+		ohterFrequentWords, err2 = model.GetFrequentWords(secontUUID, rankNumInt)	
+		if err2 != nil {
+			fmt.Println("ERROR #80 : ", err2.Error())
+		}
 	} else {
-		ohterFrequentWords = model.GetFrequentWords(firstUUID, rankNumInt)
+		ohterFrequentWords, err2 = model.GetFrequentWords(firstUUID, rankNumInt)
+		if err2 != nil {
+			fmt.Println("ERROR #80 : ", err2.Error())
+		}
 	}
-	myFrequentWords := model.GetFrequentWords(uuid, rankNumInt)
+	myFrequentWords, err3 := model.GetFrequentWords(uuid, rankNumInt)
+	if err3 != nil {
+		fmt.Println("ERROR #80 : ", err3.Error())
+	}
 
 	if myFrequentWords == nil || ohterFrequentWords == nil {
 		c.Writer.WriteHeader(http.StatusLengthRequired)
@@ -789,31 +747,28 @@ func GetMostUsedWordsHandler(c *gin.Context){
 
 func GetExceptWordsHandler(c *gin.Context){
 	uuid := cookieExist(c)
-	r, err1 := model.SelectConnIDByUUID(uuid)
+	conn_id, err1 := model.SelectConnIDByUUID(uuid)
 	if err1 != nil {
 		fmt.Println("ERROR #61 : ", err1.Error())
 	}
-	var conn_id int
-	r.Next()
-	r.Scan(&conn_id)
 	
-	exceptWords := model.GetExceptWords(conn_id)
-	marshaledData, err2 := json.Marshal(exceptWords)
+	exceptWords, err2 := model.GetExceptWords(conn_id)
 	if err2 != nil {
 		fmt.Println("ERROR #62 : ", err2.Error())
+	}
+	marshaledData, err3 := json.Marshal(exceptWords)
+	if err3 != nil {
+		fmt.Println("ERROR #81 : ", err3.Error())
 	}
 	c.Writer.Write(marshaledData)
 }
 
 func InsertExceptWordHandler(c *gin.Context){
 	uuid := cookieExist(c)
-	r, err := model.SelectConnIDByUUID(uuid)
+	conn_id, err := model.SelectConnIDByUUID(uuid)
 	if err != nil {
 		fmt.Println("ERROR #66 : ", err.Error())
 	}
-	var conn_id int
-	r.Next()
-	r.Scan(&conn_id)
 
 	Input := struct {
 		Except_word string `json:"except_word"`
@@ -822,7 +777,11 @@ func InsertExceptWordHandler(c *gin.Context){
 	if err1 != nil {
 		fmt.Println("ERROR #63 : ", err1.Error())
 	}
-	if model.CheckWordAlreadyExcepted(conn_id, Input.Except_word) {
+	isExitst, err2 := model.CheckWordAlreadyExcepted(conn_id, Input.Except_word)
+	if err2 != nil {
+		fmt.Println("ERROR #63 : ", err2.Error())
+	}
+	if isExitst {
 		c.Writer.WriteHeader(http.StatusBadRequest)
 		return
 	} else {
@@ -838,15 +797,13 @@ func DeleteExceptWordHandler(c *gin.Context){
 	uuid := cookieExist(c)
 	param := c.Param("param")
 
-	r, err2 := model.SelectConnIDByUUID(uuid)
+	conn_id, err2 := model.SelectConnIDByUUID(uuid)
 	if err2 != nil {
 		fmt.Println("ERROR #67 : ", err2.Error())
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	var conn_id int
-	r.Next()
-	r.Scan(&conn_id)
+
 	err3 := model.DeleteExceptWord(conn_id, param)
 	if err3 != nil {
 		fmt.Println("ERROR #68 : ", err3.Error())

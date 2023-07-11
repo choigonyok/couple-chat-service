@@ -53,12 +53,12 @@ type AnswerData struct {
 	Question_id int
 }
 
- var db *sql.DB
+var db *sql.DB
 
-func OpenDB(driverName, dataSourceName string){
+func OpenDB(driverName, dataSourceName string) error {
 	database, err := sql.Open(driverName, dataSourceName)
 	if err != nil {
-		fmt.Println("ERROR #2 : ", err.Error())
+		return err
 	}
 
 	db = database
@@ -66,12 +66,15 @@ func OpenDB(driverName, dataSourceName string){
 	// DB와 서버가 연결 되었는지 확인
 	err = db.Ping()
 	if err != nil {
-		fmt.Println("ERROR #3 : ", err.Error())
+		return err
 	}
+
+	return nil
 }
 
-func CloseDB() {
-	db.Close()
+func CloseDB() error {
+	err := db.Close()
+	return err
 }
 
 func InsertUsr(id, password, uuid string) error {
@@ -80,39 +83,102 @@ func InsertUsr(id, password, uuid string) error {
 }
 
 
-func SelectUsrByID(id string) (*sql.Rows, error){
+func CheckUsrByID(id string) (bool, error) {
 	r, err := db.Query(`SELECT * FROM usrs WHERE id = "`+id+`"`)
-	return r, err
+	if err != nil {
+		return false, err
+	}
+	defer r.Close()
+
+	if r.Next() {
+		return true, nil
+	} else {
+		return false, nil
+	}
 }
 
-func SelectUUIDFromUsrsByIDandPW(id, password string) (*sql.Rows, error) {
+func GetUUIDByIDandPW(id, password string) (string, error) {
 	r, err := db.Query(`SELECT uuid FROM usrs WHERE id = "`+id+`" and password = "`+password+`"`)
-	return r, err
+	if err != nil {
+		return "", err
+	}
+	defer r.Close()
+
+	if r.Next() {
+		var uuid string
+		r.Scan(&uuid)
+		return uuid, nil
+	} else {
+		return "", nil
+	}
 }
 
-func SelectUsrByUUID(uuid string) (*sql.Rows, error) {
-	r, err := db.Query(`SELECT * FROM usrs WHERE uuid = "`+uuid+`"`)
-	return r, err
-}
-
-func SelectConnIDFromUsrsByUUID(uuid string) (*sql.Rows, error) {
+func SelectConnIDFromUsrsByUUID(uuid string) (int, error) {
 	r, err := db.Query(`SELECT conn_id FROM usrs WHERE uuid = "`+uuid+`"`)
-	return r, err
+	defer r.Close()
+	if err != nil {
+		return 0, err
+	}
+
+	var conn_id int
+	for r.Next() {
+		r.Scan(&conn_id)
+	}
+	return conn_id, nil
 }
 
-func SelectRequestByRequesterUUID(uuid string) (*sql.Rows, error) {
+func CheckRequestByRequesterUUID(uuid string) (bool, error) {
 	r, err := db.Query(`SELECT * FROM request WHERE requester_uuid = "`+uuid+`"`)
-	return r, err
+	if err != nil {
+		return false, err
+	}
+	defer r.Close()
+	
+	if r.Next() {
+		return true, nil
+	} else {
+		return false, nil
+	}
 }
 
-func SelectIDFromUsrsByUUID(uuid string) (*sql.Rows, error) {
-	r, err := db.Query(`SELECT id FROM usrs WHERE uuid = "`+uuid+`"`)
-	return r, err
+func SelectIDFromUsrsByUUID(uuid string) (string, error) {
+	r, err1 := db.Query(`SELECT id FROM usrs WHERE uuid = "`+uuid+`"`)
+	if err1 != nil {
+		return "", err1
+	}
+	defer r.Close()
+
+	var id string
+	r.Next()
+	err2 := r.Scan(&id)
+	if err2 != nil {
+		return "", err2
+	}
+
+	return id, nil
 }
 
-func SelectConnIDandUUIDFromUsrsByID(id string) (*sql.Rows, error) {
-	r, err := db.Query(`SELECT conn_id, uuid FROM usrs WHERE id = "`+id+`"`)
-	return r, err
+func SelectConnIDandUUIDFromUsrsByID(id string) (bool, int, string, error) {
+	targetConnID := 0
+	targetUUID := ""
+
+	r, err1 := db.Query(`SELECT conn_id, uuid FROM usrs WHERE id = "`+id+`"`)
+	if err1 != nil {
+		return false, targetConnID, targetUUID, err1
+	}
+	defer r.Close()
+	
+	// ID가 존재하는 ID면 이미 연결되어있진 않은지 conn_id를 확인
+	if r.Next() {	
+		err2 := r.Scan(&targetConnID, &targetUUID)
+		if err2 != nil {
+			return false, targetConnID, targetUUID, err2
+		} else {
+			return true, targetConnID, targetUUID, nil
+		}
+	}
+	// ID가 존재하지 않는 ID면
+	return false, targetConnID, targetUUID, nil
 }
 
 func InsertRequest(requester_uuid, target_uuid, request_time, requester_id, target_id  string) error {
@@ -120,39 +186,73 @@ func InsertRequest(requester_uuid, target_uuid, request_time, requester_id, targ
 	return err
 }
 
-func SelectRecieveRequestByTargetUUID(uuid string) (*sql.Rows, error) {
+func SelectRecieveRequestByTargetUUID(uuid string) ([]RequestData, error) {
+	requestedData := RequestData{}
+	requestedDatas := []RequestData{}
+
 	r, err := db.Query(`SELECT requester_id, requester_uuid, request_time, request_id FROM request WHERE target_uuid = "`+uuid+`"`)
-	return r, err
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+
+	for r.Next() {
+		r.Scan(&requestedData.Requester_id, &requestedData.Requester_uuid, &requestedData.Request_time, &requestedData.Request_id)
+		requestedDatas = append(requestedDatas, requestedData)
+	}
+	return requestedDatas, nil
 }
 
-func SelectSendRequestByTargetUUID(uuid string) (*sql.Rows, error) {
+func SelectSendRequestByTargetUUID(uuid string) (RequestData, error) {
+	requestingData := RequestData{}
+
 	r, err := db.Query(`SELECT target_uuid, request_time, target_id FROM request WHERE requester_uuid = "`+uuid+`"`)
-	return r, err
+	if err != nil {
+		return requestingData, err
+	}
+	defer r.Close()
+	
+	for r.Next(){
+		r.Scan(&requestingData.Target_uuid, &requestingData.Request_time, &requestingData.Target_id)
+	}
+	return requestingData, nil
 }
 
-func InsertConnection(first_usr, second_usr, start_date string) (*sql.Rows, error) {
-	r, err := db.Query(`INSERT INTO connection (first_usr, second_usr, start_date) VALUES ("`+first_usr+`", "`+second_usr+`", "`+start_date+`")`)
-	return r, err
+func InsertConnection(first_usr, second_usr, start_date string) error {
+	_, err := db.Query(`INSERT INTO connection (first_usr, second_usr, start_date) VALUES ("`+first_usr+`", "`+second_usr+`", "`+start_date+`")`)
+	return err
 }
 
-func SelectConnectionIDByUsrsUUID(first_usr, second_usr string) (*sql.Rows, error) {
-	r, err := db.Query(`SELECT connection_id FROM connection WHERE first_usr = "`+first_usr+`" and second_usr = "`+second_usr+`"`)
-	return r, err
+func SelectConnectionIDByUsrsUUID(first_usr, second_usr string) (int, error) {
+	r, err1 := db.Query(`SELECT connection_id FROM connection WHERE first_usr = "`+first_usr+`" and second_usr = "`+second_usr+`"`)
+	if err1 != nil {
+		return 0, err1
+	}
+	defer r.Close()
+
+	var connID int
+	r.Next()
+	err2 := r.Scan(&connID)
+	if err2 != nil {
+		return 0, err2
+	}
+
+	return connID, nil
 }
 
-func UpdateUsrsConnID(conn_id int, targetUUID string) (*sql.Rows, error) {
-	r, err := db.Query(`UPDATE usrs SET order_usr = 1, conn_id = `+strconv.Itoa(conn_id)+` WHERE uuid = "`+targetUUID+`"`)
-	return r, err
+func UpdateUsrsConnID(conn_id int, targetUUID string) error {
+	_, err := db.Query(`UPDATE usrs SET order_usr = 1, conn_id = `+strconv.Itoa(conn_id)+` WHERE uuid = "`+targetUUID+`"`)
+	return err
 }
 
-func UpdateUsrsOrder(conn_id int, myUUID string) (*sql.Rows, error) {
-	r, err := db.Query(`UPDATE usrs SET order_usr = 2, conn_id = `+strconv.Itoa(conn_id)+` WHERE uuid = "`+myUUID+`"`)
-	return r, err
+func UpdateUsrsOrder(conn_id int, myUUID string) error {
+	_, err := db.Query(`UPDATE usrs SET order_usr = 2, conn_id = `+strconv.Itoa(conn_id)+` WHERE uuid = "`+myUUID+`"`)
+	return err
 }
 
-func DeleteRestRequest(requester_uuid, target_uuid string) (*sql.Rows, error) {
-	r, err := db.Query(`DELETE FROM request WHERE requester_uuid = "`+requester_uuid+`" or target_uuid = "`+requester_uuid+`" or requester_uuid = "`+target_uuid+`" or target_uuid = "`+target_uuid+`"`)
-	return r, err
+func DeleteRestRequest(requester_uuid, target_uuid string) error {
+	_, err := db.Query(`DELETE FROM request WHERE requester_uuid = "`+requester_uuid+`" or target_uuid = "`+requester_uuid+`" or requester_uuid = "`+target_uuid+`" or target_uuid = "`+target_uuid+`"`)
+	return err
 }
 
 func DeleteRequestByRequestID(request_id string) error {
@@ -160,29 +260,98 @@ func DeleteRequestByRequestID(request_id string) error {
 	return err
 }
 
-func SelectConnIDByUUID(uuid string) (*sql.Rows, error) {
-	r, err := db.Query(`SELECT connection_id FROM connection WHERE first_usr = "`+uuid+`" or second_usr = "`+uuid+`"`)
-	return r, err
+func SelectConnIDByUUID(uuid string) (int, error) {
+	r, err1 := db.Query(`SELECT connection_id FROM connection WHERE first_usr = "`+uuid+`" or second_usr = "`+uuid+`"`)
+	if err1 != nil {
+		return 0, err1
+	}
+	defer r.Close()
+
+	var connID int
+	r.Next()
+	err2 := r.Scan(&connID)
+	if err2 != nil {
+		return 0, err2
+	}
+	return connID, nil
 }
 
-func SelectAnswerByConnID(connection_id string) (*sql.Rows, error) {
-	r, err := db.Query(`SELECT first_answer, second_answer, answer_date, question_id FROM answer WHERE connection_id = "`+connection_id+`"`)
-	return r, err
+func GetAnswerandQuestionContentsByConnID(connection_id int) ([]AnswerData, error) {
+	r, err1 := db.Query(`SELECT first_answer, second_answer, answer_date, question_id FROM answer WHERE connection_id = "`+strconv.Itoa(connection_id)+`"`)
+	if err1 != nil {
+		return nil, err1
+	}
+	defer r.Close()
+
+	answerData := AnswerData{}
+	answerDatas := []AnswerData{}
+	
+	for r.Next() {
+		err2 := r.Scan(&answerData.FirstAnswer, &answerData.SecondAnswer, &answerData.AnswerDate, &answerData.Question_id)
+		if err2 != nil {
+			return nil, err2
+		}
+		questionContents, err3 := selectQuestionContentsByQuestionID(answerData.Question_id)
+		if err3 != nil {
+			return nil, err3
+		}
+		answerData.QuestionContents = questionContents
+
+		if answerData.FirstAnswer == "not-written" || answerData.SecondAnswer == "not-written" {
+			continue
+		}
+		answerDatas = append(answerDatas, answerData)
+	}
+	return answerDatas, nil
 }
 
-func SelectQuestionContentsByQuestionID(question_id string) (*sql.Rows, error) {
-	r, err := db.Query(`SELECT question_contents FROM question WHERE question_id = `+question_id)
-	return r, err
+func selectQuestionContentsByQuestionID(question_id int) (string, error) {
+	r, err := db.Query(`SELECT question_contents FROM question WHERE question_id = `+strconv.Itoa(question_id))
+	if err != nil {
+		return "", err
+	}
+	defer r.Close()
+
+	var question_contents string
+
+	r.Next()
+	r.Scan(&question_contents)
+	
+	return question_contents, nil
 }
 
-func SelectConnectionByUsrsUUID(uuid string) (*sql.Rows, error) {
-	r, err := db.Query(`SELECT first_usr, second_usr, connection_id FROM connection WHERE first_usr = "`+uuid+`" or second_usr = "`+uuid+`"`)
-	return r, err
+func GetConnectionByUsrsUUID(uuid string) (string, string, int, error) {
+	r, err1 := db.Query(`SELECT first_usr, second_usr, connection_id FROM connection WHERE first_usr = "`+uuid+`" or second_usr = "`+uuid+`"`)
+	if err1 != nil {
+		return "", "", 0, err1
+	}
+	defer r.Close()
+
+	var first_uuid, second_uuid string
+	var conn_id int
+
+	r.Next()
+	err2 := r.Scan(&first_uuid, &second_uuid, &conn_id)
+	if err2 != nil {
+		return "", "", 0, err2
+	}
+	return first_uuid, second_uuid, conn_id, nil
 }
 
-func SelectChatByUsrsUUID(first_uuid, second_uuid string) (*sql.Rows, error) {
+func SelectChatByUsrsUUID(first_uuid, second_uuid string) ([]ChatData, error) {
+	initialChat := ChatData{}
+	initialChats := []ChatData{}
+
 	r, err := db.Query(`SELECT chat_id, writer_id, write_time, text_body FROM chat WHERE writer_id = "`+first_uuid+`" or writer_id = "`+second_uuid+`" ORDER BY chat_id ASC`)
-	return r, err
+	if err != nil {
+		return nil, err
+	}
+	
+	for r.Next() {
+		r.Scan(&initialChat.Chat_id, &initialChat.Writer_id, &initialChat.Write_time, &initialChat.Text_body)
+		initialChats = append(initialChats, initialChat)
+	}
+	return initialChats, nil
 }
 
 func InsertChat(text_body, writer_id, write_time string) error {
@@ -190,9 +359,17 @@ func InsertChat(text_body, writer_id, write_time string) error {
 	return err
 }
 
-func SelectAnswerByConnIDandQuestionID(connection_id, question_id int) (*sql.Rows, error) {
+func CheckAnswerByConnIDandQuestionID(connection_id, question_id int) (bool, error) {
 	r, err := db.Query(`SELECT * FROM answer WHERE connection_id = `+strconv.Itoa(connection_id)+` and question_id = `+strconv.Itoa(question_id))
-	return r, err
+	if err != nil {
+		return false, err
+	}
+	defer r.Close()
+
+	if r.Next() {
+		return true, nil
+	}
+	return false, nil
 }
 
 func UpdateFirstAnswerByQuestionID(first_answer string, question_id int) error {
@@ -215,50 +392,56 @@ func SelectQuetions() (*sql.Rows, error) {
 	return r, err
 }
 
-func GetUsrOrderByUUID(uuid string) int {
+func GetUsrOrderByUUID(uuid string) (int, error) {
 	r, err := db.Query(`SELECT order_usr FROM usrs WHERE uuid = "`+uuid+`"`)
 	if err != nil {
-		fmt.Println("ERROR #51 : ", err.Error())
+		return 0, err
 	}
-	r.Next()
+
 	var order_usr int
+	r.Next()
 	r.Scan(&order_usr)
-	return order_usr
+	return order_usr, nil
 }
 
-func QuestionIDOfEmptyAnswerByOrder(order int) int {
-	question_id := 0
+func QuestionIDOfEmptyAnswerByOrder(order int) (int, error) {
+	var question_id int
+
 	if order == 1 {
-		r, err := db.Query(`SELECT question_id FROM ANSWER WHERE first_answer = "not-written"`)
-		if err != nil {
-			fmt.Println("ERROR #52 : ", err.Error())
+		r, err1 := db.Query(`SELECT question_id FROM ANSWER WHERE first_answer = "not-written"`)
+		if err1 != nil {
+			return 0, err1
 		}
 		if r.Next() {
 			r.Scan(&question_id)
-			return question_id
 		}
 	} else {
-		r, err := db.Query(`SELECT question_id FROM ANSWER WHERE second_answer = "not-written"`)
-		if err != nil {
-			fmt.Println("ERROR #53 : ", err.Error())
+		r, err2 := db.Query(`SELECT question_id FROM ANSWER WHERE second_answer = "not-written"`)
+		if err2 != nil {
+			return 0, err2
 		}
 		if r.Next() {
 			r.Scan(&question_id)
-			return question_id
 		}
 	}
-	return question_id
+	return question_id, nil
 }
 
-func GetQuestionByQuestionID(questionID int) (string, string){
-	r, err := db.Query(`SELECT target_word, question_contents FROM question WHERE question_id = `+ strconv.Itoa(questionID))
-	if err != nil {
-		fmt.Println("ERROR #54 : ", err.Error())
-	}
-	r.Next()
+func GetQuestionByQuestionID(questionID int) (string, string, error){
 	var questionData QuestionData
-	r.Scan(&questionData.Target_word, &questionData.Question_contents)
-	return questionData.Target_word, questionData.Question_contents
+
+	r, err1 := db.Query(`SELECT target_word, question_contents FROM question WHERE question_id = `+ strconv.Itoa(questionID))
+	if err1 != nil {
+		return "", "", err1
+	}
+	
+	r.Next()
+	err2 := r.Scan(&questionData.Target_word, &questionData.Question_contents)
+	if err2 != nil {
+		return "", "", err2
+	}
+
+	return questionData.Target_word, questionData.Question_contents, nil
 }
 
 func GetRecentAnswerByConnID(connection_id, num int) []AnswerData {
@@ -275,7 +458,7 @@ func GetRecentAnswerByConnID(connection_id, num int) []AnswerData {
 	return answerDatas
 }
 
-func GetFrequentWords(uuid string, rankNum int) []string {
+func GetFrequentWords(uuid string, rankNum int) ([]string, error) {
 	r, err := db.Query(`SELECT text_body FROM chat WHERE writer_id = "`+uuid+`" and DATE_ADD(NOW(), INTERVAL -7 DAY) < write_time`)
 	if err != nil {
 		fmt.Println("ERROR #56 : ", err.Error())
@@ -307,15 +490,12 @@ func GetFrequentWords(uuid string, rankNum int) []string {
 		}
 	}
 
-	r, err = SelectConnIDByUUID(uuid)
-	if err!= nil {
-		fmt.Println("ERROR #74 : ", err.Error())
-	}
-	var conn_id int
-	r.Next()
-	r.Scan(&conn_id)
+	conn_id, err := SelectConnIDByUUID(uuid)
 
-	exceptWordsSlice := GetExceptWords(conn_id)
+	exceptWordsSlice, err := GetExceptWords(conn_id)
+	if err != nil {
+		return nil, err
+	}
 	for i := 0; i < len(exceptWordsSlice); i++ {
 		withOutRepeat = strings.ReplaceAll(withOutRepeat, exceptWordsSlice[i], "")
 	}
@@ -323,7 +503,7 @@ func GetFrequentWords(uuid string, rankNum int) []string {
 	withOutRepeatSlice := strings.Fields(withOutRepeat)
 
 	if len(withOutRepeatSlice) < rankNum {
-		return nil
+		return nil, err
 	}
 
 	// bubble sort
@@ -336,7 +516,7 @@ func GetFrequentWords(uuid string, rankNum int) []string {
 			}
 		}
 	}
-	return withOutRepeatSlice[:rankNum]
+	return withOutRepeatSlice[:rankNum], nil
 }
 
 func InsertExceptWord(connection_id int, except_word string) error {
@@ -344,15 +524,12 @@ func InsertExceptWord(connection_id int, except_word string) error {
 	return err
 }
 
-func CheckWordAlreadyExcepted(connection_id int, except_word string) bool {
+func CheckWordAlreadyExcepted(connection_id int, except_word string) (bool, error) {
 	r, err := db.Query(`SELECT * FROM exceptionword WHERE connection_id = `+strconv.Itoa(connection_id)+` and except_word = "`+except_word+`"`)
-	if err != nil {
-		fmt.Println("ERROR #65 : ", err.Error())
-	}
 	if r.Next() {
-		return true
+		return true, nil
 	} else {
-		return false
+		return false, err
 	}
 }
 
@@ -361,10 +538,10 @@ func DeleteExceptWord(connection_id int, except_word string) error {
 	return err
 }
 
-func GetExceptWords(connection_id int) []string {
+func GetExceptWords(connection_id int) ([]string, error) {
 	r, err := db.Query("SELECT except_word FROM exceptionword WHERE connection_id = "+strconv.Itoa(connection_id))
 	if err != nil {
-		fmt.Println("ERROR #70 : ", err.Error())
+		return nil, err
 	}
 	var exceptWord string
 	var exceptWords []string
@@ -372,7 +549,7 @@ func GetExceptWords(connection_id int) []string {
 		r.Scan(&exceptWord)
 		exceptWords = append(exceptWords, exceptWord)
 	}
-	return exceptWords
+	return exceptWords, nil
 }
 
 // TEST

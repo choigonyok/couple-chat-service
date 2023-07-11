@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -75,6 +76,15 @@ func OpenDB(driverName, dataSourceName string) error {
 func CloseDB() error {
 	err := db.Close()
 	return err
+}
+
+// 쿠키가 있는지 확인
+func CookieExist(c *gin.Context) (string, error) {
+	uuid, err := c.Cookie("uuid")	
+	if err != nil {
+		return "", err
+	}
+	return uuid, nil
 }
 
 func InsertUsr(id, password, uuid string) error {
@@ -598,7 +608,7 @@ func DeleteAll(){
 	// _, _ = db.Query("DELETE FROM connection")
 	// _, _ = db.Query("DELETE FROM answer")
 	// _, _ = db.Query("DELETE FROM question")
-	_, _ = db.Query("DELETE FROM exceptionword")
+	// _, _ = db.Query("DELETE FROM exceptionword")
 	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("강아지", "강아지와 고양이 중 뭐가 더 좋아?")`)
 	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("운동", "운동하는 거 좋아해?")`)
 	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("남사친", "남사친/여사친 어디까지 허용 가능하다!")`)

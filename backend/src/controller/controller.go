@@ -171,16 +171,6 @@ func checkIDandPWCorrect(ID string, PW string) bool {
 	}
 }
 
-// 쿠키가 있는지 확인
-func cookieExist(c *gin.Context) string {
-	uuid, err := c.Cookie("uuid")	
-	if err != nil {
-		fmt.Println("ERROR #14 : ", err.Error())
-		c.Writer.WriteHeader(http.StatusUnauthorized)
-	}
-	return uuid
-}
-
 // 회원가입	
 func SignUpHandler(c *gin.Context) {
 
@@ -262,14 +252,22 @@ func LogInHandler(c *gin.Context){
 // 로그아웃
 func LogOutHandler(c *gin.Context){
 	LoadEnv()
-	uuid := cookieExist(c)
+	uuid, err := model.CookieExist(c)
+	if err != nil {
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 	c.SetCookie("uuid", uuid, -1, "/", os.Getenv("ORIGIN"), false, true)
 	c.Writer.WriteHeader(http.StatusOK)
 }
 
 // 기존 로그인 되있던 상태인지 쿠키 확인	
 func AlreadyLogInCheckHandler(c *gin.Context){
-	uuid := cookieExist(c)
+	uuid, err := model.CookieExist(c)
+	if err != nil {
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
 	conn_id, err := model.SelectConnIDFromUsrsByUUID(uuid)
 	if err != nil {
@@ -287,7 +285,11 @@ func AlreadyLogInCheckHandler(c *gin.Context){
 
 // 상대방에게 connection 연결 요청
 func ConnRequestHandler(c *gin.Context){
-	uuid := cookieExist(c)
+	uuid, err := model.CookieExist(c)
+	if err != nil {
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
 	isExist, err := model.CheckRequestByRequesterUUID(uuid)
 	if err != nil {
@@ -339,7 +341,11 @@ func ConnRequestHandler(c *gin.Context){
 
 // 현재 요청받은 request 목록 가져오기
 func GetRecieveRequestHandler(c *gin.Context){
-	uuid := cookieExist(c)
+	uuid, err := model.CookieExist(c)
+	if err != nil {
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
 	requestedDatas, err := model.SelectRecieveRequestByTargetUUID(uuid)
 	if err != nil {
@@ -361,7 +367,11 @@ func GetRecieveRequestHandler(c *gin.Context){
 
 // 현재 신청중인 request 가져오기
 func GetSendRequestHandler(c *gin.Context){
-	uuid := cookieExist(c)
+	uuid, err := model.CookieExist(c)
+	if err != nil {
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
 	requestingData, err := model.SelectSendRequestByTargetUUID(uuid)
 	if err != nil {
@@ -382,7 +392,11 @@ func GetSendRequestHandler(c *gin.Context){
 
 // 상대방과 연결 후, DB에 저장되어있던 자신과 상대 관련 요청 전체 삭제 + conn_id 생성
 func DeleteRestRequestHandler(c *gin.Context){
-	myUUID  := cookieExist(c)
+	myUUID, err := model.CookieExist(c)
+	if err != nil {
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 	
 	target := struct {
 		UUID string `json:"uuid_delete"`
@@ -441,7 +455,11 @@ func DeleteOneRequestHandler(c *gin.Context){
 
 // 그동안 답한 내용들을 모아서 보여주기 위한 API
 func GetAnswerHandler(c *gin.Context){
-	uuid := cookieExist(c)
+	uuid, err := model.CookieExist(c)
+	if err != nil {
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
 	connID, err := model.SelectConnIDByUUID(uuid)
 	if err != nil {
@@ -470,7 +488,11 @@ func GetAnswerHandler(c *gin.Context){
 // Websocket 프로토콜로 업그레이드 및 메시지 read/write
 func UpgradeHandler(c *gin.Context){
 	
-	uuid := cookieExist(c)
+	uuid, err := model.CookieExist(c)
+	if err != nil {
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
 	var upgrader  = websocket.Upgrader{
 		WriteBufferSize: 1024,
@@ -695,7 +717,11 @@ func recieveAnswer(uuid string, conn_id int, chatData []model.ChatData, first_uu
 
 func GetMostUsedWordsHandler(c *gin.Context){
 	rankNumString := c.Param("ranknum")
-	uuid := cookieExist(c)
+	uuid, err := model.CookieExist(c)
+	if err != nil {
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 	rankNumInt, err := strconv.Atoi(rankNumString)
 	if err != nil {
 		fmt.Println("ERROR #59 : ", err.Error())
@@ -746,7 +772,11 @@ func GetMostUsedWordsHandler(c *gin.Context){
 }
 
 func GetExceptWordsHandler(c *gin.Context){
-	uuid := cookieExist(c)
+	uuid, err := model.CookieExist(c)
+	if err != nil {
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 	conn_id, err1 := model.SelectConnIDByUUID(uuid)
 	if err1 != nil {
 		fmt.Println("ERROR #61 : ", err1.Error())
@@ -764,7 +794,11 @@ func GetExceptWordsHandler(c *gin.Context){
 }
 
 func InsertExceptWordHandler(c *gin.Context){
-	uuid := cookieExist(c)
+	uuid, err := model.CookieExist(c)
+	if err != nil {
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 	conn_id, err := model.SelectConnIDByUUID(uuid)
 	if err != nil {
 		fmt.Println("ERROR #66 : ", err.Error())
@@ -794,7 +828,11 @@ func InsertExceptWordHandler(c *gin.Context){
 }
 
 func DeleteExceptWordHandler(c *gin.Context){
-	uuid := cookieExist(c)
+	uuid, err := model.CookieExist(c)
+	if err != nil {
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 	param := c.Param("param")
 
 	conn_id, err2 := model.SelectConnIDByUUID(uuid)

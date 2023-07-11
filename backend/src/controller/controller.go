@@ -786,6 +786,10 @@ func GetExceptWordsHandler(c *gin.Context){
 	if err2 != nil {
 		fmt.Println("ERROR #62 : ", err2.Error())
 	}
+	if len(exceptWords) == 0 {
+		c.Writer.WriteHeader(http.StatusNoContent)	
+		return
+	}
 	marshaledData, err3 := json.Marshal(exceptWords)
 	if err3 != nil {
 		fmt.Println("ERROR #81 : ", err3.Error())

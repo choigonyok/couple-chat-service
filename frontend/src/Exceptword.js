@@ -5,6 +5,7 @@ const Exceptword = () => {
   const [inputWord, setInputWord] = useState("");
   const [exceptWords, setExceptWords] = useState([]);
   const [unLock, setUnLock] = useState(false);
+  const [render, setRender] = useState(false);
 
   useEffect(() => {
     axios
@@ -12,6 +13,8 @@ const Exceptword = () => {
       .then((response) => {
         if (response.status !== 204) {
           setExceptWords([...response.data]);
+        } else {
+          setExceptWords([]);
         }
       })
       .catch((error) => {
@@ -88,11 +91,11 @@ const Exceptword = () => {
           ))}
         {exceptWords.length === 1 && (
           <div>
-            {item}
+            {exceptWords[0]}
             <input
               type="button"
               value="X"
-              onClick={() => deleteExceptWordHandler(item)}
+              onClick={() => deleteExceptWordHandler(exceptWords[0])}
             />
           </div>
         )}

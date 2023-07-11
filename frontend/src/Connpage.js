@@ -4,6 +4,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import Connsend from "./Connsend";
 import Connrecieved from "./Connrecieved";
+import Withdrawal from "./Withdrawal";
 
 const Connpage = () => {
   const [reRender, setReRender] = useState(false);
@@ -38,6 +39,7 @@ const Connpage = () => {
       <Connsend/>
       <div>
         <Logout />
+        <Withdrawal/>
       </div>
     </div>
   );

@@ -283,6 +283,31 @@ func AlreadyLogInCheckHandler(c *gin.Context){
 	}
 }
 
+func WithDrawalHandler(c *gin.Context){
+	uuid, err1 := model.CookieExist(c)
+	if err1 != nil {
+		fmt.Println("ERROR #82 : ", err1.Error())
+	}
+
+	conn_id, err3 := model.SelectConnIDByUUID(uuid)
+	if err3 != nil {
+		fmt.Println("ERROR #84 : ", err3.Error())
+	}
+	
+	if conn_id == 0 {
+		err2 := model.DeleteUsrByUUID(uuid)
+		if err2 != nil {
+			fmt.Println("ERROR #83 : ", err2.Error())
+		}
+		c.SetCookie("uuid", "", -1, "/", os.Getenv("ORIGIN"), false, true)
+		c.Writer.WriteHeader(http.StatusOK)
+		return
+	} else {
+		c.Writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+}
+
 // 상대방에게 connection 연결 요청
 func ConnRequestHandler(c *gin.Context){
 	uuid, err := model.CookieExist(c)

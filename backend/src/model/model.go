@@ -562,6 +562,11 @@ func GetExceptWords(connection_id int) ([]string, error) {
 	return exceptWords, nil
 }
 
+func DeleteUsrByUUID(uuid string) error {
+	_, err := db.Query(`DELETE FROM usrs WHERE uuid = "`+uuid+`"`)
+	return err
+}
+
 // TEST
 // TEST
 // TEST

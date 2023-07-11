@@ -12,7 +12,7 @@ const Exceptword = () => {
       .get(process.env.REACT_APP_HOST_URL + "/api/except")
       .then((response) => {
         if (response.status !== 204) {
-          setExceptWords([...response.data]);
+          setExceptWords([...response.data])
         } else {
           setExceptWords([]);
         }

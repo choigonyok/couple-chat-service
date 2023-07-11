@@ -6,6 +6,7 @@ import Logout from "./Logout";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Exceptword from "./Exceptword";
+import Withdrawal from "./Withdrawal";
 
 const Chatpage = () => {
   const navigator = useNavigate();
@@ -258,6 +259,7 @@ const Chatpage = () => {
         ))}
       </div>
       <Logout />
+      <Withdrawal/>
     </div>
   );
 };

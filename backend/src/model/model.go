@@ -54,6 +54,11 @@ type AnswerData struct {
 	Question_id int
 }
 
+type BeAboutToDeleteData struct {
+	Delete_Date string
+	Connection_id int
+}
+
 var db *sql.DB
 
 func OpenDB(driverName, dataSourceName string) error {
@@ -407,6 +412,7 @@ func GetUsrOrderByUUID(uuid string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+	defer r.Close()
 
 	var order_usr int
 	r.Next()
@@ -419,6 +425,7 @@ func QuestionIDOfEmptyAnswerByOrder(order int) (int, error) {
 
 	if order == 1 {
 		r, err1 := db.Query(`SELECT question_id FROM ANSWER WHERE first_answer = "not-written"`)
+		defer r.Close()
 		if err1 != nil {
 			return 0, err1
 		}
@@ -427,6 +434,8 @@ func QuestionIDOfEmptyAnswerByOrder(order int) (int, error) {
 		}
 	} else {
 		r, err2 := db.Query(`SELECT question_id FROM ANSWER WHERE second_answer = "not-written"`)
+		defer r.Close()
+
 		if err2 != nil {
 			return 0, err2
 		}
@@ -444,6 +453,7 @@ func GetQuestionByQuestionID(questionID int) (string, string, error){
 	if err1 != nil {
 		return "", "", err1
 	}
+	defer r.Close()
 	
 	r.Next()
 	err2 := r.Scan(&questionData.Target_word, &questionData.Question_contents)
@@ -473,6 +483,8 @@ func GetFrequentWords(uuid string, rankNum int) ([]string, error) {
 	if err != nil {
 		fmt.Println("ERROR #56 : ", err.Error())
 	}
+	defer r.Close()
+
 	var recentChat string
 	var recentChats []string
 	for r.Next() {
@@ -536,6 +548,8 @@ func InsertExceptWord(connection_id int, except_word string) error {
 
 func CheckWordAlreadyExcepted(connection_id int, except_word string) (bool, error) {
 	r, err := db.Query(`SELECT * FROM exceptionword WHERE connection_id = `+strconv.Itoa(connection_id)+` and except_word = "`+except_word+`"`)
+	defer r.Close()
+
 	if r.Next() {
 		return true, nil
 	} else {
@@ -553,6 +567,8 @@ func GetExceptWords(connection_id int) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer r.Close()
+
 	var exceptWord string
 	var exceptWords []string
 	for r.Next() {
@@ -564,6 +580,24 @@ func GetExceptWords(connection_id int) ([]string, error) {
 
 func DeleteUsrByUUID(uuid string) error {
 	_, err := db.Query(`DELETE FROM usrs WHERE uuid = "`+uuid+`"`)
+	return err
+}
+
+func InsertBeAboutToDelete(connection_id int) error {
+	_, err := db.Query("INSERT INTO beabouttodelete (connection_id) VALUES ("+strconv.Itoa(connection_id)+")")
+	return err
+}
+
+func DeleteConnectionByConnID(uuid string) error {
+	first_uuid, second_uuid, conn_id, err := GetConnectionByUsrsUUID(uuid)
+	_, err = db.Query(`DELETE FROM chat WHERE writer_id = "`+first_uuid+`" or writer_id = "`+second_uuid+`"`)
+	_, err = db.Query("DELETE FROM connection WHERE connection_id = "+strconv.Itoa(conn_id))
+	_, err = db.Query("DELETE FROM beaboutdelete WHERE connection_id = "+strconv.Itoa(conn_id))
+	_, err = db.Query("DELETE FROM answer WHERE connection_id = "+strconv.Itoa(conn_id))
+	_, err = db.Query("DELETE FROM exceptionword WHERE connection_Id = "+strconv.Itoa(conn_id))
+	_, err = db.Query(`UPDATE usrs SET conn_id = 0  WHERE uuid = "`+first_uuid+`" or uuid = "`+second_uuid+`"`)
+	_, err = db.Query(`UPDATE usrs SET order_usr = 0 WHERE uuid = "`+first_uuid+`" or uuid = "`+second_uuid+`"`)
+
 	return err
 }
 
@@ -606,17 +640,22 @@ func TestExceptionWord() (*sql.Rows, error) {
 	return r,err
 }
 
+func TestBeAboutToDelete() (*sql.Rows, error) {
+	r, err := db.Query("SELECT * FROM beabouttodelete")
+	return r,err
+}
+
 func DeleteAll(){
 	// _, _ = db.Query("DELETE FROM usrs")
-	// _, _ = db.Query("DELETE FROM chat")
-	// _, _ = db.Query("DELETE FROM request")
-	// _, _ = db.Query("DELETE FROM connection")
-	// _, _ = db.Query("DELETE FROM answer")
-	// _, _ = db.Query("DELETE FROM question")
-	// _, _ = db.Query("DELETE FROM exceptionword")
-	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("강아지", "강아지와 고양이 중 뭐가 더 좋아?")`)
-	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("운동", "운동하는 거 좋아해?")`)
-	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("남사친", "남사친/여사친 어디까지 허용 가능하다!")`)
-	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("엄마", "부모님께 존댓말 써?")`)
-	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("결혼", "결혼은 언제쯤 하고싶어?")`)
+	_, _ = db.Query("DELETE FROM chat")
+	_, _ = db.Query("DELETE FROM request")
+	_, _ = db.Query("DELETE FROM connection")
+	_, _ = db.Query("DELETE FROM answer")
+	_, _ = db.Query("DELETE FROM exceptionword")
+	_, _ = db.Query("DELETE FROM question")
+	_,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("강아지", "강아지와 고양이 중 뭐가 더 좋아?")`)
+	_,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("운동", "운동하는 거 좋아해?")`)
+	_,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("남사친", "남사친/여사친 어디까지 허용 가능하다!")`)
+	_,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("엄마", "부모님께 존댓말 써?")`)
+	_,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("결혼", "결혼은 언제쯤 하고싶어?")`)
 }

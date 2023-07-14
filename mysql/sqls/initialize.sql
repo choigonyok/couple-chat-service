@@ -34,6 +34,11 @@ CREATE TABLE `connection` (
         `second_usr` VARCHAR(255) NOT NULL,
         `start_date` VARCHAR(100) NOT NULL);
 
+CREATE TABLE `beabouttodelete` (
+        `delete_date` DATETIME DEFAULT '0000-00-00 00:00:00',
+        `connection_id` INT,
+        FOREIGN KEY (`connection_id`) REFERENCES `connection`(`connection_id`) ON DELETE CASCADE);
+
 CREATE TABLE `question` (
         `question_id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
         `target_word` VARCHAR(255) NOT NULL,

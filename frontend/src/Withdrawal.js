@@ -9,6 +9,7 @@ const Withdrawal = () => {
             .delete(process.env.REACT_APP_HOST_URL+"/api/usr")
             .then((response)=>{
                 alert("성공적으로 회원탈퇴가 완료되었습니다.");
+                navigator("/");
             })
             .catch((error)=>{
                 if (error.response.status === 400) {

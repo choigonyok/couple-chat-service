@@ -7,6 +7,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Exceptword from "./Exceptword";
 import Withdrawal from "./Withdrawal";
+import Cutconn from "./Cutconn";
 
 const Chatpage = () => {
   const navigator = useNavigate();
@@ -260,6 +261,7 @@ const Chatpage = () => {
       </div>
       <Logout />
       <Withdrawal/>
+      <Cutconn/>
     </div>
   );
 };

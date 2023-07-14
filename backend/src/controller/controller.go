@@ -28,6 +28,8 @@ func Test(){
 	chatDatas := []model.ChatData{}
 	requestData := model.RequestData{}
 	requestDatas := []model.RequestData{}
+	beAboutToDeleteData := model.BeAboutToDeleteData{}
+	beAboutToDeleteDatas := []model.BeAboutToDeleteData{}
 	connectionData := struct {
 		connection_id int
 		first_usr string
@@ -125,12 +127,19 @@ func Test(){
 		exceptionDatas = append(exceptionDatas, exceptionData)
 	}
 	fmt.Println("exceptionword DB : ", exceptionDatas)
+
+	r, _ = model.TestBeAboutToDelete()
+	for r.Next() {
+		r.Scan(&beAboutToDeleteData.Delete_Date, &beAboutToDeleteData.Connection_id)
+		beAboutToDeleteDatas = append(beAboutToDeleteDatas, beAboutToDeleteData)
+	}
+	fmt.Println("beabouttodelete DB : ", beAboutToDeleteDatas)
 }
 
 var conns = make(map[string]*websocket.Conn)
+var timerMap  = make(map[int]*time.Timer)
 	
 var mutex = &sync.Mutex{}
-
 
 func ConnectDB(driverName, dbData string) {
 	err := model.OpenDB(driverName, dbData)
@@ -145,6 +154,17 @@ func UnConnectDB() {
 		fmt.Println("ERROR #74 : ", err.Error())
 	}
 }
+
+func getTimeNow() time.Time {
+	loc, err := time.LoadLocation("Asia/Seoul")
+	if err != nil {
+		fmt.Println("ERROR #91 : ", err.Error())
+	}
+	now := time.Now()
+	t := now.In(loc)
+	return t
+}
+
 
 func LoadEnv(){
 	// 환경변수 로딩
@@ -308,6 +328,65 @@ func WithDrawalHandler(c *gin.Context){
 	}
 }
 
+// 상대방과의 커넥션 끊기
+func CutConnectionHandler(c *gin.Context){
+	uuid, err1 := model.CookieExist(c)
+	if err1 != nil {
+		fmt.Println("ERROR #85 : ", err1.Error())
+	}
+
+	conn_id, err2 := model.SelectConnIDByUUID(uuid)
+	if err2 != nil {
+		fmt.Println("ERROR #86 : ", err2.Error())
+	}
+
+	if timerMap[conn_id] != nil {
+		c.String(http.StatusBadRequest, "%v", "ALREADY_REGISTER")
+	} else {
+		setConnDeleteTimer(uuid, conn_id)
+		c.Writer.WriteHeader(http.StatusOK)
+	}
+}
+
+// 커넥션 7일 후 종료를 위한 타이머 설정
+func setConnDeleteTimer(uuid string, connection_id int) {
+	setTime := getTimeNow().Add(3 * time.Minute)
+	fmt.Println("SETTIME : ", setTime)
+	fmt.Println("SETTIME : ", setTime)
+	fmt.Println("SETTIME : ", setTime)
+	timer := time.NewTimer(setTime.Sub(getTimeNow()))
+	timerMap[connection_id] = timer
+	go func() {
+		<-timer.C
+		fmt.Println("TIME END ! ")
+		fmt.Println("TIME END ! ")
+		fmt.Println("TIME END ! ")
+		err := model.DeleteConnectionByConnID(uuid)
+		if err != nil {
+			fmt.Println("ERROR #90 : ", err.Error())
+		}
+		timerMap[connection_id] = nil
+	}()
+}
+
+func RollBackConnectionHandler(c *gin.Context) {
+	uuid, err1 := model.CookieExist(c)
+	if err1 != nil {
+		fmt.Println("ERROR #92 : ", err1.Error())
+	}
+	conn_id, err2 := model.SelectConnIDByUUID(uuid)
+	if err2 != nil {
+		fmt.Println("ERROR #93 : ", err2.Error())
+	}
+	if timerMap[conn_id] == nil {
+		c.Writer.WriteHeader(http.StatusBadRequest)
+		return
+	} else {
+		timerMap[conn_id] = nil
+		c.Writer.WriteHeader(http.StatusOK)
+	}
+}
+
 // 상대방에게 connection 연결 요청
 func ConnRequestHandler(c *gin.Context){
 	uuid, err := model.CookieExist(c)
@@ -463,6 +542,13 @@ func DeleteRestRequestHandler(c *gin.Context){
 	err6 := model.DeleteRestRequest(target.UUID, myUUID)
 	if err6 != nil {
 		fmt.Println("ERROR #28 : ", err6.Error())
+		return
+	}
+
+	err7 := model.InsertBeAboutToDelete(connID)
+	if err7 != nil {
+		fmt.Println("ERROR #24 : ", err7.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }

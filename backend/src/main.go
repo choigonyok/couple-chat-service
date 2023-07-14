@@ -46,9 +46,12 @@ func main() {
 	
 	e.POST("/api/id", controller.IDCheckHandler)						// 회원가입 시 아이디 중복체크
 
+	e.DELETE("/api/conn", controller.CutConnectionHandler)				// 커넥션 끊기
+	e.PUT("/api/conn", controller.RollBackConnectionHandler)			// 커넥션 재연결
+
 	e.POST("/api/log", controller.LogInHandler)							// 로그인
 	e.DELETE("/api/log", controller.LogOutHandler)						// 로그아웃
-	e.GET("/api/log", controller.AlreadyLogInCheckHandler)				// 기존 로그인 되있던 상태인지 쿠키 확인	
+	e.GET("/api/log", controller.AlreadyLogInCheckHandler)				// 기존 로그인 되있던 상태인지 쿠키 확인
 
 	e.POST("/api/request", controller.ConnRequestHandler)				// 상대방에게 connection 연결 요청	
 	e.GET("/api/request/recieved", controller.GetRecieveRequestHandler)	// 현재 요청받은 request 목록 가져오기

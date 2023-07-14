@@ -7,21 +7,32 @@ const Changepw = () => {
   const [inputPW, setInputPW] = useState("");
 
   const inputPWHandler = (e) => {
-    setInputPW(e.target.value);
+    if (e.target.value.length > 20) {
+      alert("PASSWORD는 최대 20자까지만 입력 가능합니다.");
+    } else {
+      setInputPW(e.target.value);
+    }
   };
 
   const sendPWHandler = () => {
+    if (inputPW === "") {
+      alert("ID 혹은 PASSWORD가 작성되지 않았습니다.");
+      return;
+    }
     const sendData = {
       usr_pw: inputPW,
     };
     axios
       .put(process.env.REACT_APP_HOST_URL + "/api/usr", sendData)
       .then((response) => {
-        console.log(response);
+        alert("PASSWORD가 성공적으로 변경되었습니다.")
         setInputPW("");
         setInputBox(false);
       })
       .catch((error) => {
+        if (error.response.status === 400) {
+          alert("PASSWORD는 영어 소문자와 숫자 조합만 가능합니다.");
+        }
         console.log(error);
       });
   };
@@ -33,11 +44,7 @@ const Changepw = () => {
   return (
     <div>
       {!inputBox && (
-        <input
-          type="button"
-          value="비밀번호 변경하기"
-          onClick={clickHandler}
-        />
+        <input type="button" value="비밀번호 변경하기" onClick={clickHandler} />
       )}
       {inputBox && (
         <div>

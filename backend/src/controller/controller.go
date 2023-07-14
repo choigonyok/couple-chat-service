@@ -287,14 +287,26 @@ func ChangePasswordHandler(c *gin.Context) {
 		return
 	}
 
-	err3 := model.ChangePassword(pwData.Password, uuid)
+	isPWCorrect, err3 := regexp.MatchString("^[a-z0-9]*$", pwData.Password)
 	if err3 != nil {
 		fmt.Println("ERROR #94 : ", err3.Error())
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+	if !isPWCorrect {
+		c.Writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	
+	err4 := model.ChangePassword(pwData.Password, uuid)
+	if err4 != nil {
+		fmt.Println("ERROR #94 : ", err4.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	c.Writer.WriteHeader(http.StatusOK)
+	
 }
 
 // 로그아웃

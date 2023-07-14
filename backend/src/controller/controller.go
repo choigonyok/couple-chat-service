@@ -382,6 +382,11 @@ func RollBackConnectionHandler(c *gin.Context) {
 		c.Writer.WriteHeader(http.StatusBadRequest)
 		return
 	} else {
+		timer := timerMap[conn_id]
+		go func(){
+			timer.Stop()
+			<-timer.C
+		}()
 		timerMap[conn_id] = nil
 		c.Writer.WriteHeader(http.StatusOK)
 	}
@@ -670,7 +675,7 @@ func UpgradeHandler(c *gin.Context){
 		return
 	}
 
-	question_id, err7 := model.QuestionIDOfEmptyAnswerByOrder(order)
+	question_id, err7 := model.QuestionIDOfEmptyAnswerByOrder(order, conn_id)
 	if err7 != nil {
 		fmt.Println("ERROR #79 : ", err7.Error())
 		return

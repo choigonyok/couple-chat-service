@@ -420,11 +420,11 @@ func GetUsrOrderByUUID(uuid string) (int, error) {
 	return order_usr, nil
 }
 
-func QuestionIDOfEmptyAnswerByOrder(order int) (int, error) {
+func QuestionIDOfEmptyAnswerByOrder(order, connection_id int) (int, error) {
 	var question_id int
 
 	if order == 1 {
-		r, err1 := db.Query(`SELECT question_id FROM ANSWER WHERE first_answer = "not-written"`)
+		r, err1 := db.Query(`SELECT question_id FROM ANSWER WHERE first_answer = "not-written" and connection_id = `+strconv.Itoa(connection_id))
 		defer r.Close()
 		if err1 != nil {
 			return 0, err1
@@ -433,7 +433,7 @@ func QuestionIDOfEmptyAnswerByOrder(order int) (int, error) {
 			r.Scan(&question_id)
 		}
 	} else {
-		r, err2 := db.Query(`SELECT question_id FROM ANSWER WHERE second_answer = "not-written"`)
+		r, err2 := db.Query(`SELECT question_id FROM ANSWER WHERE second_answer = "not-written" and connection_id = `+strconv.Itoa(connection_id))
 		defer r.Close()
 
 		if err2 != nil {

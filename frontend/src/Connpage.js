@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Connsend from "./Connsend";
 import Connrecieved from "./Connrecieved";
 import Withdrawal from "./Withdrawal";
+import Changepw from "./Changepw";
 
 const Connpage = () => {
   const [reRender, setReRender] = useState(false);
@@ -35,11 +36,12 @@ const Connpage = () => {
 
   return (
     <div>
-      <Connrecieved/>
-      <Connsend/>
+      <Connrecieved />
+      <Connsend />
       <div>
+        <Changepw/>
         <Logout />
-        <Withdrawal/>
+        <Withdrawal />
       </div>
     </div>
   );

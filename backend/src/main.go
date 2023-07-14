@@ -43,6 +43,7 @@ func main() {
 	
 	e.POST("/api/usr", controller.SignUpHandler)						// 회원가입
 	e.DELETE("/api/usr", controller.WithDrawalHandler)					// 회원탈퇴
+	e.PUT("/api/usr", controller.ChangePasswordHandler)					// 비밀번호 변경
 	
 	e.POST("/api/id", controller.IDCheckHandler)						// 회원가입 시 아이디 중복체크
 

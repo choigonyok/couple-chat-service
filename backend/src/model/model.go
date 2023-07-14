@@ -601,6 +601,11 @@ func DeleteConnectionByConnID(uuid string) error {
 	return err
 }
 
+func ChangePassword(password, uuid string) error {
+	_, err := db.Query(`UPDATE usrs SET password = "`+password+`" WHERE uuid = "`+uuid+`"`)
+	return err
+}
+
 // TEST
 // TEST
 // TEST

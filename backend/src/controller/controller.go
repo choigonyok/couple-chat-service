@@ -269,6 +269,34 @@ func LogInHandler(c *gin.Context){
 	}
 }
 
+// 비밀번호 변경
+func ChangePasswordHandler(c *gin.Context) {
+	uuid, err1 := model.CookieExist(c)
+	if err1 != nil {
+		fmt.Println("ERROR #93 : ", err1.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	pwData := model.UsrsData{}
+	
+	err2 := c.ShouldBindJSON(&pwData)
+	if err2 != nil {
+		fmt.Println("ERROR #93 : ", err2.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err3 := model.ChangePassword(pwData.Password, uuid)
+	if err3 != nil {
+		fmt.Println("ERROR #94 : ", err3.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	c.Writer.WriteHeader(http.StatusOK)
+}
+
 // 로그아웃
 func LogOutHandler(c *gin.Context){
 	LoadEnv()

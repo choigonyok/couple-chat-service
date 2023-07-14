@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import Exceptword from "./Exceptword";
 import Withdrawal from "./Withdrawal";
 import Cutconn from "./Cutconn";
+import Changepw from "./Changepw";
 
 const Chatpage = () => {
   const navigator = useNavigate();
@@ -259,6 +260,7 @@ const Chatpage = () => {
           </div>
         ))}
       </div>
+      <Changepw/>
       <Logout />
       <Withdrawal/>
       <Cutconn/>

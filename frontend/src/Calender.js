@@ -64,6 +64,11 @@ const Calender = () => {
     setMonth(month + 1);
   };
 
+  const setTodayHanndler = () => {
+    setMonth(thisMonth);
+    setYear(thisYear);
+  }
+
   return (
     <div>
       <div>
@@ -72,10 +77,9 @@ const Calender = () => {
         </div>
         <div>
           <input type="button" value="prev" onClick={prevMonthHandler} />
+          <input type="button" value="today" onClick={setTodayHanndler} />
           <input type="button" value="next" onClick={nextMonthHandler} />
         </div>
-        <div>{weeksOfThisMonth}개 주차 존재</div>
-        <div>{lastDateOfThisMonth}일까지 존재</div>
         <div className="calender">
           <div className="calender-day__container">
             <div className="calender-day">일</div>
@@ -88,25 +92,25 @@ const Calender = () => {
           </div>
           {weeksArray.map((item, index) => (
             <div className="calender-container">
-              <div className="date">
+              <div className={thisMonth === month && dateArray[index * 7 + 0] === thisDate ? "date__today" : "date"}>
                 {dateArray[index * 7 + 0] !== 0 && dateArray[index * 7 + 0]}
               </div>
-              <div className="date">
+              <div className={thisMonth === month && dateArray[index * 7 + 1] === thisDate ? "date__today" : "date"}>
                 {dateArray[index * 7 + 1] !== 0 && dateArray[index * 7 + 1]}
               </div>
-              <div className="date">
+              <div className={thisMonth === month && dateArray[index * 7 + 2] === thisDate ? "date__today" : "date"}>
                 {dateArray[index * 7 + 2] !== 0 && dateArray[index * 7 + 2]}
               </div>
-              <div className="date">
+              <div className={thisMonth === month && dateArray[index * 7 + 3] === thisDate ? "date__today" : "date"}>
                 {dateArray[index * 7 + 3] !== 0 && dateArray[index * 7 + 3]}
               </div>
-              <div className="date">
+              <div className={thisMonth === month && dateArray[index * 7 + 4] === thisDate ? "date__today" : "date"}>
                 {dateArray[index * 7 + 4] !== 0 && dateArray[index * 7 + 4]}
               </div>
-              <div className="date">
+              <div className={thisMonth === month && dateArray[index * 7 + 5] === thisDate ? "date__today" : "date"}>
                 {dateArray[index * 7 + 5] !== 0 && dateArray[index * 7 + 5]}
               </div>
-              <div className="date">
+              <div className={thisMonth === month && dateArray[index * 7 + 6] === thisDate ? "date__today" : "date"}>
                 {dateArray[index * 7 + 6] !== 0 && dateArray[index * 7 + 6]}
               </div>
             </div>

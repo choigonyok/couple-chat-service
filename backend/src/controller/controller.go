@@ -140,7 +140,7 @@ func Test(){
 
 	r, _ = model.TestAnniversary()
 	for r.Next() {
-		r.Scan(&anniversaryData.Anniversary_id, &anniversaryData.Connection_id, &anniversaryData.Year, &anniversaryData.Month, &anniversaryData.Date, &anniversaryData.Contents, &anniversaryData.Every_week, &anniversaryData.Every_month, &anniversaryData.Every_year, &anniversaryData.D_day)
+		r.Scan(&anniversaryData.Anniversary_id, &anniversaryData.Connection_id, &anniversaryData.Year, &anniversaryData.Month, &anniversaryData.Date, &anniversaryData.Contents, &anniversaryData.D_day)
 		anniversaryDatas = append(anniversaryDatas, anniversaryData)
 	}
 	fmt.Println("anniversary DB : ", anniversaryDatas)

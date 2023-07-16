@@ -67,9 +67,6 @@ type AnniversaryData struct {
 	Month int `json:"month"`
 	Date int `json:"date"`
 	Contents string `json:"contents"`
-	Every_week int `json:"every_week"`
-	Every_month int `json:"every_month"`
-	Every_year int `json:"every_year"`
 	D_day int `json:"d_day"`
 }
 
@@ -648,7 +645,7 @@ func DeleteChatByChatID(chat_id int) error {
 }
 
 func InsertAnniversaryByConnID(data AnniversaryData) error {
-	_, err := db.Query(`INSERT INTO anniversary (connection_id, year, month, date, contents, every_week, every_month, every_year, d_day) Values (`+strconv.Itoa(data.Connection_id)+`, `+strconv.Itoa(data.Year)+`, `+strconv.Itoa(data.Month)+`, `+strconv.Itoa(data.Date)+`, "`+data.Contents+`", `+strconv.Itoa(data.Every_week)+`, `+strconv.Itoa(data.Every_month)+`, `+strconv.Itoa(data.Every_year)+`, `+strconv.Itoa(data.D_day)+`)`)
+	_, err := db.Query(`INSERT INTO anniversary (connection_id, year, month, date, contents, every_week, every_month, every_year, d_day) Values (`+strconv.Itoa(data.Connection_id)+`, `+strconv.Itoa(data.Year)+`, `+strconv.Itoa(data.Month)+`, `+strconv.Itoa(data.Date)+`, "`+data.Contents+`", `+strconv.Itoa(data.D_day)+`)`)
 	return err
 }
 
@@ -663,7 +660,7 @@ func GetAnniversaryByConnIDAndMonthAndYear(connection_id int, target_month, targ
 	var anniversaryDatas []AnniversaryData
 
 	for r.Next() {
-		r.Scan(&anniversaryData.Anniversary_id, &anniversaryData.Connection_id, &anniversaryData.Year, &anniversaryData.Month, &anniversaryData.Date, &anniversaryData.Contents, &anniversaryData.Every_week, &anniversaryData.Every_month, &anniversaryData.Every_year, &anniversaryData.D_day)
+		r.Scan(&anniversaryData.Anniversary_id, &anniversaryData.Connection_id, &anniversaryData.Year, &anniversaryData.Month, &anniversaryData.Date, &anniversaryData.Contents, &anniversaryData.D_day)
 		anniversaryDatas = append(anniversaryDatas, anniversaryData)
 	}
 

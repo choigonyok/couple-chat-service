@@ -13,7 +13,6 @@
 .calender {
   display: flex;
   width: auto;
-  border: 3px solid white;
   height: auto;
   flex-direction: column;
   flex-wrap: nowrap;
@@ -31,8 +30,8 @@
 .date {
   display: flex;
   flex-direction: column;
-  width: 10vw;
-  height: 9vw;
+  width: 7vw;
+  height: 6vw;
   margin-left: 3px;
   margin-right: 3px;
   margin-bottom: 3px;
@@ -45,8 +44,8 @@
 .date__today {
     display: flex;
     flex-direction: column;
-    width: 10vw;
-    height: 9vw;
+    width: 7vw;
+    height: 6vw;
     margin-left: 3px;
     margin-right: 3px;
     margin-bottom: 3px;
@@ -66,7 +65,7 @@
 }
 .calender-day {
   display: flex;
-  width: 10vw;
+  width: 7vw;
   margin: 3px;
   justify-content: center;
   align-items: center;

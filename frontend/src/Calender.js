@@ -157,9 +157,9 @@ const Calender = () => {
         {dateInfo !== 0 && (
           <div>
             <div>
-              {year}/
-              {month + 1 <= 0 ? ((month + 1) % 12) + 12 : (month % 12) + 1}/
-              {dateInfo}
+              {year}년
+              {month + 1 <= 0 ? ((month + 1) % 12) + 12 : (month % 12) + 1}월
+              {dateInfo}일
             </div>
             <div>
               <input
@@ -209,7 +209,7 @@ const Calender = () => {
                   {anniversaries.length !== 0 &&
                     anniversaries.map(
                       (item, i) =>
-                        item.date === dateArray[index * 7 + 0] && item.contents
+                        <div>{item.date === dateArray[index * 7 + 0] && item.contents}</div>
                     )}
                 </div>
               </div>
@@ -228,7 +228,7 @@ const Calender = () => {
                   {anniversaries.length !== 0 &&
                     anniversaries.map(
                       (item, i) =>
-                        item.date === dateArray[index * 7 + 1] && item.contents
+                      <div>{item.date === dateArray[index * 7 + 1] && item.contents}</div>
                     )}
                 </div>
               </div>
@@ -241,14 +241,13 @@ const Calender = () => {
                 onClick={() => dateClickHandler(dateArray[index * 7 + 2])}
               >
                 <div className="date__date">
-                  {" "}
                   {dateArray[index * 7 + 2] !== 0 && dateArray[index * 7 + 2]}
                 </div>
                 <div>
                   {anniversaries.length !== 0 &&
                     anniversaries.map(
                       (item, i) =>
-                        item.date === dateArray[index * 7 + 2] && item.contents
+                      <div>{item.date === dateArray[index * 7 + 2] && item.contents}</div>
                     )}
                 </div>
               </div>
@@ -267,7 +266,7 @@ const Calender = () => {
                   {anniversaries.length !== 0 &&
                     anniversaries.map(
                       (item, i) =>
-                        item.date === dateArray[index * 7 + 3] && item.contents
+                      <div>{item.date === dateArray[index * 7 + 3] && item.contents}</div>
                     )}
                 </div>
               </div>
@@ -286,7 +285,7 @@ const Calender = () => {
                   {anniversaries.length !== 0 &&
                     anniversaries.map(
                       (item, i) =>
-                        item.date === dateArray[index * 7 + 4] && item.contents
+                      <div>{item.date === dateArray[index * 7 + 4] && item.contents}</div>
                     )}
                 </div>
               </div>
@@ -305,7 +304,7 @@ const Calender = () => {
                   {anniversaries.length !== 0 &&
                     anniversaries.map(
                       (item, i) =>
-                        item.date === dateArray[index * 7 + 5] && item.contents
+                      <div>{item.date === dateArray[index * 7 + 5] && item.contents}</div>
                     )}
                 </div>
               </div>
@@ -324,7 +323,7 @@ const Calender = () => {
                   {anniversaries.length !== 0 &&
                     anniversaries.map(
                       (item, i) =>
-                        item.date === dateArray[index * 7 + 6] && item.contents
+                      <div>{item.date === dateArray[index * 7 + 6] && item.contents}</div>
                     )}
                 </div>
               </div>

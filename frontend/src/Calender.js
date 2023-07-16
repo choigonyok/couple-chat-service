@@ -20,6 +20,7 @@ const Calender = () => {
   const [inputAnniversary, setInputAnniversary] = useState("");
   const [render, setRender] = useState(false);
   const [anniversaries, setAnniversaries] = useState([]);
+  const [radioValue, setRadioValue] = useState("");
 
   let firstWeeksLastDate = 7 - date1.getDay();
   let lastDateOfThisMonth = date2.getDate(date2.setDate(date2.getDate() - 1));
@@ -83,6 +84,7 @@ const Calender = () => {
     setMonth(month - 1);
     setDateInfo(0);
     setInputAnniversary("");
+    setRadioValue("");
   };
 
   const nextMonthHandler = () => {
@@ -93,6 +95,7 @@ const Calender = () => {
     setMonth(month + 1);
     setDateInfo(0);
     setInputAnniversary("");
+    setRadioValue("");
   };
 
   const setTodayHanndler = () => {
@@ -101,10 +104,12 @@ const Calender = () => {
     setYear(thisYear);
     setDateInfo(0);
     setInputAnniversary("");
+    setRadioValue("");
   };
 
   const dateClickHandler = (value) => {
     setDateInfo(value);
+    setRadioValue("");
   };
 
   const deleteBoxHandler = () => {
@@ -115,17 +120,35 @@ const Calender = () => {
   const sendAnniversaryHandler = () => {
     const monthInfo =
       month + 1 <= 0 ? ((month + 1) % 12) + 12 : (month % 12) + 1;
+    if (radioValue === "") {
+      alert("주기를 선택해주세요");
+      return;
+    }
+    let everyWeek = 0;
+    let everyMonth = 0;
+    let everyYear = 0;
+    console.log("radio : ", radioValue);
+
+    if (radioValue === "2") {
+      everyWeek = 1;
+    } else if (radioValue === "3") {
+      everyMonth = 1;
+    } else if (radioValue === "4") {
+      everyYear = 1;
+    }
 
     const sendData = {
       year: year,
       month: monthInfo,
       date: dateInfo,
       contents: inputAnniversary,
-      every_week: 0,
-      every_month: 0,
-      every_year: 0,
+      every_week: everyWeek,
+      every_month: everyMonth,
+      every_year: everyYear,
       d_day: 0,
     };
+
+    console.log("sendData: ", sendData);
 
     axios
       .post(
@@ -136,6 +159,7 @@ const Calender = () => {
         console.log(response);
         setInputAnniversary("");
         setDateInfo(0);
+        setRadioValue("");
         setRender(!render);
       })
       .catch((error) => {
@@ -152,10 +176,15 @@ const Calender = () => {
       .delete(process.env.REACT_APP_HOST_URL + "/api/anniversary/" + value)
       .then((response) => {
         setRender(!render);
+        setRadioValue("");
       })
       .catch((error) => {
         console.log(error);
       });
+  };
+
+  const radioHandler = (e) => {
+    setRadioValue(e.target.value);
   };
 
   return (
@@ -200,6 +229,44 @@ const Calender = () => {
                 onClick={sendAnniversaryHandler}
               />
               <input type="button" value="X" onClick={deleteBoxHandler} />
+            </div>
+            <div>
+              <input type="checkbox" name="dday" id="dday" />
+              <label for="dday">D-DAY 설정</label>
+            </div>
+            <div>
+              <input
+                type="radio"
+                value="1"
+                name="every"
+                id="oneday"
+                onChange={radioHandler}
+              />
+              <label for="oneday">한 번</label>
+              <input
+                type="radio"
+                name="every"
+                value="2"
+                id="everyweek"
+                onChange={radioHandler}
+              />
+              <label for="everyweek">매요일</label>
+              <input
+                type="radio"
+                name="every"
+                value="3"
+                id="everymonth"
+                onChange={radioHandler}
+              />
+              <label for="everymonth">매달</label>
+              <input
+                type="radio"
+                name="every"
+                value="4"
+                id="everyyear"
+                onChange={radioHandler}
+              />
+              <label for="everyyear">매년</label>
             </div>
           </div>
         )}

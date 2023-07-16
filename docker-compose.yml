@@ -18,7 +18,7 @@ services:
       - WDS_SOCKET_PORT=${WS_PORT}
 
   nginx:
-    restart: always
+    restart: no
     build:
       dockerfile: Dockerfile
       context: ./nginx
@@ -27,7 +27,7 @@ services:
       
   mysql:
     build: ./mysql
-    restart: unless-stopped
+    restart: no
     ports:
       - "3306:3306"
     volumes:
@@ -56,8 +56,6 @@ services:
       - "8080:8080"
       # react는 이미지로 컨테이너 생성시 포트지정을 안해줘도 nginx가 3000을 listen하고 있어서
       # 실행이 가능한데 go는 그렇지 않아서 포트 지정을 해줘야함
-    depends_on:
-      - mysql
 
 # build는 docker-compose up
 # 두 번째부터는 docker-compose up --build

@@ -80,6 +80,7 @@ func Test(){
 	}{}
 
 	r, _ := model.TestUsrs()
+	defer r.Close()
 	for r.Next() {
 		r.Scan(&usrsData.UUID, &usrsData.ID, &usrsData.Password, &usrsData.Conn_id, &usrsData.Order_usr)
 		usrsDatas = append(usrsDatas, usrsData)
@@ -298,7 +299,7 @@ func ChangePasswordHandler(c *gin.Context) {
 		c.Writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	
+
 	err4 := model.ChangePassword(pwData.Password, uuid)
 	if err4 != nil {
 		fmt.Println("ERROR #94 : ", err4.Error())
@@ -702,10 +703,12 @@ func UpgradeHandler(c *gin.Context){
 		return 
 	}
 	
-	err5 := conn.WriteJSON(initialChats)
-	if err5 != nil {
-		fmt.Println("ERROR #38 : ", err5.Error())
-		return
+	if len(initialChats) != 0 {
+		err5 := conn.WriteJSON(initialChats)
+		if err5 != nil {
+			fmt.Println("ERROR #38 : ", err5.Error())
+			return
+		}
 	}
 
 	// 이전에 대답 안하고 커넥션 종료된 question 있는지 확인
@@ -733,6 +736,7 @@ func UpgradeHandler(c *gin.Context){
 			Writer_id: "question",
 			Write_time: time.Now().Format("2006/01/02 03:04"),
 			Is_answer: 1,
+			Is_deleted: 0,
 			Chat_id: 0,
 			Question_id: question_id,
 		}
@@ -756,15 +760,22 @@ func UpgradeHandler(c *gin.Context){
 		}
 
 		// 일반채팅이면 chat table에 저장, question에 대한 답이면 answer table에 저장
-		if chatData[0].Is_answer == 0 {
-			err := model.InsertChat(chatData[0].Text_body, uuid, chatData[0].Write_time)
+		if chatData[0].Is_answer == 1 {
+			recieveAnswer(uuid, conn_id, chatData, first_uuid)
+		} else if chatData[0].Is_deleted == 1 {
+			err := model.DeleteChatByChatID(chatData[0].Chat_id)
+			if err != nil {
+				fmt.Println("ERROR #95 : ", err.Error())
+			}
+		} else {
+			chat_id, err := model.InsertChatAndGetChatID(chatData[0].Text_body, uuid, chatData[0].Write_time)
 			// 어차피 커넥션 당 메시지 하나씩 전송 받으니까 slice index는 0으로 설정
 			if err != nil {
 				fmt.Println("ERROR #40 : ", err.Error())
-			}	
-		} else {
-			recieveAnswer(uuid, conn_id, chatData, first_uuid)
+			}
+			chatData[0].Chat_id = chat_id
 		}
+		
 
 		target_conn := []*websocket.Conn{}
 
@@ -808,6 +819,7 @@ func sendQuestion(chatData []model.ChatData, conn_id int, target_conn []*websock
 	var target_word, question_contents string
 	var question_id int
 	r, err := model.SelectQuetions()
+	defer r.Close()
 	if err != nil {
 		fmt.Println("ERROR #44 : ", err.Error())
 	}
@@ -829,6 +841,7 @@ func sendQuestion(chatData []model.ChatData, conn_id int, target_conn []*websock
 					Writer_id: "question",
 					Write_time: time.Now().Format("2006/01/02 03:04"),
 					Is_answer: 1,
+					Is_deleted: 0,
 					Chat_id: 0,
 					Question_id: question_id,
 				}

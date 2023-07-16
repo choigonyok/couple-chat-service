@@ -23,6 +23,8 @@ const Chatpage = () => {
   const [wordNum, setWordNum] = useState("3");
   const [otherWords, setOtherWords] = useState([]);
   const [myWords, setMyWords] = useState([]);
+  
+  const [chatID, setChatID] = useState(0);
 
   useEffect(() => {
     axios
@@ -54,11 +56,15 @@ const Chatpage = () => {
       if (parsedData.uuid) {
         setMyUUID(parsedData.uuid);
       } else {
-        setRecievedMessage((prev) => [...prev, ...parsedData]);
-        if (parsedData.length !== 0) {
-          if (parsedData[0].is_answer === 1) {
-            setHideInputBox(true);
-            setSeeAnswerBox(true);
+        if (parsedData[0].is_deleted === 1) {
+          setChatID(parsedData[0].chat_id);
+        } else {
+          setRecievedMessage((prev) => [...prev, ...parsedData]);
+          if (parsedData.length !== 0) {
+            if (parsedData[0].is_answer === 1) {
+              setHideInputBox(true);
+              setSeeAnswerBox(true);
+            }
           }
         }
       }
@@ -72,13 +78,22 @@ const Chatpage = () => {
     };
   }, []);
 
+  useEffect (()=>{
+    const deletedArray = recievedMessage.filter(m => m.chat_id !== chatID);
+    setRecievedMessage(deletedArray);
+  },[chatID])
+
+  const resetDeleted = () => {
+    setdete
+  }
+
   const sendMessageHandler = (data) => {
     if (newSocket !== null) {
       let now = new Date();
       let nowformat =
         now.getFullYear() +
         "/" +
-        (now.getMonth()+1) +
+        (now.getMonth() + 1) +
         "/" +
         now.getDate() +
         " " +
@@ -91,6 +106,7 @@ const Chatpage = () => {
           write_time: nowformat,
           writer_id: myUUID,
           is_answer: 0,
+          is_deleted: 0,
         },
       ];
       newSocket.send(JSON.stringify(sendData));
@@ -99,6 +115,16 @@ const Chatpage = () => {
 
   const inputAnswerHandler = (e) => {
     setInputAnswer(e.target.value);
+  };
+
+  const deleteChatHandler = (value) => {
+    const sendData = [
+      {
+        chat_id: value,
+        is_deleted: 1,
+      },
+    ];
+    newSocket.send(JSON.stringify(sendData));
   };
 
   const enterHandler = (item, e) => {
@@ -112,7 +138,8 @@ const Chatpage = () => {
             let nowformat =
               now.getFullYear() +
               "-" +
-              now.getMonth()+2 +
+              now.getMonth() +
+              2 +
               "-" +
               now.getDate() +
               " " +
@@ -183,6 +210,11 @@ const Chatpage = () => {
             <div>
               {item.is_answer === 0 && item.writer_id === myUUID && (
                 <div className="chat-container__chat__usr">
+                  <input
+                    type="button"
+                    value="X"
+                    onClick={() => deleteChatHandler(item.chat_id)}
+                  />
                   <div className="chat-container__chat">{item.text_body}</div>
                   <div className="chat-container__time">{item.write_time}</div>
                 </div>
@@ -236,7 +268,7 @@ const Chatpage = () => {
           ))}
       </div>
       <div>
-        <Exceptword/>
+        <Exceptword />
       </div>
       <div>많이 쓴 단어 상위 {wordNum}개</div>
       <input type="button" value="3개" onClick={threeWordsHandler} />
@@ -260,10 +292,10 @@ const Chatpage = () => {
           </div>
         ))}
       </div>
-      <Changepw/>
+      <Changepw />
       <Logout />
-      <Withdrawal/>
-      <Cutconn/>
+      <Withdrawal />
+      <Cutconn />
     </div>
   );
 };

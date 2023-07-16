@@ -25,7 +25,6 @@ const Signup = () => {
     axios
       .post(process.env.REACT_APP_HOST_URL + "/api/id", JSON.stringify(data))
       .then((response) => {
-        console.log("중복된 아이디 없음. 사용가능");
         setIsIDChecked(true);
       })
       .catch((error) => {

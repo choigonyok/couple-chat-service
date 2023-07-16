@@ -18,6 +18,7 @@ type ChatData struct {
 	Is_answer int `json:"is_answer"`
 	Chat_id int `json:"chat_id"`
 	Question_id int `json:"question_id"`
+	Is_deleted int `json:"is_deleted"`
 }
 
 type RequestData struct {
@@ -100,10 +101,10 @@ func InsertUsr(id, password, uuid string) error {
 
 func CheckUsrByID(id string) (bool, error) {
 	r, err := db.Query(`SELECT * FROM usrs WHERE id = "`+id+`"`)
+	defer r.Close()
 	if err != nil {
 		return false, err
 	}
-	defer r.Close()
 
 	if r.Next() {
 		return true, nil
@@ -114,10 +115,10 @@ func CheckUsrByID(id string) (bool, error) {
 
 func GetUUIDByIDandPW(id, password string) (string, error) {
 	r, err := db.Query(`SELECT uuid FROM usrs WHERE id = "`+id+`" and password = "`+password+`"`)
+	defer r.Close()
 	if err != nil {
 		return "", err
 	}
-	defer r.Close()
 
 	if r.Next() {
 		var uuid string
@@ -144,10 +145,10 @@ func SelectConnIDFromUsrsByUUID(uuid string) (int, error) {
 
 func CheckRequestByRequesterUUID(uuid string) (bool, error) {
 	r, err := db.Query(`SELECT * FROM request WHERE requester_uuid = "`+uuid+`"`)
+	defer r.Close()
 	if err != nil {
 		return false, err
 	}
-	defer r.Close()
 	
 	if r.Next() {
 		return true, nil
@@ -158,10 +159,10 @@ func CheckRequestByRequesterUUID(uuid string) (bool, error) {
 
 func SelectIDFromUsrsByUUID(uuid string) (string, error) {
 	r, err1 := db.Query(`SELECT id FROM usrs WHERE uuid = "`+uuid+`"`)
+	defer r.Close()
 	if err1 != nil {
 		return "", err1
 	}
-	defer r.Close()
 
 	var id string
 	r.Next()
@@ -178,10 +179,10 @@ func SelectConnIDandUUIDFromUsrsByID(id string) (bool, int, string, error) {
 	targetUUID := ""
 
 	r, err1 := db.Query(`SELECT conn_id, uuid FROM usrs WHERE id = "`+id+`"`)
+	defer r.Close()
 	if err1 != nil {
 		return false, targetConnID, targetUUID, err1
 	}
-	defer r.Close()
 	
 	// ID가 존재하는 ID면 이미 연결되어있진 않은지 conn_id를 확인
 	if r.Next() {	
@@ -206,10 +207,10 @@ func SelectRecieveRequestByTargetUUID(uuid string) ([]RequestData, error) {
 	requestedDatas := []RequestData{}
 
 	r, err := db.Query(`SELECT requester_id, requester_uuid, request_time, request_id FROM request WHERE target_uuid = "`+uuid+`"`)
+	defer r.Close()
 	if err != nil {
 		return nil, err
 	}
-	defer r.Close()
 
 	for r.Next() {
 		r.Scan(&requestedData.Requester_id, &requestedData.Requester_uuid, &requestedData.Request_time, &requestedData.Request_id)
@@ -222,10 +223,10 @@ func SelectSendRequestByTargetUUID(uuid string) (RequestData, error) {
 	requestingData := RequestData{}
 
 	r, err := db.Query(`SELECT target_uuid, request_time, target_id FROM request WHERE requester_uuid = "`+uuid+`"`)
+	defer r.Close()
 	if err != nil {
 		return requestingData, err
 	}
-	defer r.Close()
 	
 	for r.Next(){
 		r.Scan(&requestingData.Target_uuid, &requestingData.Request_time, &requestingData.Target_id)
@@ -240,10 +241,10 @@ func InsertConnection(first_usr, second_usr, start_date string) error {
 
 func SelectConnectionIDByUsrsUUID(first_usr, second_usr string) (int, error) {
 	r, err1 := db.Query(`SELECT connection_id FROM connection WHERE first_usr = "`+first_usr+`" and second_usr = "`+second_usr+`"`)
+	defer r.Close()
 	if err1 != nil {
 		return 0, err1
 	}
-	defer r.Close()
 
 	var connID int
 	r.Next()
@@ -277,10 +278,10 @@ func DeleteRequestByRequestID(request_id string) error {
 
 func SelectConnIDByUUID(uuid string) (int, error) {
 	r, err1 := db.Query(`SELECT connection_id FROM connection WHERE first_usr = "`+uuid+`" or second_usr = "`+uuid+`"`)
+	defer r.Close()
 	if err1 != nil {
 		return 0, err1
 	}
-	defer r.Close()
 
 	var connID int
 	r.Next()
@@ -293,10 +294,10 @@ func SelectConnIDByUUID(uuid string) (int, error) {
 
 func GetAnswerandQuestionContentsByConnID(connection_id int) ([]AnswerData, error) {
 	r, err1 := db.Query(`SELECT first_answer, second_answer, answer_date, question_id FROM answer WHERE connection_id = "`+strconv.Itoa(connection_id)+`"`)
+	defer r.Close()
 	if err1 != nil {
 		return nil, err1
 	}
-	defer r.Close()
 
 	answerData := AnswerData{}
 	answerDatas := []AnswerData{}
@@ -322,10 +323,10 @@ func GetAnswerandQuestionContentsByConnID(connection_id int) ([]AnswerData, erro
 
 func selectQuestionContentsByQuestionID(question_id int) (string, error) {
 	r, err := db.Query(`SELECT question_contents FROM question WHERE question_id = `+strconv.Itoa(question_id))
+	defer r.Close()
 	if err != nil {
 		return "", err
 	}
-	defer r.Close()
 
 	var question_contents string
 
@@ -337,10 +338,10 @@ func selectQuestionContentsByQuestionID(question_id int) (string, error) {
 
 func GetConnectionByUsrsUUID(uuid string) (string, string, int, error) {
 	r, err1 := db.Query(`SELECT first_usr, second_usr, connection_id FROM connection WHERE first_usr = "`+uuid+`" or second_usr = "`+uuid+`"`)
+	defer r.Close()
 	if err1 != nil {
 		return "", "", 0, err1
 	}
-	defer r.Close()
 
 	var first_uuid, second_uuid string
 	var conn_id int
@@ -358,28 +359,44 @@ func SelectChatByUsrsUUID(first_uuid, second_uuid string) ([]ChatData, error) {
 	initialChats := []ChatData{}
 
 	r, err := db.Query(`SELECT chat_id, writer_id, write_time, text_body FROM chat WHERE writer_id = "`+first_uuid+`" or writer_id = "`+second_uuid+`" ORDER BY chat_id ASC`)
+	defer r.Close()
 	if err != nil {
 		return nil, err
 	}
-	
+
 	for r.Next() {
 		r.Scan(&initialChat.Chat_id, &initialChat.Writer_id, &initialChat.Write_time, &initialChat.Text_body)
-		initialChats = append(initialChats, initialChat)
+		initialChat.Is_deleted = 0
+		initialChats = append(initialChats, initialChat)		
 	}
 	return initialChats, nil
 }
 
-func InsertChat(text_body, writer_id, write_time string) error {
-	_, err := db.Query(`INSERT INTO chat (text_body, writer_id, write_time) VALUES ("`+text_body+`", "`+writer_id+`", "`+write_time+`")`)
-	return err
+func InsertChatAndGetChatID(text_body, writer_id, write_time string) (int, error) {
+	_, err1 := db.Query(`INSERT INTO chat (text_body, writer_id, write_time) VALUES ("`+text_body+`", "`+writer_id+`", "`+write_time+`")`)
+	if err1 != nil {
+		return 0, err1
+	}
+
+	r, err2 := db.Query("SELECT chat_id FROM chat ORDER BY chat_id DESC LIMIT 1")
+	defer r.Close()
+	if err2 != nil {
+		return 0, err2
+	}
+
+	var chat_id int
+	r.Next()
+	r.Scan(&chat_id)
+	
+	return chat_id, nil
 }
 
 func CheckAnswerByConnIDandQuestionID(connection_id, question_id int) (bool, error) {
 	r, err := db.Query(`SELECT * FROM answer WHERE connection_id = `+strconv.Itoa(connection_id)+` and question_id = `+strconv.Itoa(question_id))
+	defer r.Close()
 	if err != nil {
 		return false, err
 	}
-	defer r.Close()
 
 	if r.Next() {
 		return true, nil
@@ -409,10 +426,10 @@ func SelectQuetions() (*sql.Rows, error) {
 
 func GetUsrOrderByUUID(uuid string) (int, error) {
 	r, err := db.Query(`SELECT order_usr FROM usrs WHERE uuid = "`+uuid+`"`)
+	defer r.Close()
 	if err != nil {
 		return 0, err
 	}
-	defer r.Close()
 
 	var order_usr int
 	r.Next()
@@ -431,6 +448,8 @@ func QuestionIDOfEmptyAnswerByOrder(order, connection_id int) (int, error) {
 		}
 		if r.Next() {
 			r.Scan(&question_id)
+		} else {
+			return 0, nil
 		}
 	} else {
 		r, err2 := db.Query(`SELECT question_id FROM ANSWER WHERE second_answer = "not-written" and connection_id = `+strconv.Itoa(connection_id))
@@ -441,6 +460,8 @@ func QuestionIDOfEmptyAnswerByOrder(order, connection_id int) (int, error) {
 		}
 		if r.Next() {
 			r.Scan(&question_id)
+		} else {
+			return 0, nil
 		}
 	}
 	return question_id, nil
@@ -450,10 +471,10 @@ func GetQuestionByQuestionID(questionID int) (string, string, error){
 	var questionData QuestionData
 
 	r, err1 := db.Query(`SELECT target_word, question_contents FROM question WHERE question_id = `+ strconv.Itoa(questionID))
+	defer r.Close()
 	if err1 != nil {
 		return "", "", err1
 	}
-	defer r.Close()
 	
 	r.Next()
 	err2 := r.Scan(&questionData.Target_word, &questionData.Question_contents)
@@ -466,9 +487,11 @@ func GetQuestionByQuestionID(questionID int) (string, string, error){
 
 func GetRecentAnswerByConnID(connection_id, num int) []AnswerData {
 	r, err := db.Query("SELECT * FROM answer ORDER BY answer_id DESC LIMIT " + strconv.Itoa(num))
+	defer r.Close()
 	if err != nil {
 		fmt.Println("ERROR #55 : ", err.Error())
 	}
+
 	var answerData AnswerData
 	var answerDatas []AnswerData
 	for r.Next() {
@@ -480,10 +503,10 @@ func GetRecentAnswerByConnID(connection_id, num int) []AnswerData {
 
 func GetFrequentWords(uuid string, rankNum int) ([]string, error) {
 	r, err := db.Query(`SELECT text_body FROM chat WHERE writer_id = "`+uuid+`" and DATE_ADD(NOW(), INTERVAL -7 DAY) < write_time`)
+	defer r.Close()
 	if err != nil {
 		fmt.Println("ERROR #56 : ", err.Error())
 	}
-	defer r.Close()
 
 	var recentChat string
 	var recentChats []string
@@ -564,10 +587,10 @@ func DeleteExceptWord(connection_id int, except_word string) error {
 
 func GetExceptWords(connection_id int) ([]string, error) {
 	r, err := db.Query("SELECT except_word FROM exceptionword WHERE connection_id = "+strconv.Itoa(connection_id))
+	defer r.Close()
 	if err != nil {
 		return nil, err
 	}
-	defer r.Close()
 
 	var exceptWord string
 	var exceptWords []string
@@ -603,6 +626,11 @@ func DeleteConnectionByConnID(uuid string) error {
 
 func ChangePassword(password, uuid string) error {
 	_, err := db.Query(`UPDATE usrs SET password = "`+password+`" WHERE uuid = "`+uuid+`"`)
+	return err
+}
+
+func DeleteChatByChatID(chat_id int) error {
+	_, err := db.Query("DELETE FROM chat WHERE chat_id = "+ strconv.Itoa(chat_id))
 	return err
 }
 

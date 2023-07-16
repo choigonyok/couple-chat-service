@@ -19,16 +19,18 @@ const Searchword = () => {
       .get(process.env.REACT_APP_HOST_URL + "/api/chat/word/" + inputWord)
       .then((response) => {
         setWordsIndex(0);
-        if (response.data.length === 0) {
-          alert("검색 결과가 없습니다.");
-        } else if (response.data === 1) {
+        if (response.data === 1) {
           setSearchedWords(response.data);
         } else {
           setSearchedWords([...response.data]);
         }
       })
       .catch((error) => {
-        console.log(error);
+        if (error.response.status === 404) {
+          alert("검색 결과가 없습니다.");
+        } else {
+          console.log(error);
+        }
       });
   };
 
@@ -70,7 +72,7 @@ const Searchword = () => {
         {searchedWords.length > 1 && (
           <div>
             <div>
-              {wordsIndex+1}/{searchedWords.length}
+              {wordsIndex + 1}/{searchedWords.length}
             </div>
             <div>
               {searchedWords[wordsIndex].text_body}

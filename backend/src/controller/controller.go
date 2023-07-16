@@ -1027,10 +1027,6 @@ func DeleteExceptWordHandler(c *gin.Context){
 func GetChatWordHandler(c *gin.Context) {
 	targetWord := c.Param("param")
 
-	fmt.Println(targetWord)
-	fmt.Println(targetWord)
-	fmt.Println(targetWord)
-
 	uuid, err1 := model.CookieExist(c)
 	if err1 != nil {
 		fmt.Println("ERROR #97 : ", err1.Error())
@@ -1060,9 +1056,10 @@ func GetChatWordHandler(c *gin.Context) {
 		}
 	}
 
-	fmt.Println("Searched Chats", SearchChatSlice)
-	fmt.Println("Searched Chats", SearchChatSlice)
-	fmt.Println("Searched Chats", SearchChatSlice)
+	if len(SearchChatSlice) == 0 {
+		c.Writer.WriteHeader(http.StatusNotFound)
+		return
+	}
 
 	marshaledData, err4 := json.Marshal(SearchChatSlice)
 	if err4 != nil {

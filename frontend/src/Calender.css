@@ -1,0 +1,25 @@
+.calender {
+    display: flex;
+    width: auto;
+    border: 3px solid white;
+    height: auto;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    padding: 20px;
+}
+
+.calender-container {
+    display: flex;
+    flex-direction: row;
+    width: auto;
+    height: auto;
+    
+}
+
+.date{
+    display: flex;
+    width: 10vw;
+    height: 10vw;
+    margin: 3px;
+    border: 1px solid gray;
+}

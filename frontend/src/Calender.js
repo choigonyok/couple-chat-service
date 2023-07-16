@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "./Calender.css";
 
 const Calender = () => {
   const date1 = new Date(); // 06/16
@@ -9,10 +10,8 @@ const Calender = () => {
 
   console.log("DATE1 : ", date1.getMonth());
 
-  let firstWeeksLastDate =  (7 - date1.getDay()) % 7;
+  let firstWeeksLastDate = (7 - date1.getDay());
   let lastDateOfThisMonth = date1.getDate(date1.setDate(date1.getDate() - 1));
-
-  console.log(lastDateOfThisMonth);
 
   let weeksOfThisMonth;
   for (let i = 0; firstWeeksLastDate + 7 * i < lastDateOfThisMonth; i++) {
@@ -38,7 +37,19 @@ const Calender = () => {
         </div>
         <div>{weeksOfThisMonth}개 주차 존재</div>
         <div>{lastDateOfThisMonth}일까지 존재</div>
-        
+        <div className="calender">
+          {Array.from({ length: weeksOfThisMonth }, (_, index) => (
+            <div className="calender-container">
+              <div className="date">일</div>
+              <div className="date">월</div>
+              <div className="date">화</div>
+              <div className="date">수</div>
+              <div className="date">목</div>
+              <div className="date">금</div>
+              <div className="date">토</div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

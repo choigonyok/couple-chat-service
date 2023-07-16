@@ -147,6 +147,17 @@ const Calender = () => {
     setInputAnniversary(e.target.value);
   };
 
+  const deleteAniversaryHandler = (value) => {
+    axios
+      .delete(process.env.REACT_APP_HOST_URL + "/api/anniversary/" + value)
+      .then((response) => {
+        setRender(!render);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
   return (
     <div>
       <div>
@@ -161,6 +172,21 @@ const Calender = () => {
               {month + 1 <= 0 ? ((month + 1) % 12) + 12 : (month % 12) + 1}월
               {dateInfo}일
             </div>
+            {anniversaries.map(
+              (item, index) =>
+                item.date === dateInfo && (
+                  <div>
+                    {item.contents}
+                    <input
+                      type="button"
+                      value="X"
+                      onClick={() =>
+                        deleteAniversaryHandler(item.anniversary_id)
+                      }
+                    />
+                  </div>
+                )
+            )}
             <div>
               <input
                 type="text"
@@ -207,10 +233,12 @@ const Calender = () => {
                     {dateArray[index * 7 + 0] !== 0 && dateArray[index * 7 + 0]}
                   </div>
                   {anniversaries.length !== 0 &&
-                    anniversaries.map(
-                      (item, i) =>
-                        <div>{item.date === dateArray[index * 7 + 0] && item.contents}</div>
-                    )}
+                    anniversaries.map((item, i) => (
+                      <div>
+                        {item.date === dateArray[index * 7 + 0] &&
+                          item.contents}
+                      </div>
+                    ))}
                 </div>
               </div>
               <div
@@ -226,10 +254,12 @@ const Calender = () => {
                 </div>
                 <div>
                   {anniversaries.length !== 0 &&
-                    anniversaries.map(
-                      (item, i) =>
-                      <div>{item.date === dateArray[index * 7 + 1] && item.contents}</div>
-                    )}
+                    anniversaries.map((item, i) => (
+                      <div>
+                        {item.date === dateArray[index * 7 + 1] &&
+                          item.contents}
+                      </div>
+                    ))}
                 </div>
               </div>
               <div
@@ -245,10 +275,12 @@ const Calender = () => {
                 </div>
                 <div>
                   {anniversaries.length !== 0 &&
-                    anniversaries.map(
-                      (item, i) =>
-                      <div>{item.date === dateArray[index * 7 + 2] && item.contents}</div>
-                    )}
+                    anniversaries.map((item, i) => (
+                      <div>
+                        {item.date === dateArray[index * 7 + 2] &&
+                          item.contents}
+                      </div>
+                    ))}
                 </div>
               </div>
               <div
@@ -264,10 +296,12 @@ const Calender = () => {
                 </div>
                 <div>
                   {anniversaries.length !== 0 &&
-                    anniversaries.map(
-                      (item, i) =>
-                      <div>{item.date === dateArray[index * 7 + 3] && item.contents}</div>
-                    )}
+                    anniversaries.map((item, i) => (
+                      <div>
+                        {item.date === dateArray[index * 7 + 3] &&
+                          item.contents}
+                      </div>
+                    ))}
                 </div>
               </div>
               <div
@@ -283,10 +317,12 @@ const Calender = () => {
                 </div>
                 <div>
                   {anniversaries.length !== 0 &&
-                    anniversaries.map(
-                      (item, i) =>
-                      <div>{item.date === dateArray[index * 7 + 4] && item.contents}</div>
-                    )}
+                    anniversaries.map((item, i) => (
+                      <div>
+                        {item.date === dateArray[index * 7 + 4] &&
+                          item.contents}
+                      </div>
+                    ))}
                 </div>
               </div>
               <div
@@ -302,10 +338,12 @@ const Calender = () => {
                 </div>
                 <div>
                   {anniversaries.length !== 0 &&
-                    anniversaries.map(
-                      (item, i) =>
-                      <div>{item.date === dateArray[index * 7 + 5] && item.contents}</div>
-                    )}
+                    anniversaries.map((item, i) => (
+                      <div>
+                        {item.date === dateArray[index * 7 + 5] &&
+                          item.contents}
+                      </div>
+                    ))}
                 </div>
               </div>
               <div
@@ -321,10 +359,12 @@ const Calender = () => {
                 </div>
                 <div>
                   {anniversaries.length !== 0 &&
-                    anniversaries.map(
-                      (item, i) =>
-                      <div>{item.date === dateArray[index * 7 + 6] && item.contents}</div>
-                    )}
+                    anniversaries.map((item, i) => (
+                      <div>
+                        {item.date === dateArray[index * 7 + 6] &&
+                          item.contents}
+                      </div>
+                    ))}
                 </div>
               </div>
             </div>

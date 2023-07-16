@@ -1154,3 +1154,14 @@ func GetAnniversaryHandler(c *gin.Context){
 	c.Writer.WriteHeader(http.StatusOK)
 	c.Writer.Write(marshaledData)
 }
+
+func DeleteAnniversaryHandler(c *gin.Context) {
+	anniversary_id := c.Param("id")
+	err := model.DeleteAnniversaryByAnniversaryID(anniversary_id)
+	if err != nil {
+		fmt.Println("ERROR #109 : ", err.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+}

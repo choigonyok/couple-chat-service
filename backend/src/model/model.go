@@ -61,7 +61,7 @@ type BeAboutToDeleteData struct {
 }
 
 type AnniversaryData struct {
-	Anniversary_id int
+	Anniversary_id int `json:"anniversary_id"`
 	Connection_id int
 	Year int `json:"year"`
 	Month int `json:"month"`
@@ -668,6 +668,11 @@ func GetAnniversaryByConnIDAndMonthAndYear(connection_id int, target_month, targ
 	}
 
 	return anniversaryDatas, nil
+}
+
+func DeleteAnniversaryByAnniversaryID(anniversary_id string) error {
+	_, err := db.Query("DELETE FROM anniversary WHERE anniversary_id = "+anniversary_id)
+	return err
 }
 
 // TEST

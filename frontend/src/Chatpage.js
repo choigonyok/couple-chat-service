@@ -10,6 +10,7 @@ import Withdrawal from "./Withdrawal";
 import Cutconn from "./Cutconn";
 import Changepw from "./Changepw";
 import Searchword from "./Searchword";
+import Calender from "./Calender";
 
 const Chatpage = () => {
   const navigator = useNavigate();
@@ -83,10 +84,6 @@ const Chatpage = () => {
     const deletedArray = recievedMessage.filter(m => m.chat_id !== chatID);
     setRecievedMessage(deletedArray);
   },[chatID])
-
-  const resetDeleted = () => {
-    setdete
-  }
 
   const sendMessageHandler = (data) => {
     if (newSocket !== null) {
@@ -298,6 +295,7 @@ const Chatpage = () => {
       <Logout />
       <Withdrawal />
       <Cutconn />
+      <Calender/>
     </div>
   );
 };

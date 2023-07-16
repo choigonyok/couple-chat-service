@@ -9,6 +9,7 @@ import Exceptword from "./Exceptword";
 import Withdrawal from "./Withdrawal";
 import Cutconn from "./Cutconn";
 import Changepw from "./Changepw";
+import Searchword from "./Searchword";
 
 const Chatpage = () => {
   const navigator = useNavigate();
@@ -292,6 +293,7 @@ const Chatpage = () => {
           </div>
         ))}
       </div>
+      <Searchword/>
       <Changepw />
       <Logout />
       <Withdrawal />

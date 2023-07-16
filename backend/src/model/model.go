@@ -652,7 +652,23 @@ func InsertAnniversaryByConnID(data AnniversaryData) error {
 	return err
 }
 
-// func GetAnniversaryByConnID()
+func GetAnniversaryByConnIDAndMonthAndYear(connection_id int, target_month, target_year string) ([]AnniversaryData, error) {
+	r, err := db.Query(`SELECT * FROM anniversary WHERE connection_id = `+strconv.Itoa(connection_id)+` and month = "`+target_month+`" and year = "`+target_year+`"`)
+	defer r.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	var anniversaryData AnniversaryData
+	var anniversaryDatas []AnniversaryData
+
+	for r.Next() {
+		r.Scan(&anniversaryData.Anniversary_id, &anniversaryData.Connection_id, &anniversaryData.Year, &anniversaryData.Month, &anniversaryData.Date, &anniversaryData.Contents, &anniversaryData.Every_week, &anniversaryData.Every_month, &anniversaryData.Every_year, &anniversaryData.D_day)
+		anniversaryDatas = append(anniversaryDatas, anniversaryData)
+	}
+
+	return anniversaryDatas, nil
+}
 
 // TEST
 // TEST

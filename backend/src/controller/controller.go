@@ -1084,6 +1084,8 @@ func InsertAnniversaryHandler(c *gin.Context) {
 	uuid, err1 := model.CookieExist(c)
 	if err1 != nil {
 		fmt.Println("ERROR #101 : ", err1.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	var anniversaryData model.AnniversaryData
@@ -1091,11 +1093,15 @@ func InsertAnniversaryHandler(c *gin.Context) {
 	err2 := c.ShouldBindJSON(&anniversaryData)
 	if err2 != nil {
 		fmt.Println("ERROR #102 : ", err2.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	conn_id, err3 := model.SelectConnIDByUUID(uuid)
 	if err3 != nil {
 		fmt.Println("ERROR #103 : ", err3.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	anniversaryData.Connection_id = conn_id
@@ -1103,6 +1109,8 @@ func InsertAnniversaryHandler(c *gin.Context) {
 	err4 := model.InsertAnniversaryByConnID(anniversaryData)
 	if err4 != nil {
 		fmt.Println("ERROR #104 : ", err4.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -1110,12 +1118,39 @@ func GetAnniversaryHandler(c *gin.Context){
 	uuid, err1 := model.CookieExist(c)
 	if err1 != nil {
 		fmt.Println("ERROR #105 : ", err1.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+
+	month := c.Query("month")
+	year := c.Query("year")
 	
 	conn_id, err2 := model.SelectConnIDByUUID(uuid)
 	if err2 != nil {
 		fmt.Println("ERROR #106 : ", err2.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
-	model.GetAnniversaryByConnID(conn_id)
+	anniversaryDatas, err3 := model.GetAnniversaryByConnIDAndMonthAndYear(conn_id, month, year)
+	if err3 != nil {
+		fmt.Println("ERROR #107 : ", err3.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if len(anniversaryDatas) == 0 {
+		c.Writer.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	marshaledData,  err4 := json.Marshal(anniversaryDatas)
+	if err4 != nil {
+		fmt.Println("ERROR #108 : ", err4.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	c.Writer.WriteHeader(http.StatusOK)
+	c.Writer.Write(marshaledData)
 }

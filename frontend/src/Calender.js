@@ -18,6 +18,8 @@ const Calender = () => {
   const [weeksArray, setWeeksArray] = useState([]);
   const [dateInfo, setDateInfo] = useState(0);
   const [inputAnniversary, setInputAnniversary] = useState("");
+  const [render, setRender] = useState(false);
+  const [anniversaries, setAnniversaries] = useState([]);
 
   let firstWeeksLastDate = 7 - date1.getDay();
   let lastDateOfThisMonth = date2.getDate(date2.setDate(date2.getDate() - 1));
@@ -27,6 +29,28 @@ const Calender = () => {
     weeksOfThisMonth = i;
   }
   weeksOfThisMonth += 2;
+
+  useEffect(() => {
+    axios
+      .get(process.env.REACT_APP_HOST_URL + "/api/anniversary/", {
+        params: {
+          month: month + 1 <= 0 ? ((month + 1) % 12) + 12 : (month % 12) + 1,
+          year: year,
+        },
+      })
+      .then((response) => {
+        if (response.data.length == 0) {
+          setAnniversaries(response.data);
+        } else {
+          setAnniversaries([...response.data]);
+        }
+      })
+      .catch((error) => {
+        if (error.response.status !== 404) {
+          console.log(error);
+        }
+      });
+  }, [month, render]);
 
   useEffect(() => {
     const array = [];
@@ -55,20 +79,24 @@ const Calender = () => {
     if (month % 12 === 0) {
       setYear(year - 1);
     }
+    setAnniversaries([]);
     setMonth(month - 1);
     setDateInfo(0);
+    setInputAnniversary("");
   };
 
   const nextMonthHandler = () => {
     if ((month + 1) % 12 === 0) {
       setYear(year + 1);
     }
+    setAnniversaries([]);
     setMonth(month + 1);
     setDateInfo(0);
     setInputAnniversary("");
   };
 
   const setTodayHanndler = () => {
+    setAnniversaries([]);
     setMonth(thisMonth);
     setYear(thisYear);
     setDateInfo(0);
@@ -108,6 +136,7 @@ const Calender = () => {
         console.log(response);
         setInputAnniversary("");
         setDateInfo(0);
+        setRender(!render);
       })
       .catch((error) => {
         console.log(error);
@@ -173,7 +202,16 @@ const Calender = () => {
                 }
                 onClick={() => dateClickHandler(dateArray[index * 7 + 0])}
               >
-                {dateArray[index * 7 + 0] !== 0 && dateArray[index * 7 + 0]}
+                <div>
+                  <div className="date__date">
+                    {dateArray[index * 7 + 0] !== 0 && dateArray[index * 7 + 0]}
+                  </div>
+                  {anniversaries.length !== 0 &&
+                    anniversaries.map(
+                      (item, i) =>
+                        item.date === dateArray[index * 7 + 0] && item.contents
+                    )}
+                </div>
               </div>
               <div
                 className={
@@ -183,7 +221,16 @@ const Calender = () => {
                 }
                 onClick={() => dateClickHandler(dateArray[index * 7 + 1])}
               >
-                {dateArray[index * 7 + 1] !== 0 && dateArray[index * 7 + 1]}
+                <div className="date__date">
+                  {dateArray[index * 7 + 1] !== 0 && dateArray[index * 7 + 1]}
+                </div>
+                <div>
+                  {anniversaries.length !== 0 &&
+                    anniversaries.map(
+                      (item, i) =>
+                        item.date === dateArray[index * 7 + 1] && item.contents
+                    )}
+                </div>
               </div>
               <div
                 className={
@@ -193,7 +240,17 @@ const Calender = () => {
                 }
                 onClick={() => dateClickHandler(dateArray[index * 7 + 2])}
               >
-                {dateArray[index * 7 + 2] !== 0 && dateArray[index * 7 + 2]}
+                <div className="date__date">
+                  {" "}
+                  {dateArray[index * 7 + 2] !== 0 && dateArray[index * 7 + 2]}
+                </div>
+                <div>
+                  {anniversaries.length !== 0 &&
+                    anniversaries.map(
+                      (item, i) =>
+                        item.date === dateArray[index * 7 + 2] && item.contents
+                    )}
+                </div>
               </div>
               <div
                 className={
@@ -203,7 +260,16 @@ const Calender = () => {
                 }
                 onClick={() => dateClickHandler(dateArray[index * 7 + 3])}
               >
-                {dateArray[index * 7 + 3] !== 0 && dateArray[index * 7 + 3]}
+                <div className="date__date">
+                  {dateArray[index * 7 + 3] !== 0 && dateArray[index * 7 + 3]}
+                </div>
+                <div>
+                  {anniversaries.length !== 0 &&
+                    anniversaries.map(
+                      (item, i) =>
+                        item.date === dateArray[index * 7 + 3] && item.contents
+                    )}
+                </div>
               </div>
               <div
                 className={
@@ -213,7 +279,16 @@ const Calender = () => {
                 }
                 onClick={() => dateClickHandler(dateArray[index * 7 + 4])}
               >
-                {dateArray[index * 7 + 4] !== 0 && dateArray[index * 7 + 4]}
+                <div className="date__date">
+                  {dateArray[index * 7 + 4] !== 0 && dateArray[index * 7 + 4]}
+                </div>
+                <div>
+                  {anniversaries.length !== 0 &&
+                    anniversaries.map(
+                      (item, i) =>
+                        item.date === dateArray[index * 7 + 4] && item.contents
+                    )}
+                </div>
               </div>
               <div
                 className={
@@ -223,7 +298,16 @@ const Calender = () => {
                 }
                 onClick={() => dateClickHandler(dateArray[index * 7 + 5])}
               >
-                {dateArray[index * 7 + 5] !== 0 && dateArray[index * 7 + 5]}
+                <div className="date__date">
+                  {dateArray[index * 7 + 5] !== 0 && dateArray[index * 7 + 5]}
+                </div>
+                <div>
+                  {anniversaries.length !== 0 &&
+                    anniversaries.map(
+                      (item, i) =>
+                        item.date === dateArray[index * 7 + 5] && item.contents
+                    )}
+                </div>
               </div>
               <div
                 className={
@@ -233,17 +317,19 @@ const Calender = () => {
                 }
                 onClick={() => dateClickHandler(dateArray[index * 7 + 6])}
               >
-                {dateArray[index * 7 + 6] !== 0 && dateArray[index * 7 + 6]}
+                <div className="date__date">
+                  {dateArray[index * 7 + 6] !== 0 && dateArray[index * 7 + 6]}
+                </div>
+                <div>
+                  {anniversaries.length !== 0 &&
+                    anniversaries.map(
+                      (item, i) =>
+                        item.date === dateArray[index * 7 + 6] && item.contents
+                    )}
+                </div>
               </div>
             </div>
           ))}
-          {/* <div className="date">일</div>
-              <div className="date">월</div>
-              <div className="date">화</div>
-              <div className="date">수</div>
-              <div className="date">목</div>
-              <div className="date">금</div>
-              <div className="date">토</div> */}
         </div>
       </div>
     </div>

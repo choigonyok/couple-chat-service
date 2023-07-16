@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./Calender.css";
+import axios from "axios";
 
 const Calender = () => {
   const date1 = new Date(); // 06/16, 이달 1일 계산
@@ -84,13 +85,33 @@ const Calender = () => {
   };
 
   const sendAnniversaryHandler = () => {
-    setInputAnniversary("");
-    setDateInfo(0);
-    console.log("TARGET YEAR : ", year);
-    const monthInfo = month + 1 <= 0 ? ((month + 1) % 12) + 12 : (month % 12) + 1
-    console.log("TARGET MONTH : ", monthInfo);
-    console.log("TARGET DATE : ", dateInfo);
-    console.log("TARGET TEXT : ", inputAnniversary);
+    const monthInfo =
+      month + 1 <= 0 ? ((month + 1) % 12) + 12 : (month % 12) + 1;
+
+    const sendData = {
+      year: year,
+      month: monthInfo,
+      date: dateInfo,
+      contents: inputAnniversary,
+      every_week: 0,
+      every_month: 0,
+      every_year: 0,
+      d_day: 0,
+    };
+
+    axios
+      .post(
+        process.env.REACT_APP_HOST_URL + "/api/anniversary",
+        JSON.stringify(sendData)
+      )
+      .then((response) => {
+        console.log(response);
+        setInputAnniversary("");
+        setDateInfo(0);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   const inputAnniversaryHandler = (e) => {

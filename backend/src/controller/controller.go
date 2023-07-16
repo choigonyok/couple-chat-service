@@ -30,6 +30,8 @@ func Test(){
 	requestDatas := []model.RequestData{}
 	beAboutToDeleteData := model.BeAboutToDeleteData{}
 	beAboutToDeleteDatas := []model.BeAboutToDeleteData{}
+	anniversaryData := model.AnniversaryData{}
+	anniversaryDatas := []model.AnniversaryData{}
 	connectionData := struct {
 		connection_id int
 		first_usr string
@@ -135,6 +137,13 @@ func Test(){
 		beAboutToDeleteDatas = append(beAboutToDeleteDatas, beAboutToDeleteData)
 	}
 	fmt.Println("beabouttodelete DB : ", beAboutToDeleteDatas)
+
+	r, _ = model.TestAnniversary()
+	for r.Next() {
+		r.Scan(&anniversaryData.Anniversary_id, &anniversaryData.Connection_id, &anniversaryData.Year, &anniversaryData.Month, &anniversaryData.Date, &anniversaryData.Contents, &anniversaryData.Every_week, &anniversaryData.Every_month, &anniversaryData.Every_year, &anniversaryData.D_day)
+		anniversaryDatas = append(anniversaryDatas, anniversaryData)
+	}
+	fmt.Println("anniversary DB : ", anniversaryDatas)
 }
 
 var conns = make(map[string]*websocket.Conn)
@@ -1071,6 +1080,42 @@ func GetChatWordHandler(c *gin.Context) {
 	c.Writer.Write(marshaledData)
 }
 
-func GetChatDateHandler(c *gin.Context) {
+func InsertAnniversaryHandler(c *gin.Context) {
+	uuid, err1 := model.CookieExist(c)
+	if err1 != nil {
+		fmt.Println("ERROR #101 : ", err1.Error())
+	}
+
+	var anniversaryData model.AnniversaryData
 	
+	err2 := c.ShouldBindJSON(&anniversaryData)
+	if err2 != nil {
+		fmt.Println("ERROR #102 : ", err2.Error())
+	}
+
+	conn_id, err3 := model.SelectConnIDByUUID(uuid)
+	if err3 != nil {
+		fmt.Println("ERROR #103 : ", err3.Error())
+	}
+
+	anniversaryData.Connection_id = conn_id
+
+	err4 := model.InsertAnniversaryByConnID(anniversaryData)
+	if err4 != nil {
+		fmt.Println("ERROR #104 : ", err4.Error())
+	}
+}
+
+func GetAnniversaryHandler(c *gin.Context){
+	uuid, err1 := model.CookieExist(c)
+	if err1 != nil {
+		fmt.Println("ERROR #105 : ", err1.Error())
+	}
+	
+	conn_id, err2 := model.SelectConnIDByUUID(uuid)
+	if err2 != nil {
+		fmt.Println("ERROR #106 : ", err2.Error())
+	}
+
+	model.GetAnniversaryByConnID(conn_id)
 }

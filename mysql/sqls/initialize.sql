@@ -58,6 +58,18 @@ CREATE TABLE `exceptionword` (
         `connection_id` INT NOT NULL,
         `except_word` TEXT NOT NULL);
 
+CREATE TABLE `anniversary` (
+        `anniversary_id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+        `connection_id` INT NOT NULL,
+        `year` INT NOT NULL,
+        `month` INT NOT NULL,
+        `date` INT NOT NULL,
+        `contents` VARCHAR(255) NOT NULL,
+        `every_week` TINYINT(1) NOT NULL,
+        `every_month` TINYINT(1) NOT NULL,
+        `every_year` TINYINT(1) NOT NULL,
+        `d_day` TINYINT(1) NOT NULL);        
+
 -- 이거 작동 안함 왜 그런겨? chat DB create까지만 작동함
 
 -- https://devpress.csdn.net/cloudnative/63055e53c67703293080f68c.html

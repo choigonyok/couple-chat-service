@@ -645,7 +645,7 @@ func DeleteChatByChatID(chat_id int) error {
 }
 
 func InsertAnniversaryByConnID(data AnniversaryData) error {
-	_, err := db.Query(`INSERT INTO anniversary (connection_id, year, month, date, contents, every_week, every_month, every_year, d_day) Values (`+strconv.Itoa(data.Connection_id)+`, `+strconv.Itoa(data.Year)+`, `+strconv.Itoa(data.Month)+`, `+strconv.Itoa(data.Date)+`, "`+data.Contents+`", `+strconv.Itoa(data.D_day)+`)`)
+	_, err := db.Query(`INSERT INTO anniversary (connection_id, year, month, date, contents, d_day) Values (`+strconv.Itoa(data.Connection_id)+`, `+strconv.Itoa(data.Year)+`, `+strconv.Itoa(data.Month)+`, `+strconv.Itoa(data.Date)+`, "`+data.Contents+`", `+strconv.Itoa(data.D_day)+`)`)
 	return err
 }
 

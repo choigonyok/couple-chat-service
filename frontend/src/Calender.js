@@ -46,9 +46,7 @@ const Calender = () => {
         }
       })
       .catch((error) => {
-        if (error.response.status !== 404) {
-          console.log(error);
-        }
+        console.log(error);
       });
   }, [month, render]);
 
@@ -124,15 +122,12 @@ const Calender = () => {
       d_day: 0,
     };
 
-    console.log("sendData: ", sendData);
-
     axios
       .post(
         process.env.REACT_APP_HOST_URL + "/api/anniversary",
         JSON.stringify(sendData)
       )
       .then((response) => {
-        console.log(response);
         setInputAnniversary("");
         setDateInfo(0);
         setRender(!render);
@@ -171,7 +166,7 @@ const Calender = () => {
               {month + 1 <= 0 ? ((month + 1) % 12) + 12 : (month % 12) + 1}월
               {dateInfo}일
             </div>
-            {anniversaries.map(
+            {anniversaries.length !== 0 && anniversaries.map(
               (item, index) =>
                 item.date === dateInfo && (
                   <div>

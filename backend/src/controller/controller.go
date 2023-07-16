@@ -1033,6 +1033,64 @@ func DeleteExceptWordHandler(c *gin.Context){
 	c.Writer.WriteHeader(http.StatusOK)
 }
 
+func GetChatDateHandler(c *gin.Context) {
+	myUUID, err1 := model.CookieExist(c)
+	if err1 != nil {
+		fmt.Println("ERROR #110 : ", err1.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	first_uuid, second_uuid, _, err2 := model.GetConnectionByUsrsUUID(myUUID)
+	if err2 != nil {
+		fmt.Println("ERROR #111 : ", err2.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	year := c.Query("year")
+	month := c.Query("month")
+	monthNum, _  := strconv.Atoi(month)
+	date := c.Query("date")
+	dateNum, _  := strconv.Atoi(date)
+	if monthNum < 10 {
+		month = "0"+month
+	}
+	if dateNum < 10 {
+		date = "0"+date
+	}
+
+	chats, err3 := model.SelectChatByUsrsUUID(first_uuid, second_uuid)
+	if err3 != nil {
+		fmt.Println("ERROR #112 : ", err3.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	var sendData []model.ChatData
+
+	for i := 0; i < len(chats); i++ {
+		if strings.Contains(chats[i].Write_time, year+"-"+month+"-"+date) {
+			sendData = append(sendData, chats[i])
+			break;
+		}
+	}
+
+	if len(sendData) == 0 {
+		c.Writer.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	marshaledData, err4 := json.Marshal(sendData)
+	if err4 != nil {
+		fmt.Println("ERROR #113 : ", err4.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	c.Writer.Write(marshaledData)
+}
+
 func GetChatWordHandler(c *gin.Context) {
 	targetWord := c.Param("param")
 
@@ -1140,7 +1198,7 @@ func GetAnniversaryHandler(c *gin.Context){
 	}
 
 	if len(anniversaryDatas) == 0 {
-		c.Writer.WriteHeader(http.StatusNotFound)
+		c.Writer.WriteHeader(http.StatusNoContent)
 		return
 	}
 

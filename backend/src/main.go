@@ -62,6 +62,9 @@ func main() {
 
 	e.GET("/api/answer", controller.GetAnswerHandler)					// 그동안 답한 내용들을 모아서 보여주기 위한 API
 
+	e.GET("/api/chat/word/:param", controller.GetChatWordHandler)		// 단어 기반 채팅 검색
+	e.GET("/api/chat/date/:param", controller.GetChatDateHandler)		// 날짜 기반 채팅 검색
+
 	e.GET("/api/rank/:ranknum", controller.GetMostUsedWordsHandler)		// 사용자가 가장 많이 사용한 단어 랭킹 보여주기
 
 	e.GET("/ws", controller.UpgradeHandler)								// Websocket 프로토콜로 업그레이드 및 메시지 read/write

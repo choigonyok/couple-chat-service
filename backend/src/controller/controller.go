@@ -1023,3 +1023,57 @@ func DeleteExceptWordHandler(c *gin.Context){
 	}
 	c.Writer.WriteHeader(http.StatusOK)
 }
+
+func GetChatWordHandler(c *gin.Context) {
+	targetWord := c.Param("param")
+
+	fmt.Println(targetWord)
+	fmt.Println(targetWord)
+	fmt.Println(targetWord)
+
+	uuid, err1 := model.CookieExist(c)
+	if err1 != nil {
+		fmt.Println("ERROR #97 : ", err1.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	first_uuid, second_uuid, _, err2 := model.GetConnectionByUsrsUUID(uuid)
+	if err2 != nil {
+		fmt.Println("ERROR #98 : ", err2.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	chats, err3 := model.SelectChatByUsrsUUID(first_uuid, second_uuid)
+	if err3 != nil {
+		fmt.Println("ERROR #99 : ", err3.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	var SearchChatSlice []model.ChatData
+
+	for i := 0; i < len(chats); i++ {
+		if strings.Contains(chats[i].Text_body, targetWord) {
+			SearchChatSlice = append(SearchChatSlice, chats[i])
+		}
+	}
+
+	fmt.Println("Searched Chats", SearchChatSlice)
+	fmt.Println("Searched Chats", SearchChatSlice)
+	fmt.Println("Searched Chats", SearchChatSlice)
+
+	marshaledData, err4 := json.Marshal(SearchChatSlice)
+	if err4 != nil {
+		fmt.Println("ERROR #100 : ", err4.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	c.Writer.Write(marshaledData)
+}
+
+func GetChatDateHandler(c *gin.Context) {
+	
+}

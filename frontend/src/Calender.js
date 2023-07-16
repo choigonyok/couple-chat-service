@@ -4,8 +4,11 @@ import "./Calender.css";
 const Calender = () => {
   const date1 = new Date(); // 06/16, 이달 1일 계산
   const date2 = new Date(); // 06/16, 이달 말일 계산
+  const thisYear = date1.getFullYear();
+  const thisDate = date1.getDate();
   const thisMonth = date1.getMonth(); // thisMonth = 7
   const [month, setMonth] = useState(thisMonth); // 기본값 month = 7
+  const [year, setYear] = useState(thisYear); // 기본값 month = 7
   date1.setDate(1); // date1 = 06/01
   date1.setMonth(month); // date1 = 07/01
   date2.setDate(1); // date1 = 06/01
@@ -28,7 +31,10 @@ const Calender = () => {
     const array = [];
     let temp_date = 1;
     for (let i = 0; i < 7 * weeksOfThisMonth; i++) {
-      if (date1.getDay() <= i && i <= lastDateOfThisMonth + date1.getDay() - 1) {
+      if (
+        date1.getDay() <= i &&
+        i <= lastDateOfThisMonth + date1.getDay() - 1
+      ) {
         array[i] = temp_date;
         temp_date += 1;
       } else {
@@ -45,21 +51,25 @@ const Calender = () => {
   }, [month]);
 
   const prevMonthHandler = () => {
+    if (month % 12 === 0 ) {
+      setYear(year - 1);
+    }
     setMonth(month - 1);
   };
 
-  console.log(weeksArray);
-  console.log(weeksArray);
-  console.log(weeksArray);
-
   const nextMonthHandler = () => {
+    if ((month + 1) % 12 === 0) {
+      setYear(year + 1);
+    }
     setMonth(month + 1);
   };
 
   return (
     <div>
       <div>
-        <div>{month + 1}월</div>
+        <div>
+          {year}년 {month+1 <= 0 ? (month+1) % 12 +12 : month % 12 + 1}월
+        </div>
         <div>
           <input type="button" value="prev" onClick={prevMonthHandler} />
           <input type="button" value="next" onClick={nextMonthHandler} />
@@ -67,6 +77,15 @@ const Calender = () => {
         <div>{weeksOfThisMonth}개 주차 존재</div>
         <div>{lastDateOfThisMonth}일까지 존재</div>
         <div className="calender">
+          <div className="calender-day__container">
+            <div className="calender-day">일</div>
+            <div className="calender-day">월</div>
+            <div className="calender-day">화</div>
+            <div className="calender-day">수</div>
+            <div className="calender-day">목</div>
+            <div className="calender-day">금</div>
+            <div className="calender-day">토</div>
+          </div>
           {weeksArray.map((item, index) => (
             <div className="calender-container">
               <div className="date">

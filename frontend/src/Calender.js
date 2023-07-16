@@ -2,16 +2,19 @@ import { useEffect, useState } from "react";
 import "./Calender.css";
 
 const Calender = () => {
-  const date1 = new Date(); // 06/16
-  const thisMonth = date1.getMonth() + 1; // thisMonth = 7
+  const date1 = new Date(); // 06/16, 이달 1일 계산
+  const date2 = new Date(); // 06/16, 이달 말일 계산
+  const thisMonth = date1.getMonth(); // thisMonth = 7
   const [month, setMonth] = useState(thisMonth); // 기본값 month = 7
   date1.setDate(1); // date1 = 06/01
   date1.setMonth(month); // date1 = 07/01
+  date2.setDate(1); // date1 = 06/01
+  date2.setMonth(month + 1); // date1 = 07/01
+  const [dateArray, setDateArray] = useState([]);
+  const [weeksArray, setWeeksArray] = useState([]);
 
-  console.log("DATE1 : ", date1.getMonth());
-
-  let firstWeeksLastDate = (7 - date1.getDay());
-  let lastDateOfThisMonth = date1.getDate(date1.setDate(date1.getDate() - 1));
+  let firstWeeksLastDate = 7 - date1.getDay();
+  let lastDateOfThisMonth = date2.getDate(date2.setDate(date2.getDate() - 1));
 
   let weeksOfThisMonth;
   for (let i = 0; firstWeeksLastDate + 7 * i < lastDateOfThisMonth; i++) {
@@ -19,9 +22,35 @@ const Calender = () => {
   }
   weeksOfThisMonth += 2;
 
+  console.log(date1.getDay());
+
+  useEffect(() => {
+    const array = [];
+    let temp_date = 1;
+    for (let i = 0; i < 7 * weeksOfThisMonth; i++) {
+      if (date1.getDay() <= i && i <= lastDateOfThisMonth + date1.getDay() - 1) {
+        array[i] = temp_date;
+        temp_date += 1;
+      } else {
+        array[i] = 0;
+      }
+    }
+    setDateArray(array);
+
+    const temp_weeks = [];
+    for (let j = 0; j < weeksOfThisMonth; j++) {
+      temp_weeks[j] = j;
+    }
+    setWeeksArray(temp_weeks);
+  }, [month]);
+
   const prevMonthHandler = () => {
     setMonth(month - 1);
   };
+
+  console.log(weeksArray);
+  console.log(weeksArray);
+  console.log(weeksArray);
 
   const nextMonthHandler = () => {
     setMonth(month + 1);
@@ -30,7 +59,7 @@ const Calender = () => {
   return (
     <div>
       <div>
-        <div>{month}월</div>
+        <div>{month + 1}월</div>
         <div>
           <input type="button" value="prev" onClick={prevMonthHandler} />
           <input type="button" value="next" onClick={nextMonthHandler} />
@@ -38,17 +67,38 @@ const Calender = () => {
         <div>{weeksOfThisMonth}개 주차 존재</div>
         <div>{lastDateOfThisMonth}일까지 존재</div>
         <div className="calender">
-          {Array.from({ length: weeksOfThisMonth }, (_, index) => (
+          {weeksArray.map((item, index) => (
             <div className="calender-container">
-              <div className="date">일</div>
+              <div className="date">
+                {dateArray[index * 7 + 0] !== 0 && dateArray[index * 7 + 0]}
+              </div>
+              <div className="date">
+                {dateArray[index * 7 + 1] !== 0 && dateArray[index * 7 + 1]}
+              </div>
+              <div className="date">
+                {dateArray[index * 7 + 2] !== 0 && dateArray[index * 7 + 2]}
+              </div>
+              <div className="date">
+                {dateArray[index * 7 + 3] !== 0 && dateArray[index * 7 + 3]}
+              </div>
+              <div className="date">
+                {dateArray[index * 7 + 4] !== 0 && dateArray[index * 7 + 4]}
+              </div>
+              <div className="date">
+                {dateArray[index * 7 + 5] !== 0 && dateArray[index * 7 + 5]}
+              </div>
+              <div className="date">
+                {dateArray[index * 7 + 6] !== 0 && dateArray[index * 7 + 6]}
+              </div>
+            </div>
+          ))}
+          {/* <div className="date">일</div>
               <div className="date">월</div>
               <div className="date">화</div>
               <div className="date">수</div>
               <div className="date">목</div>
               <div className="date">금</div>
-              <div className="date">토</div>
-            </div>
-          ))}
+              <div className="date">토</div> */}
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "./Calender.css";
 import axios from "axios";
+import Dday from "./Dday";
 
 const Calender = () => {
   const date1 = new Date(); // 06/16, 이달 1일 계산
@@ -20,6 +21,7 @@ const Calender = () => {
   const [inputAnniversary, setInputAnniversary] = useState("");
   const [render, setRender] = useState(false);
   const [anniversaries, setAnniversaries] = useState([]);
+  const [inputDDay, setInputDDay] = useState(false);
 
   let firstWeeksLastDate = 7 - date1.getDay();
   let lastDateOfThisMonth = date2.getDate(date2.setDate(date2.getDate() - 1));
@@ -119,7 +121,7 @@ const Calender = () => {
       month: monthInfo,
       date: dateInfo,
       contents: inputAnniversary,
-      d_day: 0,
+      d_day: inputDDay,
     };
 
     axios
@@ -131,6 +133,7 @@ const Calender = () => {
         setInputAnniversary("");
         setDateInfo(0);
         setRender(!render);
+        setInputDDay(false);
       })
       .catch((error) => {
         console.log(error);
@@ -152,9 +155,16 @@ const Calender = () => {
       });
   };
 
+  const dDayHandler = () => {
+    setInputDDay(!inputDDay);
+  };
+
   return (
     <div>
       <div>
+        <div>
+          <Dday />
+        </div>
         <div>
           {year}년 {month + 1 <= 0 ? ((month + 1) % 12) + 12 : (month % 12) + 1}
           월
@@ -166,21 +176,22 @@ const Calender = () => {
               {month + 1 <= 0 ? ((month + 1) % 12) + 12 : (month % 12) + 1}월
               {dateInfo}일
             </div>
-            {anniversaries.length !== 0 && anniversaries.map(
-              (item, index) =>
-                item.date === dateInfo && (
-                  <div>
-                    {item.contents}
-                    <input
-                      type="button"
-                      value="X"
-                      onClick={() =>
-                        deleteAniversaryHandler(item.anniversary_id)
-                      }
-                    />
-                  </div>
-                )
-            )}
+            {anniversaries.length !== 0 &&
+              anniversaries.map(
+                (item, index) =>
+                  item.date === dateInfo && (
+                    <div>
+                      {item.contents}
+                      <input
+                        type="button"
+                        value="X"
+                        onClick={() =>
+                          deleteAniversaryHandler(item.anniversary_id)
+                        }
+                      />
+                    </div>
+                  )
+              )}
             <div>
               <input
                 type="text"
@@ -196,7 +207,12 @@ const Calender = () => {
               <input type="button" value="X" onClick={deleteBoxHandler} />
             </div>
             <div>
-              <input type="checkbox" name="dday" id="dday" />
+              <input
+                type="checkbox"
+                name="dday"
+                id="dday"
+                onChange={dDayHandler}
+              />
               <label for="dday">D-DAY 설정</label>
             </div>
           </div>

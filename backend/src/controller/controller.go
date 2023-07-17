@@ -1164,9 +1164,33 @@ func InsertAnniversaryHandler(c *gin.Context) {
 
 	anniversaryData.Connection_id = conn_id
 
-	err4 := model.InsertAnniversaryByConnID(anniversaryData)
+	anniversary_id, err4 := model.GetDDayAnniversaryIDByConnID(conn_id)
 	if err4 != nil {
 		fmt.Println("ERROR #104 : ", err4.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Println(anniversary_id)
+	fmt.Println(anniversary_id)
+	fmt.Println(anniversary_id)
+
+	fmt.Println(anniversaryData.D_day)
+	fmt.Println(anniversaryData.D_day)
+	fmt.Println(anniversaryData.D_day)
+
+	if anniversary_id != 0 && anniversaryData.D_day == true {
+		err5 := model.ChangeDDayZeroByAnniversaryID(anniversary_id)
+		if err5 != nil {
+			fmt.Println("ERROR #105 : ", err5.Error())
+			c.Writer.WriteHeader(http.StatusInternalServerError)
+			return
+		}	
+	}
+
+	err6 := model.InsertAnniversaryByConnID(anniversaryData)
+	if err6 != nil {
+		fmt.Println("ERROR #106 : ", err6.Error())
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -1222,4 +1246,39 @@ func DeleteAnniversaryHandler(c *gin.Context) {
 		return
 	}
 
+}
+
+func GetDDayHandler(c *gin.Context) {
+	uuid, err1 := model.CookieExist(c)
+	if err1 != nil {
+		fmt.Println("ERROR #110 : ", err1.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+			return
+	}
+
+	conn_id, err2 := model.SelectConnIDByUUID(uuid)
+	if err2 != nil {
+		fmt.Println("ERROR #111 : ", err2.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+			return
+	}
+
+	anniversaryData, err3 := model.GetDDayByConnID(conn_id)
+	if err3 != nil {
+		fmt.Println("ERROR #112 : ", err3.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+			return
+	}
+
+	if len(anniversaryData) == 0  {
+		c.Writer.WriteHeader(http.StatusNoContent)
+	} else {
+		marshaledData, err4 := json.Marshal(anniversaryData)
+		if err4 != nil {
+			fmt.Println("ERROR #113 : ", err4.Error())
+			c.Writer.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		c.Writer.Write(marshaledData)
+	}
 }

@@ -63,10 +63,11 @@ func main() {
 	e.GET("/api/answer", controller.GetAnswerHandler)						// 그동안 답한 내용들을 모아서 보여주기 위한 API
 
 	e.GET("/api/chat/word/:param", controller.GetChatWordHandler)			// 단어 기반 채팅 검색
-	e.GET("/api/chat/date", controller.GetChatDateHandler)		// 날짜 기반 채팅 검색
+	e.GET("/api/chat/date", controller.GetChatDateHandler)					// 날짜 기반 채팅 검색
 
 	e.POST("/api/anniversary", controller.InsertAnniversaryHandler)			// 일정, 기념일 추가
 	e.GET("/api/anniversary", controller.GetAnniversaryHandler)				// 일정, 기념일 불러오기
+	e.GET("/api/anniversary/dday", controller.GetDDayHandler)				// D-DAY 불러오기
 	e.DELETE("/api/anniversary/:id", controller.DeleteAnniversaryHandler)	// 일정, 기념일 삭제
 
 	e.GET("/api/rank/:ranknum", controller.GetMostUsedWordsHandler)			// 사용자가 가장 많이 사용한 단어 랭킹 보여주기

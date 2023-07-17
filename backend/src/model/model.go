@@ -67,7 +67,7 @@ type AnniversaryData struct {
 	Month int `json:"month"`
 	Date int `json:"date"`
 	Contents string `json:"contents"`
-	D_day int `json:"d_day"`
+	D_day bool `json:"d_day"`
 }
 
 var db *sql.DB
@@ -645,7 +645,7 @@ func DeleteChatByChatID(chat_id int) error {
 }
 
 func InsertAnniversaryByConnID(data AnniversaryData) error {
-	_, err := db.Query(`INSERT INTO anniversary (connection_id, year, month, date, contents, d_day) Values (`+strconv.Itoa(data.Connection_id)+`, `+strconv.Itoa(data.Year)+`, `+strconv.Itoa(data.Month)+`, `+strconv.Itoa(data.Date)+`, "`+data.Contents+`", `+strconv.Itoa(data.D_day)+`)`)
+	_, err := db.Query(`INSERT INTO anniversary (connection_id, year, month, date, contents, d_day) Values (`+strconv.Itoa(data.Connection_id)+`, `+strconv.Itoa(data.Year)+`, `+strconv.Itoa(data.Month)+`, `+strconv.Itoa(data.Date)+`, "`+data.Contents+`", `+strconv.FormatBool(data.D_day)+`)`)
 	return err
 }
 
@@ -670,6 +670,43 @@ func GetAnniversaryByConnIDAndMonthAndYear(connection_id int, target_month, targ
 func DeleteAnniversaryByAnniversaryID(anniversary_id string) error {
 	_, err := db.Query("DELETE FROM anniversary WHERE anniversary_id = "+anniversary_id)
 	return err
+}
+
+func GetDDayAnniversaryIDByConnID(connection_id int) (int, error) {
+	r, err := db.Query("SELECT anniversary_id FROM anniversary WHERE d_day = 1 and connection_id = "+strconv.Itoa(connection_id))
+	if err != nil {
+		return 0, err
+	}
+
+	var anniversary_id int
+	if r.Next() {
+		r.Scan(&anniversary_id)
+		return anniversary_id, nil
+	}
+
+	return 0, nil
+}
+
+func ChangeDDayZeroByAnniversaryID(anniversary_id int) error {
+	_, err := db.Query("UPDATE anniversary SET d_day = 0 WHERE anniversary_id = "+strconv.Itoa(anniversary_id))
+	return err
+}
+
+func GetDDayByConnID(connection_id int) ([]AnniversaryData, error){
+	r, err := db.Query("SELECT * FROM anniversary WHERE d_day = 1 and connection_id = "+strconv.Itoa(connection_id))
+	if err != nil {
+		return nil, err
+	}
+
+	var anniversaryData []AnniversaryData
+	var tempData AnniversaryData
+	if r.Next(){
+		r.Scan(&tempData.Anniversary_id, &tempData.Connection_id, &tempData.Year, &tempData.Month, &tempData.Date, &tempData.Contents, &tempData.D_day)
+		anniversaryData = append(anniversaryData, tempData)
+		return anniversaryData, nil
+	}
+
+	return nil, nil
 }
 
 // TEST

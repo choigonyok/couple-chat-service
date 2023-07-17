@@ -758,6 +758,18 @@ func UpgradeHandler(c *gin.Context){
 		}
 	}
 
+	go func(){
+			ticker := time.NewTicker(30 * time.Second) // 30초마다 ping 메시지 보내기
+			defer ticker.Stop()
+		
+			for range ticker.C {
+				if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+					fmt.Println("ERROR #120 : ", err.Error())
+					break
+				}
+			}
+	}()
+
 // 메시지를 읽고 쓰는 부분, 읽은 메시지는 DB에 저장됨
 	for { 
 		var chatData []model.ChatData

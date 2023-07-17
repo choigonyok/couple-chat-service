@@ -6,6 +6,24 @@
   flex-direction: column;
   align-items: center;
 }
+.usr-button {
+  display: flex;
+  width: 70vw;
+  height: auto;
+  justify-content: space-around;
+  flex-direction: row;
+  align-items: center;
+  border: 3px solid blue;
+}
+
+.button-container {
+  display: flex;
+  border: 3px solid blue !important;
+  width: 70vw;
+  height: auto;
+  flex-direction:row;
+  gap: 40px;
+}
 
 .chat-container {
   display: flex;

@@ -18,8 +18,18 @@ const Answer = () => {
   return (
     <div>
       ANSWER
-      {answers.length > 1 &&
-        answers.map((item, index) => <div>{item.question_contents}</div>)}
+      {answers.length > 0 &&
+        answers.map((item, index) => (
+          <div>
+            <div>
+              질문 {index + 1} : {item.question_contents}
+            </div>
+            <div>첫 번째 대답 : {item.first_answer}</div>
+            <div>두 번째 대답 : {item.second_answer}</div>
+            <div>대답한 날짜 : {item.answer_date}</div>
+            <br />
+          </div>
+        ))}
     </div>
   );
 };

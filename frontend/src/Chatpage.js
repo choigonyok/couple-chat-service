@@ -11,6 +11,7 @@ import Cutconn from "./Cutconn";
 import Changepw from "./Changepw";
 import Searchword from "./Searchword";
 import Calender from "./Calender";
+import Answer from "./Answer";
 
 const Chatpage = () => {
   const navigator = useNavigate();
@@ -21,11 +22,11 @@ const Chatpage = () => {
   const [inputAnswer, setInputAnswer] = useState("");
   const [hideInputBox, setHideInputBox] = useState(false);
   const [seeAnswerBox, setSeeAnswerBox] = useState(false);
-  const [answers, setAnswers] = useState([]);
-  const [wordNum, setWordNum] = useState("3");
-  const [otherWords, setOtherWords] = useState([]);
-  const [myWords, setMyWords] = useState([]);
-  
+  const [searchButton, setSearchButton] = useState(false);
+  const [answerButton, setAnswerButton] = useState(false);
+  const [rankingButton, setRankingButton] = useState(false);
+  const [calenderButton, setCalenderButton] = useState(false);
+
   const [chatID, setChatID] = useState(0);
 
   useEffect(() => {
@@ -80,10 +81,10 @@ const Chatpage = () => {
     };
   }, []);
 
-  useEffect (()=>{
-    const deletedArray = recievedMessage.filter(m => m.chat_id !== chatID);
+  useEffect(() => {
+    const deletedArray = recievedMessage.filter((m) => m.chat_id !== chatID);
     setRecievedMessage(deletedArray);
-  },[chatID])
+  }, [chatID]);
 
   const sendMessageHandler = (data) => {
     if (newSocket !== null) {
@@ -163,45 +164,63 @@ const Chatpage = () => {
     }
   };
 
-  useEffect(() => {
-    axios
-      .get(process.env.REACT_APP_HOST_URL + "/api/answer")
-      .then((response) => {
-        setAnswers([...response.data]);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }, []);
-
-  useEffect(() => {
-    axios
-      .get(process.env.REACT_APP_HOST_URL + "/api/rank/" + wordNum)
-      .then((response) => {
-        setMyWords([...response.data.mywords]);
-        setOtherWords([...response.data.otherwords]);
-      })
-      .catch((error) => {
-        if (error.response.status === 411) {
-          alert("순위를 매기기엔 채팅의 수가 부족합니다.");
-        } else {
-          console.log(error);
-        }
-      });
-  }, [wordNum]);
-
-  const threeWordsHandler = () => {
-    setWordNum("3");
+  const searchClickHandler = () => {
+    setSearchButton(!searchButton);
+    setAnswerButton(false);
+    setRankingButton(false);
+    setCalenderButton(false);
   };
-  const fiveWordsHandler = () => {
-    setWordNum("5");
+  const answerClickHandler = () => {
+    setAnswerButton(!answerButton);
+    setSearchButton(false);
+    setRankingButton(false);
+    setCalenderButton(false);
   };
-  const tenWordsHandler = () => {
-    setWordNum("10");
+  const rankingClickHandler = () => {
+    setRankingButton(!rankingButton);
+    setSearchButton(false);
+    setAnswerButton(false);
+    setCalenderButton(false);
+  };
+  const calenderClickHandler = () => {
+    setCalenderButton(!calenderButton);
+    setSearchButton(false);
+    setAnswerButton(false);
+    setRankingButton(false);
   };
 
   return (
     <div className="page-container">
+      <div className="button-container">
+        <div>
+          <input type="button" value="SEARCH" onClick={searchClickHandler} />
+        </div>
+
+        <div>
+          <input type="button" value="ANSWERS" onClick={answerClickHandler} />
+        </div>
+
+        <div>
+          <input
+            type="button"
+            value="WORD RANKING"
+            onClick={rankingClickHandler}
+          />
+        </div>
+        <div>
+          <input
+            type="button"
+            value="CALENDER"
+            onClick={calenderClickHandler}
+          />
+        </div>
+      </div>
+      <div>
+        <div>{searchButton && <Searchword />}</div>
+        <div>{answerButton && <Answer />}</div>
+        <div>{rankingButton && <Exceptword />}</div>
+        <div>{calenderButton && <Calender />}</div>
+      </div>
       <div className="chat-container">
         {recievedMessage &&
           recievedMessage.map((item, index) => (
@@ -250,52 +269,12 @@ const Chatpage = () => {
           onSendMessage={(messageData) => sendMessageHandler(messageData)}
         />
       )}
-      <div>
-        ANSWER
-        {answers.length > 0 &&
-          answers.map((item, index) => (
-            <div>
-              <div>
-                질문 {index + 1} : {item.question_contents}
-              </div>
-              <div>첫 번째 대답 : {item.first_answer}</div>
-              <div>두 번째 대답 : {item.second_answer}</div>
-              <div>대답한 날짜 : {item.answer_date}</div>
-              <br />
-            </div>
-          ))}
+      <div className="usr-button">
+        <Changepw />
+        <Logout />
+        <Withdrawal />
+        <Cutconn />
       </div>
-      <div>
-        <Exceptword />
-      </div>
-      <div>많이 쓴 단어 상위 {wordNum}개</div>
-      <input type="button" value="3개" onClick={threeWordsHandler} />
-      <input type="button" value="5개" onClick={fiveWordsHandler} />
-      <input type="button" value="10개" onClick={tenWordsHandler} />
-      <div>
-        내가 쓴 단어
-        <br />
-        {myWords.map((item, index) => (
-          <div>
-            {index + 1}위 : {item}
-          </div>
-        ))}
-      </div>
-      <div>
-        상대방이 쓴 단어
-        <br />
-        {otherWords.map((item, index) => (
-          <div>
-            {index + 1}위 : {item}
-          </div>
-        ))}
-      </div>
-      <Searchword/>
-      <Changepw />
-      <Logout />
-      <Withdrawal />
-      <Cutconn />
-      <Calender/>
     </div>
   );
 };

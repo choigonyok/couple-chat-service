@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import "./Dday.css";
 
 const Dday = () => {
   const now = new Date();
@@ -30,16 +31,17 @@ const Dday = () => {
   return (
     <div>
       {dDay.length === 1 && (
-        <div>
-          <div>
+        <div className="dday-container">
+          <div className="dday-count">
             {subDate > 0 && <div>D - {subDate}</div>}
             {subDate === 0 && <div>D - DAY</div>}
             {subDate < 0 && <div>D + {-subDate}</div>}
           </div>
-          <div>
+          
+          <div className="dday-contents">{dDay[0].contents}</div>
+          <div className="dday-date">
             {dDay[0].year}년 {dDay[0].month}월 {dDay[0].date}일
           </div>
-          <div>{dDay[0].contents}</div>
         </div>
       )}
     </div>

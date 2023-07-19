@@ -146,9 +146,12 @@ func Test(){
 	fmt.Println("anniversary DB : ", anniversaryDatas)
 }
 
+// 모든 클라이언트와 서버 간의 connection을 저장하는 map. KEY = uuid, VALUE = conn
 var conns = make(map[string]*websocket.Conn)
+
+// 커넥션을 끊으면 작동하는 timer를 저장하는 map. KEY = connection_id, VALUE = timer
 var timerMap  = make(map[int]*time.Timer)
-	
+
 var mutex = &sync.Mutex{}
 
 func ConnectDB(driverName, dbData string) {
@@ -165,6 +168,7 @@ func UnConnectDB() {
 	}
 }
 
+// 서버 시간대를 클라이언트/DB와 일치시키기 위해 location 설정
 func getTimeNow() time.Time {
 	loc, err := time.LoadLocation("Asia/Seoul")
 	if err != nil {
@@ -175,9 +179,8 @@ func getTimeNow() time.Time {
 	return t
 }
 
-
+// 환경변수 .env파일 로딩
 func LoadEnv(){
-	// 환경변수 로딩
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Println("ERROR #1 : ", err.Error())
@@ -201,6 +204,7 @@ func checkIDandPWCorrect(ID string, PW string) bool {
 	}
 }
 
+// cookie의 uuid를 이용해 usr의 connection id를 리턴
 func GetConnIDByCookie(c *gin.Context) (int, error) {
 	uuid, err1 := model.CookieExist(c)
 	if err1 != nil {
@@ -296,7 +300,7 @@ func ChangePasswordHandler(c *gin.Context) {
 	uuid, err1 := model.CookieExist(c)
 	if err1 != nil {
 		fmt.Println("ERROR #93 : ", err1.Error())
-		c.Writer.WriteHeader(http.StatusInternalServerError)
+		c.Writer.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
@@ -359,6 +363,7 @@ func AlreadyLogInCheckHandler(c *gin.Context){
 	}
 }
 
+// 회원탈퇴
 func WithDrawalHandler(c *gin.Context){
 	uuid, err1 := model.CookieExist(c)
 	if err1 != nil {
@@ -384,7 +389,7 @@ func WithDrawalHandler(c *gin.Context){
 	}
 }
 
-// 상대방과의 커넥션 끊기
+// 커넥션 끊기
 func CutConnectionHandler(c *gin.Context){
 	uuid, err1 := model.CookieExist(c)
 	if err1 != nil {
@@ -419,6 +424,7 @@ func setConnDeleteTimer(uuid string, connection_id int) {
 	}()
 }
 
+// 커넥션 끊기 취소
 func RollBackConnectionHandler(c *gin.Context) {
 	conn_id, err := GetConnIDByCookie(c)
 	if err != nil {
@@ -441,7 +447,7 @@ func RollBackConnectionHandler(c *gin.Context) {
 	}
 }
 
-// 상대방에게 connection 연결 요청
+// 커넥션 연결 요청
 func ConnRequestHandler(c *gin.Context){
 	uuid, err := model.CookieExist(c)
 	if err != nil {
@@ -497,7 +503,7 @@ func ConnRequestHandler(c *gin.Context){
 	}
 }
 
-// 현재 요청받은 request 목록 가져오기
+// 요청받은 request 목록 가져오기
 func GetRecieveRequestHandler(c *gin.Context){
 	uuid, err := model.CookieExist(c)
 	if err != nil {
@@ -523,7 +529,7 @@ func GetRecieveRequestHandler(c *gin.Context){
 }
 
 
-// 현재 신청중인 request 가져오기
+// 요청한 request 목록 가져오기
 func GetSendRequestHandler(c *gin.Context){
 	uuid, err := model.CookieExist(c)
 	if err != nil {
@@ -548,7 +554,7 @@ func GetSendRequestHandler(c *gin.Context){
 	c.Writer.Write(marshaledRequestingData)
 }
 
-// 상대방과 연결 후, DB에 저장되어있던 자신과 상대 관련 요청 전체 삭제 + conn_id 생성
+// 커넥션 연결 후, DB의 자신과 상대 관련 요청 전체 삭제 + conn_id 생성
 func DeleteRestRequestHandler(c *gin.Context){
 	myUUID, err := model.CookieExist(c)
 	if err != nil {
@@ -618,7 +624,7 @@ func DeleteOneRequestHandler(c *gin.Context){
 	}
 }
 
-// 그동안 답한 내용들을 모아서 보여주기 위한 API
+// answers 불러오기
 func GetAnswerHandler(c *gin.Context){
 	conn_id, err := GetConnIDByCookie(c)
 	if err != nil {
@@ -898,6 +904,7 @@ func recieveAnswer(uuid string, conn_id int, chatData []model.ChatData, first_uu
 	}
 }
 
+// 커넥션별로 채팅에서 가장 많이 사용된 단어 불러오기
 func GetMostUsedWordsHandler(c *gin.Context){
 	rankNumString := c.Param("ranknum")
 	uuid, err := model.CookieExist(c)
@@ -954,6 +961,7 @@ func GetMostUsedWordsHandler(c *gin.Context){
 	c.Writer.Write(marshaledData)
 }
 
+// words ranking에서 제외된 단어 불러오기
 func GetExceptWordsHandler(c *gin.Context){
 	conn_id, err := GetConnIDByCookie(c)
 	if err != nil {
@@ -977,6 +985,7 @@ func GetExceptWordsHandler(c *gin.Context){
 	c.Writer.Write(marshaledData)
 }
 
+// words ranking에서 제외시킬 단어 추가
 func InsertExceptWordHandler(c *gin.Context){
 	conn_id, err := GetConnIDByCookie(c)
 	if err != nil {
@@ -1008,6 +1017,7 @@ func InsertExceptWordHandler(c *gin.Context){
 	}
 }
 
+// words ranking에서 제외시켰던 단어 취소
 func DeleteExceptWordHandler(c *gin.Context){
 	param := c.Param("param")
 
@@ -1027,6 +1037,7 @@ func DeleteExceptWordHandler(c *gin.Context){
 	c.Writer.WriteHeader(http.StatusOK)
 }
 
+// input된 날짜에 작성된 채팅 리턴
 func GetChatDateHandler(c *gin.Context) {
 	myUUID, err1 := model.CookieExist(c)
 	if err1 != nil {
@@ -1085,6 +1096,7 @@ func GetChatDateHandler(c *gin.Context) {
 	c.Writer.Write(marshaledData)
 }
 
+// 검색한 단어가 포함된 채팅 리턴
 func GetChatWordHandler(c *gin.Context) {
 	targetWord := c.Param("param")
 
@@ -1132,6 +1144,7 @@ func GetChatWordHandler(c *gin.Context) {
 	c.Writer.Write(marshaledData)
 }
 
+// 캘린터에 일정 추가 + d-day로 지정된 일정이면 기존 d-day를 수정
 func InsertAnniversaryHandler(c *gin.Context) {
 	conn_id, err := GetConnIDByCookie(c)
 	if err != nil {
@@ -1175,6 +1188,7 @@ func InsertAnniversaryHandler(c *gin.Context) {
 	}
 }
 
+// 저장된 캘린터 일정들 불러오기
 func GetAnniversaryHandler(c *gin.Context){
 	conn_id, err := GetConnIDByCookie(c)
 	if err != nil {
@@ -1209,6 +1223,7 @@ func GetAnniversaryHandler(c *gin.Context){
 	c.Writer.Write(marshaledData)
 }
 
+// 캘린더에서 일정 삭제
 func DeleteAnniversaryHandler(c *gin.Context) {
 	anniversary_id := c.Param("id")
 	err := model.DeleteAnniversaryByAnniversaryID(anniversary_id)
@@ -1220,6 +1235,7 @@ func DeleteAnniversaryHandler(c *gin.Context) {
 
 }
 
+// d-day로 지정된 일정 불러오기
 func GetDDayHandler(c *gin.Context) {
 	conn_id, err := GetConnIDByCookie(c)
 	if err != nil {

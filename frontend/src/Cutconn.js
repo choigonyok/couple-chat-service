@@ -24,21 +24,25 @@ const Cutconn = () => {
     axios
       .put(process.env.REACT_APP_HOST_URL + "/api/conn")
       .then((response) => {
-        alert("이전에 예정되어있던 커넥션 끊기가 정상적으로 취소되었습니다.")
+        if (response.status === 204) {
+          alert("커넥션 끊기가 신청되지 않은 상태입니다.");
+        } else {
+          alert("이전에 예정되어있던 커넥션 끊기가 정상적으로 취소되었습니다.");
+        }
       })
       .catch((error) => {
-        if (error.response.status === 400) {
-          alert("커넥션 끊기가 신청되지 않은 상태입니다.")
-        } else {
-          console.log(error);
-        }
+        console.log(error);
       });
   };
 
   return (
     <div>
       <input type="button" value="커넥션 끊기" onClick={cutConnHandler} />
-      <input type="button" value="커넥션 끊기 취소" onClick={rollBackConnHandler} />
+      <input
+        type="button"
+        value="커넥션 끊기 취소"
+        onClick={rollBackConnHandler}
+      />
     </div>
   );
 };

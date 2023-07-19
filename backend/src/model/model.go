@@ -590,7 +590,7 @@ func CheckWordAlreadyExcepted(connection_id int, except_word string) (bool, erro
 	}
 }
 
-func DeleteExceptWord(connection_id int, except_word string) error {
+func CancleExceptWord(connection_id int, except_word string) error {
 	_, err := db.Query(`DELETE FROM exceptionword WHERE connection_id = `+strconv.Itoa(connection_id)+` and except_word = "`+except_word+`"`)
 	return err
 }
@@ -621,13 +621,13 @@ func InsertBeAboutToDelete(connection_id int) error {
 	return err
 }
 
-func DeleteConnectionByConnID(uuid string) error {
-	first_uuid, second_uuid, conn_id, err := GetConnectionByUsrsUUID(uuid)
-	_, err = db.Query(`DELETE FROM chat WHERE writer_id = "`+first_uuid+`" or writer_id = "`+second_uuid+`"`)
+func DeleteConnectionByConnID(first_uuid, second_uuid string, conn_id int) error {
+	_, err := db.Query(`DELETE FROM chat WHERE writer_id = "`+first_uuid+`" or writer_id = "`+second_uuid+`"`)
 	_, err = db.Query("DELETE FROM connection WHERE connection_id = "+strconv.Itoa(conn_id))
 	_, err = db.Query("DELETE FROM beaboutdelete WHERE connection_id = "+strconv.Itoa(conn_id))
 	_, err = db.Query("DELETE FROM answer WHERE connection_id = "+strconv.Itoa(conn_id))
-	_, err = db.Query("DELETE FROM exceptionword WHERE connection_Id = "+strconv.Itoa(conn_id))
+	_, err = db.Query("DELETE FROM exceptionword WHERE connection_id = "+strconv.Itoa(conn_id))
+	_, err = db.Query("DELETE FROM anniversary WHERE connection_id = "+strconv.Itoa(conn_id))
 	_, err = db.Query(`UPDATE usrs SET conn_id = 0  WHERE uuid = "`+first_uuid+`" or uuid = "`+second_uuid+`"`)
 	_, err = db.Query(`UPDATE usrs SET order_usr = 0 WHERE uuid = "`+first_uuid+`" or uuid = "`+second_uuid+`"`)
 

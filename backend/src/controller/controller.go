@@ -332,7 +332,6 @@ func ChangePasswordHandler(c *gin.Context) {
 		return
 	}
 	c.Writer.WriteHeader(http.StatusOK)
-	
 }
 
 // 로그아웃
@@ -409,16 +408,20 @@ func CutConnectionHandler(c *gin.Context){
 	}
 }
 
-// 커넥션 7일 후 종료를 위한 타이머 설정
+// 커넥션 7일 후 종료를 위한 타이머 설정 (TEST를 위해 2분으로 설정)
 func setConnDeleteTimer(uuid string, connection_id int) {
-	setTime := getTimeNow().Add(3 * time.Minute)
+	setTime := getTimeNow().Add(2 * time.Minute)
 	timer := time.NewTimer(setTime.Sub(getTimeNow()))
 	timerMap[connection_id] = timer
 	go func() {
 		<-timer.C
-		err := model.DeleteConnectionByConnID(uuid)
-		if err != nil {
-			fmt.Println("ERROR #90 : ", err.Error())
+		first_usr, second_usr, conn_id, err1 := model.GetConnectionByUsrsUUID(uuid)
+		if err1 != nil {
+			fmt.Println("ERROR #129 : ", err1.Error())
+		}
+		err2 := model.DeleteConnectionByConnID(first_usr, second_usr, conn_id)
+		if err2 != nil {
+			fmt.Println("ERROR #90 : ", err2.Error())
 		}
 		timerMap[connection_id] = nil
 	}()
@@ -434,7 +437,7 @@ func RollBackConnectionHandler(c *gin.Context) {
 	}
 
 	if timerMap[conn_id] == nil {
-		c.Writer.WriteHeader(http.StatusBadRequest)
+		c.Writer.WriteHeader(http.StatusNoContent)
 		return
 	} else {
 		timer := timerMap[conn_id]
@@ -918,12 +921,12 @@ func GetMostUsedWordsHandler(c *gin.Context){
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 		return	
 	}
-	firstUUID, secontUUID, _, err := model.GetConnectionByUsrsUUID(uuid)
+	firstUUID, secondUUID, _, err := model.GetConnectionByUsrsUUID(uuid)
 	
 	var ohterFrequentWords []string
 	var err2 error
 	if firstUUID == uuid {
-		ohterFrequentWords, err2 = model.GetFrequentWords(secontUUID, rankNumInt)	
+		ohterFrequentWords, err2 = model.GetFrequentWords(secondUUID, rankNumInt)	
 		if err2 != nil {
 			fmt.Println("ERROR #80 : ", err2.Error())
 		}
@@ -1001,11 +1004,11 @@ func InsertExceptWordHandler(c *gin.Context){
 	if err1 != nil {
 		fmt.Println("ERROR #63 : ", err1.Error())
 	}
-	isExitst, err2 := model.CheckWordAlreadyExcepted(conn_id, Input.Except_word)
+	isExist, err2 := model.CheckWordAlreadyExcepted(conn_id, Input.Except_word)
 	if err2 != nil {
 		fmt.Println("ERROR #63 : ", err2.Error())
 	}
-	if isExitst {
+	if isExist {
 		c.Writer.WriteHeader(http.StatusBadRequest)
 		return
 	} else {
@@ -1019,7 +1022,7 @@ func InsertExceptWordHandler(c *gin.Context){
 
 // words ranking에서 제외시켰던 단어 취소
 func DeleteExceptWordHandler(c *gin.Context){
-	param := c.Param("param")
+	cancleWord := c.Param("param")
 
 	conn_id, err := GetConnIDByCookie(c)
 	if err != nil {
@@ -1028,7 +1031,7 @@ func DeleteExceptWordHandler(c *gin.Context){
 		return 
 	}
 
-	err3 := model.DeleteExceptWord(conn_id, param)
+	err3 := model.CancleExceptWord(conn_id, cancleWord)
 	if err3 != nil {
 		fmt.Println("ERROR #68 : ", err3.Error())
 		c.Writer.WriteHeader(http.StatusInternalServerError)
@@ -1055,8 +1058,8 @@ func GetChatDateHandler(c *gin.Context) {
 
 	year := c.Query("year")
 	month := c.Query("month")
-	monthNum, _  := strconv.Atoi(month)
 	date := c.Query("date")
+	monthNum, _  := strconv.Atoi(month)
 	dateNum, _  := strconv.Atoi(date)
 	if monthNum < 10 {
 		month = "0"+month
@@ -1188,7 +1191,7 @@ func InsertAnniversaryHandler(c *gin.Context) {
 	}
 }
 
-// 저장된 캘린터 일정들 불러오기
+// 저장된 캘린더 일정 중 해당 연도/달에 맞는 일정들 불러오기
 func GetAnniversaryHandler(c *gin.Context){
 	conn_id, err := GetConnIDByCookie(c)
 	if err != nil {

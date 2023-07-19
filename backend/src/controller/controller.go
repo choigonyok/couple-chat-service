@@ -782,6 +782,8 @@ func UpgradeHandler(c *gin.Context){
 			fmt.Println("ERROR #39 : ", err.Error())
 			break;
 		}
+		
+		
 
 		// 일반채팅이면 chat table에 저장, question에 대한 답이면 answer table에 저장
 		if chatData[0].Is_answer == 1 {

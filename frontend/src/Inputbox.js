@@ -1,6 +1,5 @@
 import { useState } from "react";
 import "./Inputbox.css";
-import axios from "axios";
 
 const Inputbox = (props) => {
   const [chat, setChat] = useState("");

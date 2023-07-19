@@ -81,20 +81,22 @@ const Chatpage = () => {
       socket.close();
     };
   }, []);
-  
-  useEffect (()=>{
+
+  useEffect(() => {
+    setChatDate([]);
     for (let i = 0; i < recievedMessage.length; i++) {
       if (recievedMessage[i].chat_id !== 0) {
         const writeTime = recievedMessage[i].write_time;
         const [dateString, timeString] = writeTime.split(" ");
         const [year, month, date] = dateString.split("-");
         const [hour, minute, second] = timeString.split(":");
-        setChatDate((prev)=>[...prev, year+"/"+month+"/"+date+" "+hour+":"+minute])
+        setChatDate((prev) => [
+          ...prev,
+          year + "/" + month + "/" + date + " " + hour + ":" + minute,
+        ]);
       }
     }
-    
-  },[recievedMessage])
-    
+  }, [recievedMessage]);
 
   useEffect(() => {
     const deletedArray = recievedMessage.filter((m) => m.chat_id !== chatID);
@@ -102,20 +104,33 @@ const Chatpage = () => {
   }, [chatID]);
 
   const sendMessageHandler = (data) => {
-    
     if (newSocket !== null) {
       const now = new Date();
-      
+      const nowMonth =
+        now.getMonth() + 1 < 10
+          ? "0" + (now.getMonth() + 1)
+          : now.getMonth() + 1;
+      const nowDate = now.getDate() < 10 ? "0" + now.getDate() : now.getDate();
+      const nowHour =
+        now.getHours() < 10 ? "0" + now.getHours() : now.getHours();
+      const nowMinute =
+        now.getMinutes() < 10 ? "0" + now.getMinutes() : now.getMinutes();
+      const nowSecond =
+        now.getSeconds() < 10 ? "0" + now.getSeconds() : now.getSeconds();
+
       let nowformat =
         now.getFullYear() +
-        "/" +
-        (now.getMonth() + 1) +
-        "/" +
-        now.getDate() +
+        "-" +
+        nowMonth +
+        "-" +
+        nowDate +
         " " +
-        now.getHours() +
+        nowHour +
         ":" +
-        now.getMinutes();
+        nowMinute +
+        ":" +
+        nowSecond;
+
       const sendData = [
         {
           text_body: String(data),
@@ -125,7 +140,7 @@ const Chatpage = () => {
           is_deleted: 0,
         },
       ];
-    
+
       newSocket.send(JSON.stringify(sendData));
     } else alert("상대방에게 메세지를 보낼 수 없는 상태입니다.");
   };
@@ -263,9 +278,7 @@ const Chatpage = () => {
               {seeAnswerBox && item.is_answer === 1 && (
                 <div>
                   <div className="chat-container__question">
-                    <div className="chat__question">
-                      {item.text_body}
-                    </div>
+                    <div className="chat__question">{item.text_body}</div>
                   </div>
                   <div className="chat-container__answer">
                     <input

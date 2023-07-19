@@ -673,7 +673,7 @@ func DeleteAnniversaryByAnniversaryID(anniversary_id string) error {
 }
 
 func GetDDayAnniversaryIDByConnID(connection_id int) (int, error) {
-	r, err := db.Query("SELECT anniversary_id FROM anniversary WHERE d_day = 1 and connection_id = "+strconv.Itoa(connection_id))
+r, err := db.Query("SELECT anniversary_id FROM anniversary WHERE d_day = 1 and connection_id = "+strconv.Itoa(connection_id))
 	if err != nil {
 		return 0, err
 	}
@@ -760,12 +760,12 @@ func TestAnniversary() (*sql.Rows, error) {
 
 func DeleteAll(){
 	// _, _ = db.Query("DELETE FROM usrs")
-	// _, _ = db.Query("DELETE FROM chat")
+	_, _ = db.Query("DELETE FROM chat")
 	// _, _ = db.Query("DELETE FROM request")
 	// _, _ = db.Query("DELETE FROM connection")
 	// _, _ = db.Query("DELETE FROM answer")
 	// _, _ = db.Query("DELETE FROM exceptionword")
-	_, _ = db.Query("DELETE FROM anniversary")
+	// _, _ = db.Query("DELETE FROM anniversary")
 	// _, _ = db.Query("DELETE FROM question")
 	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("강아지", "강아지와 고양이 중 뭐가 더 좋아?")`)
 	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("운동", "운동하는 거 좋아해?")`)

@@ -31,7 +31,7 @@
 
 .chat-container {
   display: flex;
-  border: 3px solid white !important;
+  border: 1px solid white !important;
   width: 70vw;
   height: 70vh;
   flex-direction:column;

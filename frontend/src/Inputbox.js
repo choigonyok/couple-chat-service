@@ -1,8 +1,11 @@
 import { useState } from "react";
 import "./Inputbox.css";
+import axios from "axios";
 
 const Inputbox = (props) => {
   const [chat, setChat] = useState("");
+  const [img, setIMG] = useState();
+
   let chatData = {
     chat_body: "",
   };
@@ -29,8 +32,28 @@ const Inputbox = (props) => {
     }
   };
 
+  const imgHandler = (e) => {
+    const fileKind = "image";
+    const file = new FormData();
+    file.set("file", e.target.files[0]);
+    axios
+      .post(process.env.REACT_APP_HOST_URL + "/api/file/" + fileKind, file, {
+        withCredentials: true,
+        "Content-Type": "multipart/form-data",
+      })
+      .then((response) => {
+        alert("파일전송 성공");
+        props.onSendMessage(0);
+        setChat("");
+      })
+      .catch((error) => {
+        alert("파일전송 실패");
+        console.log(error);
+      });
+  };
+
   return (
-    <div>
+    <div className="inputbox-container">
       <input
         type="text"
         placeholder="ENTER로 채팅을 입력할 수 있습니다"
@@ -39,6 +62,13 @@ const Inputbox = (props) => {
         onChange={chatHandler}
         onKeyDownCapture={enterHandler}
       ></input>
+      <input
+        type="file"
+        id="imgfile"
+        name="imgfile"
+        className="file-button"
+        onChange={imgHandler}
+      />
     </div>
   );
 };

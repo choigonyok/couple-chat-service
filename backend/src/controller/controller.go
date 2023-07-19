@@ -794,7 +794,7 @@ func UpgradeHandler(c *gin.Context){
 				fmt.Println("ERROR #95 : ", err.Error())
 			}
 		} else {
-			chat_id, err := model.InsertChatAndGetChatID(chatData[0].Text_body, uuid, chatData[0].Write_time)
+			chat_id, err := model.InsertChatAndGetChatID(chatData[0].Text_body, uuid, chatData[0].Write_time, chatData[0].Is_file)
 			// 어차피 커넥션 당 메시지 하나씩 전송 받으니까 slice index는 0으로 설정
 			if err != nil {
 				fmt.Println("ERROR #40 : ", err.Error())
@@ -802,7 +802,6 @@ func UpgradeHandler(c *gin.Context){
 			chatData[0].Chat_id = chat_id
 		}
 		
-
 		target_conn := []*websocket.Conn{}
 
 		mutex.Lock()
@@ -820,8 +819,6 @@ func UpgradeHandler(c *gin.Context){
 			target_conn = append(target_conn, second_conn)	
 		}
 		mutex.Unlock()
-
-
 
 		// 커넥션 연결이 안되어있으면 보내면 nil pointer 오류 생김
 		// 모든 커넥션에 메시지 write
@@ -1267,5 +1264,23 @@ func GetDDayHandler(c *gin.Context) {
 			return
 		}
 		c.Writer.Write(marshaledData)
+	}
+}
+
+func InsertFileHandler(c *gin.Context) {
+	conn_id, _ := GetConnIDByCookie(c)
+
+	fileKind := c.Param("filekind")
+
+	switch fileKind {
+	case "image" :
+		f, err1 := c.FormFile("file")
+		if err1 != nil {
+			fmt.Println("ERROR #130 : ", err1.Error())
+		}
+		err2 := c.SaveUploadedFile(f, "assets/"+strconv.Itoa(conn_id)+"-"+"2")
+		if err2 != nil {
+			fmt.Println("ERROR #131 : ", err2.Error())
+		}
 	}
 }

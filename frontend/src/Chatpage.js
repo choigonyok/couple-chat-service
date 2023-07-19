@@ -132,17 +132,33 @@ const Chatpage = () => {
         ":" +
         nowSecond;
 
-      const sendData = [
-        {
-          text_body: String(data),
-          write_time: nowformat,
-          writer_id: myUUID,
-          is_answer: 0,
-          is_deleted: 0,
-        },
-      ];
-
-      newSocket.send(JSON.stringify(sendData));
+        // 파일 전송시
+        // 0 : 이미지
+      if (data === 0) {
+        const sendData = [
+          {
+            text_body: "",
+            write_time: nowformat,
+            writer_id: myUUID,
+            is_answer: 0,
+            is_deleted: 0,
+            is_file: 1,
+          },
+        ];
+        newSocket.send(JSON.stringify(sendData));
+      } else {
+        const sendData = [
+          {
+            text_body: String(data),
+            write_time: nowformat,
+            writer_id: myUUID,
+            is_answer: 0,
+            is_deleted: 0,
+            is_file: 0,
+          },
+        ];
+        newSocket.send(JSON.stringify(sendData));
+      }
     } else alert("상대방에게 메세지를 보낼 수 없는 상태입니다.");
   };
 
@@ -274,7 +290,7 @@ const Chatpage = () => {
               {item.is_answer === 0 && item.writer_id === myUUID && (
                 <div className="chat-container__chat__usr">
                   <div className="chat-container__chatandbutton">
-                    <div className="chat__usr">{item.text_body}</div>
+                    <div className="chat__usr">{item.is_file === 0 ? item.text_body : "CHAT ID : "+item.chat_id}</div>
                     <div>
                       <input
                         type="button"
@@ -290,7 +306,7 @@ const Chatpage = () => {
               {item.is_answer === 0 && item.writer_id !== myUUID && (
                 <div className="chat-container__chat__other">
                   <div>
-                    <div className="chat__other">{item.text_body}</div>
+                    <div className="chat__other">{item.is_file === 0 ? item.text_body : "CHAT ID : "+item.chat_id}</div>
                   </div>
                   <div className="chat__time">{chatDate[index]}</div>
                 </div>
@@ -316,17 +332,19 @@ const Chatpage = () => {
             </div>
           ))}
       </div>
-      {!hideInputBox && (
-        <Inputbox
-          onSendMessage={(messageData) => sendMessageHandler(messageData)}
-        />
-      )}
+      <div>
+        {!hideInputBox && (
+          <Inputbox
+            onSendMessage={(messageData) => sendMessageHandler(messageData)}
+          />
+        )}
+      </div>
       <div className="usr-button">
         <Changepw />
         <Logout />
         <Withdrawal />
         <Cutconn />
-        <Canclecutconn/>
+        <Canclecutconn />
       </div>
     </div>
   );

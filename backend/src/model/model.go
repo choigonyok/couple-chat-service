@@ -19,6 +19,7 @@ type ChatData struct {
 	Chat_id int `json:"chat_id"`
 	Question_id int `json:"question_id"`
 	Is_deleted int `json:"is_deleted"`
+	Is_file int `json:"is_file"`
 }
 
 type RequestData struct {
@@ -382,8 +383,8 @@ func SelectChatByUsrsUUID(first_uuid, second_uuid string) ([]ChatData, error) {
 	return initialChats, nil
 }
 
-func InsertChatAndGetChatID(text_body, writer_id, write_time string) (int, error) {
-	_, err1 := db.Query(`INSERT INTO chat (text_body, writer_id, write_time) VALUES ("`+text_body+`", "`+writer_id+`", "`+write_time+`")`)
+func InsertChatAndGetChatID(text_body, writer_id, write_time string, is_file int) (int, error) {
+	_, err1 := db.Query(`INSERT INTO chat (text_body, writer_id, write_time, is_file) VALUES ("`+text_body+`", "`+writer_id+`", "`+write_time+`", "`+strconv.Itoa(is_file)+`")`)
 	if err1 != nil {
 		return 0, err1
 	}

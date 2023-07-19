@@ -1,3 +1,7 @@
+.chat__button:hover {
+  color: white;
+}
+
 .page-container {
   display: flex;
   width: 100%;
@@ -73,6 +77,11 @@
   height: fit-content;
 }
 
+.chat-container__chatandbutton{
+  display: flex;
+  flex-direction: row-reverse;
+}
+
 .chat__usr {
   display: flex;
   background-color: rgb(186, 218, 250);
@@ -111,6 +120,16 @@
   width: fit-content;
   word-break: break-all;
   height: fit-content;
+  margin-top: 0.5vh;
+}
+
+.chat__button{
+  background-color: transparent;
+  border: none;
+  color: rgba(128, 128, 128, 0.315);
+  font-size: 18px;
+  font-weight: 800;
+  padding: 1vh;
   margin-top: 0.5vh;
 }
 
@@ -172,3 +191,7 @@
   margin-top: 0.5vh;
 }
 
+
+.chat__usr:hover ~ .chat__button{
+  color: white;
+}

@@ -260,18 +260,25 @@ const Chatpage = () => {
             <div>
               {item.is_answer === 0 && item.writer_id === myUUID && (
                 <div className="chat-container__chat__usr">
-                  <input
-                    type="button"
-                    value="X"
-                    onClick={() => deleteChatHandler(item.chat_id)}
-                  />
-                  <div className="chat__usr">{item.text_body}</div>
+                  <div className="chat-container__chatandbutton">
+                    <div className="chat__usr">{item.text_body}</div>
+                    <div>
+                      <input
+                        type="button"
+                        value="X"
+                        className="chat__button"
+                        onClick={() => deleteChatHandler(item.chat_id)}
+                      />
+                    </div>
+                  </div>
                   <div className="chat__time">{chatDate[index]}</div>
                 </div>
               )}
               {item.is_answer === 0 && item.writer_id !== myUUID && (
                 <div className="chat-container__chat__other">
-                  <div className="chat__other">{item.text_body}</div>
+                  <div>
+                    <div className="chat__other">{item.text_body}</div>
+                  </div>
                   <div className="chat__time">{chatDate[index]}</div>
                 </div>
               )}

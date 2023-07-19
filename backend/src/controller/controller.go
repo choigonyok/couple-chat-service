@@ -769,6 +769,7 @@ func UpgradeHandler(c *gin.Context){
 					fmt.Println("ERROR #120 : ", err.Error())
 					break
 				}
+				fmt.Println("PING MESSAGE")
 			}
 	}()
 

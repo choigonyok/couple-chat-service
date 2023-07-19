@@ -44,14 +44,26 @@
   height: fit-content;
 }
 
-.chat-container__chat__question {
+.chat-container__question {
   display: flex;
   flex-direction: column;
   width: inherit;
   align-items: center;
   justify-content: center;
   height: fit-content;
+  margin-bottom: 1vh;
 }
+
+.chat-container__answer {
+  display: flex;
+  flex-direction: column;
+  width: inherit;
+  align-items: center;
+  justify-content: center;
+  height: fit-content;
+
+}
+
 
 .chat-container__chat__usr {
   display: flex;
@@ -61,20 +73,19 @@
   height: fit-content;
 }
 
-.chat-container__chat {
+.chat__usr {
   display: flex;
-  background-color: rgb(174, 214, 255);
-  font-size: 20px;
+  background-color: rgb(186, 218, 250);
+  font-size: 18px;
   color: black;
   font-weight: 600;
   align-items: center;
   justify-content: center;
   text-align: start;
-  border: 3px solid white;
   border-radius: 30px;
   padding: 1vh;
-  padding-left: 1vw;
-  padding-right: 1vw;
+  padding-left: 1.3vw;
+  padding-right: 1.3vw;
   max-width: 30vw;
   width: fit-content;
   word-break: break-all;
@@ -82,20 +93,20 @@
   margin-top: 0.5vh;
 }
 
-.chat-container__question {
+
+.chat__other {
   display: flex;
-  background-color: rgb(252, 174, 255);
-  font-size: 30px;
+  background-color: rgb(255, 194, 247);
+  font-size: 18px;
   color: black;
-  font-weight: 800;
+  font-weight: 600;
   align-items: center;
   justify-content: center;
   text-align: start;
-  border: 3px solid white;
   border-radius: 30px;
   padding: 1vh;
-  padding-left: 1vw;
-  padding-right: 1vw;
+  padding-left: 1.3vw;
+  padding-right: 1.3vw;
   max-width: 30vw;
   width: fit-content;
   word-break: break-all;
@@ -103,7 +114,7 @@
   margin-top: 0.5vh;
 }
 
-.chat-container__time {
+.chat__time {
   display: flex;
   width: fit-content;
   font-size: 15px;
@@ -119,3 +130,45 @@
   word-break: break-all;
   height: fit-content;
 }
+
+.chat__question {
+  display: flex;
+  background-color: rgb(212, 183, 250);
+  font-size: 25px;
+  color: black;
+  font-weight: 700;
+  align-items: center;
+  justify-content: center;
+  text-align: start;
+  border-radius: 15px;
+  padding: 1vh;
+  padding-left: 1vw;
+  padding-right: 1vw;
+  max-width: 30vw;
+  width: fit-content;
+  word-break: break-all;
+  height: fit-content;
+  margin-top: 0.5vh;
+}
+
+.chat__answer {
+  display: flex;
+  background-color: rgb(212, 183, 250);
+  border: 2px solid white;
+  font-size: 15px;
+  color: black;
+  font-weight: 600;
+  align-items: center;
+  justify-content: center;
+  text-align: start;
+  border-radius: 30px;
+  padding: 1vh;
+  padding-left: 1.3vw;
+  padding-right: 1.3vw;
+  max-width: 30vw;
+  width: fit-content;
+  word-break: break-all;
+  height: fit-content;
+  margin-top: 0.5vh;
+}
+

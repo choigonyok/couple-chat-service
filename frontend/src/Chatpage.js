@@ -17,6 +17,7 @@ const Chatpage = () => {
   const navigator = useNavigate();
 
   const [newSocket, setNewSocket] = useState(null);
+  const [chatDate, setChatDate] = useState([]);
   const [recievedMessage, setRecievedMessage] = useState([]);
   const [myUUID, setMyUUID] = useState("");
   const [inputAnswer, setInputAnswer] = useState("");
@@ -80,6 +81,20 @@ const Chatpage = () => {
       socket.close();
     };
   }, []);
+  
+  useEffect (()=>{
+    for (let i = 0; i < recievedMessage.length; i++) {
+      if (recievedMessage[i].chat_id !== 0) {
+        const writeTime = recievedMessage[i].write_time;
+        const [dateString, timeString] = writeTime.split(" ");
+        const [year, month, date] = dateString.split("-");
+        const [hour, minute, second] = timeString.split(":");
+        setChatDate((prev)=>[...prev, year+"/"+month+"/"+date+" "+hour+":"+minute])
+      }
+    }
+    
+  },[recievedMessage])
+    
 
   useEffect(() => {
     const deletedArray = recievedMessage.filter((m) => m.chat_id !== chatID);
@@ -87,8 +102,10 @@ const Chatpage = () => {
   }, [chatID]);
 
   const sendMessageHandler = (data) => {
+    
     if (newSocket !== null) {
-      let now = new Date();
+      const now = new Date();
+      
       let nowformat =
         now.getFullYear() +
         "/" +
@@ -108,6 +125,7 @@ const Chatpage = () => {
           is_deleted: 0,
         },
       ];
+    
       newSocket.send(JSON.stringify(sendData));
     } else alert("상대방에게 메세지를 보낼 수 없는 상태입니다.");
   };
@@ -232,28 +250,29 @@ const Chatpage = () => {
                     value="X"
                     onClick={() => deleteChatHandler(item.chat_id)}
                   />
-                  <div className="chat-container__chat">{item.text_body}</div>
-                  <div className="chat-container__time">{item.write_time}</div>
+                  <div className="chat__usr">{item.text_body}</div>
+                  <div className="chat__time">{chatDate[index]}</div>
                 </div>
               )}
               {item.is_answer === 0 && item.writer_id !== myUUID && (
                 <div className="chat-container__chat__other">
-                  <div className="chat-container__chat">{item.text_body}</div>
-                  <div className="chat-container__time">{item.write_time}</div>
+                  <div className="chat__other">{item.text_body}</div>
+                  <div className="chat__time">{chatDate[index]}</div>
                 </div>
               )}
               {seeAnswerBox && item.is_answer === 1 && (
                 <div>
-                  <div className="chat-container__chat__question">
-                    <div className="chat-container__question">
+                  <div className="chat-container__question">
+                    <div className="chat__question">
                       {item.text_body}
                     </div>
                   </div>
-                  <div>
+                  <div className="chat-container__answer">
                     <input
                       type="text"
                       placeholder="답을 작성해주세요."
                       autofocus
+                      className="chat__answer"
                       value={inputAnswer}
                       onChange={inputAnswerHandler}
                       onKeyDownCapture={(e) => enterHandler(item, e)}

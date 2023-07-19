@@ -1,0 +1,15 @@
+.buttons {
+  background-color: transparent;
+  color: white;
+  border-radius: 30px;
+  border: 2px solid white;
+  font-size: 15px;
+  width: auto;
+  height: 40px;
+  padding: 8%;
+}
+
+.buttons:hover {
+  background-color: white;
+  color: black;
+}

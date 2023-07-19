@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useState } from "react";
-import Inputbox from "./Inputbox";
+import "./Changepw.css";
 
 const Changepw = () => {
   const [inputBox, setInputBox] = useState(false);
@@ -25,7 +25,7 @@ const Changepw = () => {
     axios
       .put(process.env.REACT_APP_HOST_URL + "/api/usr", sendData)
       .then((response) => {
-        alert("PASSWORD가 성공적으로 변경되었습니다.")
+        alert("PASSWORD가 성공적으로 변경되었습니다.");
         setInputPW("");
         setInputBox(false);
       })
@@ -44,7 +44,12 @@ const Changepw = () => {
   return (
     <div>
       {!inputBox && (
-        <input type="button" value="비밀번호 변경하기" onClick={clickHandler} />
+        <input
+          type="button"
+          value="비밀번호 변경"
+          onClick={clickHandler}
+          className="buttons"
+        />
       )}
       {inputBox && (
         <div>

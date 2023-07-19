@@ -17,16 +17,16 @@
   justify-content: space-around;
   flex-direction: row;
   align-items: center;
-  border: 3px solid blue;
+  margin: 2vw;
 }
 
 .button-container {
   display: flex;
-  border: 3px solid blue !important;
   width: 70vw;
   height: auto;
   flex-direction:row;
   gap: 40px;
+  padding: 2vw;
 }
 
 .chat-container {
@@ -191,7 +191,18 @@
   margin-top: 0.5vh;
 }
 
-
-.chat__usr:hover ~ .chat__button{
+.buttons {
+  background-color: transparent;
   color: white;
+  border-radius: 30px;
+  border: 2px solid white;
+  font-size: 15px;
+  width: auto;
+  height: 40px;
+  padding: 8%;
+}
+
+.buttons:hover {
+  background-color: white;
+  color: black;
 }

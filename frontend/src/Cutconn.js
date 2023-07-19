@@ -1,15 +1,13 @@
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import "./Cutconn.css";
 
 const Cutconn = () => {
-  const navigator = useNavigate();
 
   const cutConnHandler = () => {
     axios
       .delete(process.env.REACT_APP_HOST_URL + "/api/conn")
       .then((response) => {
         alert("3분 뒤에 상대방과의 커넥션이 끊어질 예정입니다.");
-        navigator("/conn");
       })
       .catch((error) => {
         if (error.response.status === 400) {
@@ -20,28 +18,13 @@ const Cutconn = () => {
       });
   };
 
-  const rollBackConnHandler = () => {
-    axios
-      .put(process.env.REACT_APP_HOST_URL + "/api/conn")
-      .then((response) => {
-        if (response.status === 204) {
-          alert("커넥션 끊기가 신청되지 않은 상태입니다.");
-        } else {
-          alert("이전에 예정되어있던 커넥션 끊기가 정상적으로 취소되었습니다.");
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
-
   return (
-    <div>
-      <input type="button" value="커넥션 끊기" onClick={cutConnHandler} />
+    <div className="buttons__conn">
       <input
         type="button"
-        value="커넥션 끊기 취소"
-        onClick={rollBackConnHandler}
+        value="연결끊기"
+        onClick={cutConnHandler}
+        className="buttons"
       />
     </div>
   );

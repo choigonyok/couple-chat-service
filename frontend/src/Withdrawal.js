@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import "./Withdrawal.css";
 
 const Withdrawal = () => {
     const navigator = useNavigate();
@@ -21,7 +22,7 @@ const Withdrawal = () => {
     }
 
     return <div>
-        <input type="button" value="회원탈퇴하기" onClick={withdrawalHandler}/>
+        <input type="button" value="회원탈퇴" onClick={withdrawalHandler} className="buttons"/>
     </div>
 }
 

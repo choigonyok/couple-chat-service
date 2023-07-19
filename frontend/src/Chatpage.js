@@ -12,6 +12,7 @@ import Changepw from "./Changepw";
 import Searchword from "./Searchword";
 import Calender from "./Calender";
 import Answer from "./Answer";
+import Canclecutconn from "./Canclecutconn";
 
 const Chatpage = () => {
   const navigator = useNavigate();
@@ -226,17 +227,28 @@ const Chatpage = () => {
     <div className="page-container">
       <div className="button-container">
         <div>
-          <input type="button" value="SEARCH" onClick={searchClickHandler} />
-        </div>
-
-        <div>
-          <input type="button" value="ANSWERS" onClick={answerClickHandler} />
+          <input
+            type="button"
+            value="SEARCH"
+            className="buttons"
+            onClick={searchClickHandler}
+          />
         </div>
 
         <div>
           <input
             type="button"
-            value="WORD RANKING"
+            value="ANSWER"
+            className="buttons"
+            onClick={answerClickHandler}
+          />
+        </div>
+
+        <div>
+          <input
+            type="button"
+            value="RANK"
+            className="buttons"
             onClick={rankingClickHandler}
           />
         </div>
@@ -244,6 +256,7 @@ const Chatpage = () => {
           <input
             type="button"
             value="CALENDER"
+            className="buttons"
             onClick={calenderClickHandler}
           />
         </div>
@@ -313,6 +326,7 @@ const Chatpage = () => {
         <Logout />
         <Withdrawal />
         <Cutconn />
+        <Canclecutconn/>
       </div>
     </div>
   );

@@ -201,9 +201,21 @@ func checkIDandPWCorrect(ID string, PW string) bool {
 	}
 }
 
+func GetConnIDByCookie(c *gin.Context) (int, error) {
+	uuid, err1 := model.CookieExist(c)
+	if err1 != nil {
+		return 0, err1
+	}
+
+	conn_id, err2 := model.SelectConnIDByUUID(uuid)
+	if err2 != nil {
+		return 0, err2
+	}
+	return conn_id, nil
+}
+
 // 회원가입	
 func SignUpHandler(c *gin.Context) {
-
 	signUpData := model.UsrsData{}
 	err := c.ShouldBindJSON(&signUpData)
 	if err != nil {
@@ -333,17 +345,11 @@ func LogOutHandler(c *gin.Context){
 
 // 기존 로그인 되있던 상태인지 쿠키 확인	
 func AlreadyLogInCheckHandler(c *gin.Context){
-	uuid, err := model.CookieExist(c)
+	conn_id, err := GetConnIDByCookie(c)
 	if err != nil {
-		c.Writer.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	conn_id, err := model.SelectConnIDFromUsrsByUUID(uuid)
-	if err != nil {
-		fmt.Println("ERROR #12 : ", err.Error())
-		c.Writer.WriteHeader(http.StatusUnauthorized)
-		return
+		fmt.Println("ERROR #121 : ",  err.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return 
 	}
 
 	if conn_id == 0 {
@@ -401,16 +407,10 @@ func CutConnectionHandler(c *gin.Context){
 // 커넥션 7일 후 종료를 위한 타이머 설정
 func setConnDeleteTimer(uuid string, connection_id int) {
 	setTime := getTimeNow().Add(3 * time.Minute)
-	fmt.Println("SETTIME : ", setTime)
-	fmt.Println("SETTIME : ", setTime)
-	fmt.Println("SETTIME : ", setTime)
 	timer := time.NewTimer(setTime.Sub(getTimeNow()))
 	timerMap[connection_id] = timer
 	go func() {
 		<-timer.C
-		fmt.Println("TIME END ! ")
-		fmt.Println("TIME END ! ")
-		fmt.Println("TIME END ! ")
 		err := model.DeleteConnectionByConnID(uuid)
 		if err != nil {
 			fmt.Println("ERROR #90 : ", err.Error())
@@ -420,14 +420,13 @@ func setConnDeleteTimer(uuid string, connection_id int) {
 }
 
 func RollBackConnectionHandler(c *gin.Context) {
-	uuid, err1 := model.CookieExist(c)
-	if err1 != nil {
-		fmt.Println("ERROR #92 : ", err1.Error())
+	conn_id, err := GetConnIDByCookie(c)
+	if err != nil {
+		fmt.Println("ERROR #122 : ",  err.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return 
 	}
-	conn_id, err2 := model.SelectConnIDByUUID(uuid)
-	if err2 != nil {
-		fmt.Println("ERROR #93 : ", err2.Error())
-	}
+
 	if timerMap[conn_id] == nil {
 		c.Writer.WriteHeader(http.StatusBadRequest)
 		return
@@ -621,20 +620,14 @@ func DeleteOneRequestHandler(c *gin.Context){
 
 // 그동안 답한 내용들을 모아서 보여주기 위한 API
 func GetAnswerHandler(c *gin.Context){
-	uuid, err := model.CookieExist(c)
+	conn_id, err := GetConnIDByCookie(c)
 	if err != nil {
-		c.Writer.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	connID, err := model.SelectConnIDByUUID(uuid)
-	if err != nil {
-		fmt.Println("ERROR #30 : ", err.Error())
+		fmt.Println("ERROR #123 : ",  err.Error())
 		c.Writer.WriteHeader(http.StatusInternalServerError)
-		return
+		return 
 	}
 
-	answerDatas, err := model.GetAnswerandQuestionContentsByConnID(connID)
+	answerDatas, err := model.GetAnswerandQuestionContentsByConnID(conn_id)
 	if err != nil {
 		fmt.Println("ERROR #31 : ", err.Error())
 		c.Writer.WriteHeader(http.StatusInternalServerError)
@@ -962,14 +955,11 @@ func GetMostUsedWordsHandler(c *gin.Context){
 }
 
 func GetExceptWordsHandler(c *gin.Context){
-	uuid, err := model.CookieExist(c)
+	conn_id, err := GetConnIDByCookie(c)
 	if err != nil {
-		c.Writer.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-	conn_id, err1 := model.SelectConnIDByUUID(uuid)
-	if err1 != nil {
-		fmt.Println("ERROR #61 : ", err1.Error())
+		fmt.Println("ERROR #124 : ",  err.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return 
 	}
 	
 	exceptWords, err2 := model.GetExceptWords(conn_id)
@@ -988,14 +978,11 @@ func GetExceptWordsHandler(c *gin.Context){
 }
 
 func InsertExceptWordHandler(c *gin.Context){
-	uuid, err := model.CookieExist(c)
+	conn_id, err := GetConnIDByCookie(c)
 	if err != nil {
-		c.Writer.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-	conn_id, err := model.SelectConnIDByUUID(uuid)
-	if err != nil {
-		fmt.Println("ERROR #66 : ", err.Error())
+		fmt.Println("ERROR #125 : ",  err.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return 
 	}
 
 	Input := struct {
@@ -1022,18 +1009,13 @@ func InsertExceptWordHandler(c *gin.Context){
 }
 
 func DeleteExceptWordHandler(c *gin.Context){
-	uuid, err := model.CookieExist(c)
-	if err != nil {
-		c.Writer.WriteHeader(http.StatusUnauthorized)
-		return
-	}
 	param := c.Param("param")
 
-	conn_id, err2 := model.SelectConnIDByUUID(uuid)
-	if err2 != nil {
-		fmt.Println("ERROR #67 : ", err2.Error())
+	conn_id, err := GetConnIDByCookie(c)
+	if err != nil {
+		fmt.Println("ERROR #126 : ",  err.Error())
 		c.Writer.WriteHeader(http.StatusInternalServerError)
-		return
+		return 
 	}
 
 	err3 := model.DeleteExceptWord(conn_id, param)
@@ -1151,11 +1133,11 @@ func GetChatWordHandler(c *gin.Context) {
 }
 
 func InsertAnniversaryHandler(c *gin.Context) {
-	uuid, err1 := model.CookieExist(c)
-	if err1 != nil {
-		fmt.Println("ERROR #101 : ", err1.Error())
+	conn_id, err := GetConnIDByCookie(c)
+	if err != nil {
+		fmt.Println("ERROR #127 : ",  err.Error())
 		c.Writer.WriteHeader(http.StatusInternalServerError)
-		return
+		return 
 	}
 
 	var anniversaryData model.AnniversaryData
@@ -1163,13 +1145,6 @@ func InsertAnniversaryHandler(c *gin.Context) {
 	err2 := c.ShouldBindJSON(&anniversaryData)
 	if err2 != nil {
 		fmt.Println("ERROR #102 : ", err2.Error())
-		c.Writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	conn_id, err3 := model.SelectConnIDByUUID(uuid)
-	if err3 != nil {
-		fmt.Println("ERROR #103 : ", err3.Error())
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -1182,14 +1157,6 @@ func InsertAnniversaryHandler(c *gin.Context) {
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	fmt.Println(anniversary_id)
-	fmt.Println(anniversary_id)
-	fmt.Println(anniversary_id)
-
-	fmt.Println(anniversaryData.D_day)
-	fmt.Println(anniversaryData.D_day)
-	fmt.Println(anniversaryData.D_day)
 
 	if anniversary_id != 0 && anniversaryData.D_day == true {
 		err5 := model.ChangeDDayZeroByAnniversaryID(anniversary_id)
@@ -1209,22 +1176,15 @@ func InsertAnniversaryHandler(c *gin.Context) {
 }
 
 func GetAnniversaryHandler(c *gin.Context){
-	uuid, err1 := model.CookieExist(c)
-	if err1 != nil {
-		fmt.Println("ERROR #105 : ", err1.Error())
+	conn_id, err := GetConnIDByCookie(c)
+	if err != nil {
+		fmt.Println("ERROR #128 : ",  err.Error())
 		c.Writer.WriteHeader(http.StatusInternalServerError)
-		return
+		return 
 	}
 
 	month := c.Query("month")
 	year := c.Query("year")
-	
-	conn_id, err2 := model.SelectConnIDByUUID(uuid)
-	if err2 != nil {
-		fmt.Println("ERROR #106 : ", err2.Error())
-		c.Writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 
 	anniversaryDatas, err3 := model.GetAnniversaryByConnIDAndMonthAndYear(conn_id, month, year)
 	if err3 != nil {
@@ -1261,18 +1221,11 @@ func DeleteAnniversaryHandler(c *gin.Context) {
 }
 
 func GetDDayHandler(c *gin.Context) {
-	uuid, err1 := model.CookieExist(c)
-	if err1 != nil {
-		fmt.Println("ERROR #110 : ", err1.Error())
+	conn_id, err := GetConnIDByCookie(c)
+	if err != nil {
+		fmt.Println("ERROR #129 : ",  err.Error())
 		c.Writer.WriteHeader(http.StatusInternalServerError)
-			return
-	}
-
-	conn_id, err2 := model.SelectConnIDByUUID(uuid)
-	if err2 != nil {
-		fmt.Println("ERROR #111 : ", err2.Error())
-		c.Writer.WriteHeader(http.StatusInternalServerError)
-			return
+		return 
 	}
 
 	anniversaryData, err3 := model.GetDDayByConnID(conn_id)

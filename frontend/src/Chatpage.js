@@ -30,7 +30,6 @@ const Chatpage = () => {
   const [calenderButton, setCalenderButton] = useState(false);
   const [fileClick, setFileClick] = useState(0);
 
-  
   const [chatID, setChatID] = useState(0);
 
   useEffect(() => {
@@ -248,7 +247,25 @@ const Chatpage = () => {
 
   const resetFileClickHandler = () => {
     setFileClick(0);
-  }
+  };
+
+  const saveFileHandler = () => {
+    axios
+      .get(process.env.REACT_APP_HOST_URL + "/api/file/extension/" + fileClick)
+      .then((response) => {
+        const link = document.createElement("a");
+        link.href =
+          process.env.REACT_APP_HOST_URL + "/api/file/img/" + fileClick;
+        link.download = "ChatImage." + response.data.extension; // 다운로드되는 파일 이름을 설정합니다.
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      })
+      .catch((error) => {
+        alert("저장 오류 발생");
+        return;
+      });
+  };
 
   return (
     <div className="page-container">
@@ -262,7 +279,8 @@ const Chatpage = () => {
             />
           </div>
           <div>
-            <input type="button" value="X" onClick={resetFileClickHandler}/>
+            <input type="button" value="X" onClick={resetFileClickHandler} />
+            <input type="button" value="저장하기" onClick={saveFileHandler} />
           </div>
         </div>
       )}
@@ -399,7 +417,6 @@ const Chatpage = () => {
         <Cutconn />
         <Canclecutconn />
       </div>
-      
     </div>
   );
 };

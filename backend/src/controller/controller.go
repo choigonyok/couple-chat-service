@@ -1374,3 +1374,34 @@ func GetImageThumbnailHandler(c *gin.Context) {
 	
 	// c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 }
+
+func GetFileExtensionHandler(c *gin.Context) {
+	chatID := c.Param("chatID")
+
+
+	err := filepath.Walk("assets", func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			if strings.Contains(info.Name(), chatID+".") {
+				_, extension, _ := strings.Cut(info.Name(),".")
+				sendData := struct {
+					Extension string `json:"extension"`
+				}{
+					Extension: extension,
+				}
+
+				marshaledData, err := json.Marshal(sendData)
+				if err != nil {
+					fmt.Println("ERROR #139 : ", err.Error())
+				}
+
+				c.Writer.Write(marshaledData)
+				return nil
+			}
+		}
+		return err
+	})
+	if err != nil {
+		fmt.Println("ERROR #137 : ", err.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+	}
+}

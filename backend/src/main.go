@@ -64,6 +64,7 @@ func main() {
 
 	e.POST("/api/file/:filekind", controller.InsertFileHandler)
 	e.GET("/api/file/img/:chatID", controller.GetImageThumbnailHandler)
+	e.GET("/api/file/extension/:chatID", controller.GetFileExtensionHandler)
 
 	e.GET("/api/chat/word/:param", controller.GetChatWordHandler)			// 단어 기반 채팅 검색
 	e.GET("/api/chat/date", controller.GetChatDateHandler)					// 날짜 기반 채팅 검색

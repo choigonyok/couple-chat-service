@@ -238,7 +238,8 @@ const Chatpage = () => {
     setAnswerButton(false);
     setRankingButton(false);
   };
-
+console.log(recievedMessage);
+console.log(recievedMessage);
   return (
     <div className="page-container">
       <div className="button-container">
@@ -290,7 +291,7 @@ const Chatpage = () => {
               {item.is_answer === 0 && item.writer_id === myUUID && (
                 <div className="chat-container__chat__usr">
                   <div className="chat-container__chatandbutton">
-                    <div className="chat__usr">{item.is_file === 0 ? item.text_body : "CHAT ID : "+item.chat_id}</div>
+                    <div className="chat__usr">{item.is_file === 0 ? item.text_body : <img src={process.env.REACT_APP_HOST_URL+"/api/file/img/"+item.chat_id}/>}</div>
                     <div>
                       <input
                         type="button"
@@ -306,7 +307,7 @@ const Chatpage = () => {
               {item.is_answer === 0 && item.writer_id !== myUUID && (
                 <div className="chat-container__chat__other">
                   <div>
-                    <div className="chat__other">{item.is_file === 0 ? item.text_body : "CHAT ID : "+item.chat_id}</div>
+                    <div className="chat__other">{item.is_file === 0 ? item.text_body : <img src={process.env.REACT_APP_HOST_URL+"/api/file/img/"+item.chat_id}/>}</div>
                   </div>
                   <div className="chat__time">{chatDate[index]}</div>
                 </div>

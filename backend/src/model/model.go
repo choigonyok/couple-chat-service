@@ -369,15 +369,16 @@ func SelectChatByUsrsUUID(first_uuid, second_uuid string) ([]ChatData, error) {
 	initialChat := ChatData{}
 	initialChats := []ChatData{}
 
-	r, err := db.Query(`SELECT chat_id, writer_id, write_time, text_body FROM chat WHERE writer_id = "`+first_uuid+`" or writer_id = "`+second_uuid+`" ORDER BY chat_id ASC`)
+	r, err := db.Query(`SELECT chat_id, writer_id, write_time, text_body, is_file FROM chat WHERE writer_id = "`+first_uuid+`" or writer_id = "`+second_uuid+`" ORDER BY chat_id ASC`)
 	defer r.Close()
 	if err != nil {
 		return nil, err
 	}
 
 	for r.Next() {
-		r.Scan(&initialChat.Chat_id, &initialChat.Writer_id, &initialChat.Write_time, &initialChat.Text_body)
+		r.Scan(&initialChat.Chat_id, &initialChat.Writer_id, &initialChat.Write_time, &initialChat.Text_body, &initialChat.Is_file)
 		initialChat.Is_deleted = 0
+		initialChat.Is_answer = 0
 		initialChats = append(initialChats, initialChat)		
 	}
 	return initialChats, nil
@@ -708,6 +709,19 @@ func GetDDayByConnID(connection_id int) ([]AnniversaryData, error){
 	}
 
 	return nil, nil
+}
+
+func GetChatIDFromRecentFileChatByUUID(uuid string) (int, error) {
+	r, err := db.Query(`SELECT chat_id FROM chat WHERE writer_id = "`+uuid+`" and is_file = 1 ORDER BY chat_id DESC LIMIT 1`)
+
+	var chatID int
+
+	if r.Next() {
+		r.Scan(&chatID)
+		return chatID, nil
+	}
+	
+	return 0, err	
 }
 
 // TEST

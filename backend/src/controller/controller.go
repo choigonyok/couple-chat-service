@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"regexp"
@@ -91,7 +92,7 @@ func Test(){
 
 	r, _ = model.TestChat()
 	for r.Next(){
-		r.Scan(&chatData.Chat_id, &chatData.Writer_id, &chatData.Write_time, &chatData.Text_body, &chatData.Is_answer)
+		r.Scan(&chatData.Chat_id, &chatData.Writer_id, &chatData.Write_time, &chatData.Text_body, &chatData.Is_answer,&chatData.Is_file)
 		chatDatas = append(chatDatas, chatData)
 	}
 	fmt.Println("chat DB : ", chatDatas)
@@ -748,6 +749,7 @@ func UpgradeHandler(c *gin.Context){
 			Write_time: time.Now().Format("2006/01/02 03:04"),
 			Is_answer: 1,
 			Is_deleted: 0,
+			Is_file: 0,
 			Chat_id: 0,
 			Question_id: question_id,
 		}
@@ -769,7 +771,6 @@ func UpgradeHandler(c *gin.Context){
 					fmt.Println("ERROR #120 : ", err.Error())
 					break
 				}
-				fmt.Println("PING MESSAGE")
 			}
 	}()
 
@@ -782,8 +783,6 @@ func UpgradeHandler(c *gin.Context){
 			fmt.Println("ERROR #39 : ", err.Error())
 			break;
 		}
-		
-		
 
 		// 일반채팅이면 chat table에 저장, question에 대한 답이면 answer table에 저장
 		if chatData[0].Is_answer == 1 {
@@ -793,13 +792,19 @@ func UpgradeHandler(c *gin.Context){
 			if err != nil {
 				fmt.Println("ERROR #95 : ", err.Error())
 			}
-		} else {
+		} else if chatData[0].Is_file != 1 {
 			chat_id, err := model.InsertChatAndGetChatID(chatData[0].Text_body, uuid, chatData[0].Write_time, chatData[0].Is_file)
 			// 어차피 커넥션 당 메시지 하나씩 전송 받으니까 slice index는 0으로 설정
 			if err != nil {
 				fmt.Println("ERROR #40 : ", err.Error())
 			}
 			chatData[0].Chat_id = chat_id
+		} else {
+			chatID, err := model.GetChatIDFromRecentFileChatByUUID(uuid)
+			if err != nil {
+				fmt.Println("ERROR #134 : ", err.Error())
+			}
+			chatData[0].Chat_id = chatID
 		}
 		
 		target_conn := []*websocket.Conn{}
@@ -865,6 +870,7 @@ func sendQuestion(chatData []model.ChatData, conn_id int, target_conn []*websock
 					Write_time: time.Now().Format("2006/01/02 03:04"),
 					Is_answer: 1,
 					Is_deleted: 0,
+					Is_file: 0,
 					Chat_id: 0,
 					Question_id: question_id,
 				}
@@ -1268,19 +1274,57 @@ func GetDDayHandler(c *gin.Context) {
 }
 
 func InsertFileHandler(c *gin.Context) {
-	conn_id, _ := GetConnIDByCookie(c)
+	uuid, err1 := model.CookieExist(c)
+	if err1 != nil {
+		fmt.Println("ERROR #130 : ", err1.Error())
+	}
 
 	fileKind := c.Param("filekind")
 
+	chatID, err3 := model.InsertChatAndGetChatID("", uuid, getTimeNow().Format("2006-01-02 03:04:05"), 1)
+	if err3 != nil {
+		fmt.Println("ERROR #132 : ", err3.Error())
+	}
+
 	switch fileKind {
 	case "image" :
-		f, err1 := c.FormFile("file")
-		if err1 != nil {
-			fmt.Println("ERROR #130 : ", err1.Error())
+		f, err4 := c.FormFile("file")
+		if err4 != nil {
+			fmt.Println("ERROR #132 : ", err4.Error())
 		}
-		err2 := c.SaveUploadedFile(f, "assets/"+strconv.Itoa(conn_id)+"-"+"2")
-		if err2 != nil {
-			fmt.Println("ERROR #131 : ", err2.Error())
+		
+		splitFileName := strings.Split(f.Filename, ".")
+		extension := splitFileName[len(splitFileName)-1]
+
+		if extension != "jpg" && extension != "JPG" && extension != "PNG" &&  extension != "png" && extension != "jpeg" && extension != "JPEG" {
+			c.Writer.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		err5 := c.SaveUploadedFile(f, "assets/"+strconv.Itoa(chatID)+"."+extension)
+		if err5 != nil {
+			fmt.Println("ERROR #133 : ", err5.Error())
 		}
 	}
+}
+
+func GetImageThumbnailHandler(c *gin.Context) {
+	chatID := c.Param("chatID")
+
+	file, err1 := os.Open("assets/"+chatID+".png")
+	if err1 != nil {
+		fmt.Println("ERROR #131 : ", err1.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+
+	_, err2 := io.Copy(c.Writer, file)
+	if err2 != nil {
+		fmt.Println("ERROR #132 : ", err2.Error())
+		c.Writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	
+	// c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 }

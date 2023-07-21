@@ -1307,11 +1307,7 @@ func InsertFileHandler(c *gin.Context) {
 
 	fileKind := c.Param("filekind")
 
-	chatID, err3 := model.InsertChatAndGetChatID("", uuid, getTimeNow().Format("2006-01-02 03:04:05"), 1)
-	if err3 != nil {
-		fmt.Println("ERROR #132 : ", err3.Error())
-	}
-
+	
 	switch fileKind {
 	case "image" :
 		f, err4 := c.FormFile("file")
@@ -1321,6 +1317,11 @@ func InsertFileHandler(c *gin.Context) {
 		
 		splitFileName := strings.Split(f.Filename, ".")
 		extension := splitFileName[len(splitFileName)-1]
+
+		chatID, err3 := model.InsertChatAndGetChatID(f.Filename, uuid, getTimeNow().Format("2006-01-02 03:04:05"), 1)
+		if err3 != nil {
+			fmt.Println("ERROR #132 : ", err3.Error())
+		}
 
 		if extension != "jpg" && extension != "JPG" && extension != "PNG" &&  extension != "png" && extension != "jpeg" && extension != "JPEG" {
 			c.Writer.WriteHeader(http.StatusBadRequest)

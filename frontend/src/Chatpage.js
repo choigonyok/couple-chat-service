@@ -28,7 +28,9 @@ const Chatpage = () => {
   const [answerButton, setAnswerButton] = useState(false);
   const [rankingButton, setRankingButton] = useState(false);
   const [calenderButton, setCalenderButton] = useState(false);
+  const [fileClick, setFileClick] = useState(0);
 
+  
   const [chatID, setChatID] = useState(0);
 
   useEffect(() => {
@@ -132,8 +134,8 @@ const Chatpage = () => {
         ":" +
         nowSecond;
 
-        // 파일 전송시
-        // 0 : 이미지
+      // 파일 전송시
+      // 0 : 이미지
       if (data === 0) {
         const sendData = [
           {
@@ -239,10 +241,31 @@ const Chatpage = () => {
     setAnswerButton(false);
     setRankingButton(false);
   };
-console.log(recievedMessage);
-console.log(recievedMessage);
+
+  const fileClickHandler = (value) => {
+    setFileClick(value.chat_id);
+  };
+
+  const resetFileClickHandler = () => {
+    setFileClick(0);
+  }
+
   return (
     <div className="page-container">
+      {fileClick !== 0 && (
+        <div>
+          <div>
+            <img
+              src={
+                process.env.REACT_APP_HOST_URL + "/api/file/img/" + fileClick
+              }
+            />
+          </div>
+          <div>
+            <input type="button" value="X" onClick={resetFileClickHandler}/>
+          </div>
+        </div>
+      )}
       <div className="button-container">
         <div>
           <input
@@ -292,7 +315,21 @@ console.log(recievedMessage);
               {item.is_answer === 0 && item.writer_id === myUUID && (
                 <div className="chat-container__chat__usr">
                   <div className="chat-container__chatandbutton">
-                    <div className="chat__usr">{item.is_file === 0 ? item.text_body : <img src={process.env.REACT_APP_HOST_URL+"/api/file/img/"+item.chat_id}/>}</div>
+                    <div className="chat__usr">
+                      {item.is_file === 0 ? (
+                        item.text_body
+                      ) : (
+                        <img
+                          src={
+                            process.env.REACT_APP_HOST_URL +
+                            "/api/file/img/" +
+                            item.chat_id
+                          }
+                          className="chat__image"
+                          onClick={() => fileClickHandler(item)}
+                        />
+                      )}
+                    </div>
                     <div>
                       <input
                         type="button"
@@ -308,7 +345,21 @@ console.log(recievedMessage);
               {item.is_answer === 0 && item.writer_id !== myUUID && (
                 <div className="chat-container__chat__other">
                   <div>
-                    <div className="chat__other">{item.is_file === 0 ? item.text_body : <img src={process.env.REACT_APP_HOST_URL+"/api/file/img/"+item.chat_id}/>}</div>
+                    <div className="chat__other">
+                      {item.is_file === 0 ? (
+                        item.text_body
+                      ) : (
+                        <img
+                          src={
+                            process.env.REACT_APP_HOST_URL +
+                            "/api/file/img/" +
+                            item.chat_id
+                          }
+                          className="chat__image"
+                          onClick={() => fileClickHandler(item)}
+                        />
+                      )}
+                    </div>
                   </div>
                   <div className="chat__time">{chatDate[index]}</div>
                 </div>
@@ -348,6 +399,7 @@ console.log(recievedMessage);
         <Cutconn />
         <Canclecutconn />
       </div>
+      
     </div>
   );
 };

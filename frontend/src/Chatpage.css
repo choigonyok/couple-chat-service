@@ -169,7 +169,14 @@
   height: fit-content;
   margin-top: 0.5vh;
 }
-
+.chat__image{
+  display: flex;
+  max-width: 30vw;
+  max-height: 30vw;
+  object-fit: contain;
+  border-radius: 10px;
+  cursor: pointer;
+}
 .chat__answer {
   display: flex;
   background-color: rgb(212, 183, 250);

@@ -169,7 +169,8 @@ const Chatpage = () => {
   const deleteChatHandler = (value) => {
     const sendData = [
       {
-        chat_id: value,
+        is_file: value.is_file,
+        chat_id: value.chat_id,
         is_deleted: 1,
       },
     ];
@@ -297,7 +298,7 @@ console.log(recievedMessage);
                         type="button"
                         value="X"
                         className="chat__button"
-                        onClick={() => deleteChatHandler(item.chat_id)}
+                        onClick={() => deleteChatHandler(item)}
                       />
                     </div>
                   </div>

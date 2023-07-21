@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -788,10 +789,35 @@ func UpgradeHandler(c *gin.Context){
 		if chatData[0].Is_answer == 1 {
 			recieveAnswer(uuid, conn_id, chatData, first_uuid)
 		} else if chatData[0].Is_deleted == 1 {
-			err := model.DeleteChatByChatID(chatData[0].Chat_id)
+			if chatData[0].Is_file == 1 {
+				err := filepath.Walk("assets", func(path string, info os.FileInfo, err error) error {
+					if err != nil {
+						return err
+					}
+					if !info.IsDir() {
+						if strings.Contains(info.Name(), strconv.Itoa(chatData[0].Chat_id)+".") {
+							err := os.Remove(path)
+							if err != nil {
+								return err
+							}
+						}
+					}
+					return nil
+				})
+				if err != nil {
+					fmt.Println("ERROR #138 : ", err.Error())
+				}
+
+				// err := os.Remove("assets/"+strconv.Itoa(chatData[0].Chat_id)+".*")
+				// if err != nil {
+				// 	fmt.Println("ERROR #136 : ", err.Error())
+				// }
+			}
+			err = model.DeleteChatByChatID(chatData[0].Chat_id)
 			if err != nil {
 				fmt.Println("ERROR #95 : ", err.Error())
 			}
+			
 		} else if chatData[0].Is_file != 1 {
 			chat_id, err := model.InsertChatAndGetChatID(chatData[0].Text_body, uuid, chatData[0].Write_time, chatData[0].Is_file)
 			// 어차피 커넥션 당 메시지 하나씩 전송 받으니까 slice index는 0으로 설정
@@ -1311,13 +1337,33 @@ func InsertFileHandler(c *gin.Context) {
 func GetImageThumbnailHandler(c *gin.Context) {
 	chatID := c.Param("chatID")
 
-	file, err1 := os.Open("assets/"+chatID+".png")
-	if err1 != nil {
-		fmt.Println("ERROR #131 : ", err1.Error())
-		c.Writer.WriteHeader(http.StatusInternalServerError)
-		return
+	var file *os.File
+	err := filepath.Walk("assets", func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			if strings.Contains(info.Name(), chatID+".") {
+				file, err = os.Open(path)
+				if err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		fmt.Println("ERROR #137 : ", err.Error())
 	}
 	defer file.Close()
+
+	// file, err1 := os.Open("assets/"+chatID+".png")
+	// if err1 != nil {
+	// 	fmt.Println("ERROR #131 : ", err1.Error())
+	// 	c.Writer.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
+	// defer file.Close()
 
 	_, err2 := io.Copy(c.Writer, file)
 	if err2 != nil {

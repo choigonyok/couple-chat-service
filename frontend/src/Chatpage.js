@@ -144,6 +144,20 @@ const Chatpage = () => {
             is_answer: 0,
             is_deleted: 0,
             is_file: 1,
+            is_image: 1,
+          },
+        ];
+        newSocket.send(JSON.stringify(sendData));
+      } else if (data === 1) {
+        const sendData = [
+          {
+            text_body: "",
+            write_time: nowformat,
+            writer_id: myUUID,
+            is_answer: 0,
+            is_deleted: 0,
+            is_file: 1,
+            is_image: 0,
           },
         ];
         newSocket.send(JSON.stringify(sendData));
@@ -249,14 +263,32 @@ const Chatpage = () => {
     setFileClick(0);
   };
 
-  const saveFileHandler = () => {
+  const saveFileHandler = (value) => {
+    axios
+      .get(process.env.REACT_APP_HOST_URL + "/api/file/" + value)
+      .then((response) => {
+        const link = document.createElement("a");
+        link.href =
+          process.env.REACT_APP_HOST_URL + "/api/file/img/" + value;
+        link.download = response.data.filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      })
+      .catch((error) => {
+        alert("저장 오류 발생");
+        return;
+      });
+  };
+
+  const saveImageHandler = () => {
     axios
       .get(process.env.REACT_APP_HOST_URL + "/api/file/" + fileClick)
       .then((response) => {
         const link = document.createElement("a");
         link.href =
           process.env.REACT_APP_HOST_URL + "/api/file/img/" + fileClick;
-        link.download = response.data.filename; // 다운로드되는 파일 이름을 설정합니다.
+        link.download = response.data.filename;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -280,7 +312,7 @@ const Chatpage = () => {
           </div>
           <div>
             <input type="button" value="X" onClick={resetFileClickHandler} />
-            <input type="button" value="저장하기" onClick={saveFileHandler} />
+            <input type="button" value="저장하기" onClick={saveImageHandler} />
           </div>
         </div>
       )}
@@ -336,7 +368,7 @@ const Chatpage = () => {
                     <div className="chat__usr">
                       {item.is_file === 0 ? (
                         item.text_body
-                      ) : (
+                      ) : item.is_image === 1 ? (
                         <img
                           src={
                             process.env.REACT_APP_HOST_URL +
@@ -346,6 +378,10 @@ const Chatpage = () => {
                           className="chat__image"
                           onClick={() => fileClickHandler(item)}
                         />
+                      ) : (
+                        <div className="chat__file" onClick={()=>saveFileHandler(item.chat_id)}>
+                          <div>{item.text_body}</div>
+                        </div>
                       )}
                     </div>
                     <div>
@@ -366,7 +402,7 @@ const Chatpage = () => {
                     <div className="chat__other">
                       {item.is_file === 0 ? (
                         item.text_body
-                      ) : (
+                      ) : item.is_image === 1 ? (
                         <img
                           src={
                             process.env.REACT_APP_HOST_URL +
@@ -376,6 +412,10 @@ const Chatpage = () => {
                           className="chat__image"
                           onClick={() => fileClickHandler(item)}
                         />
+                      ) : (
+                        <div className="chat__file" onClick={()=>saveFileHandler(item.chat_id)}>
+                          <div>{item.text_body}</div>
+                        </div>
                       )}
                     </div>
                   </div>

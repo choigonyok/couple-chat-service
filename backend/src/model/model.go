@@ -20,6 +20,7 @@ type ChatData struct {
 	Question_id int `json:"question_id"`
 	Is_deleted int `json:"is_deleted"`
 	Is_file int `json:"is_file"`
+	Is_image int `json:"is_image"`
 }
 
 type RequestData struct {
@@ -369,14 +370,14 @@ func SelectChatByUsrsUUID(first_uuid, second_uuid string) ([]ChatData, error) {
 	initialChat := ChatData{}
 	initialChats := []ChatData{}
 
-	r, err := db.Query(`SELECT chat_id, writer_id, write_time, text_body, is_file FROM chat WHERE writer_id = "`+first_uuid+`" or writer_id = "`+second_uuid+`" ORDER BY chat_id ASC`)
+	r, err := db.Query(`SELECT chat_id, writer_id, write_time, text_body, is_file, is_image FROM chat WHERE writer_id = "`+first_uuid+`" or writer_id = "`+second_uuid+`" ORDER BY chat_id ASC`)
 	defer r.Close()
 	if err != nil {
 		return nil, err
 	}
 
 	for r.Next() {
-		r.Scan(&initialChat.Chat_id, &initialChat.Writer_id, &initialChat.Write_time, &initialChat.Text_body, &initialChat.Is_file)
+		r.Scan(&initialChat.Chat_id, &initialChat.Writer_id, &initialChat.Write_time, &initialChat.Text_body, &initialChat.Is_file, &initialChat.Is_image)
 		initialChat.Is_deleted = 0
 		initialChat.Is_answer = 0
 		initialChats = append(initialChats, initialChat)		
@@ -384,8 +385,8 @@ func SelectChatByUsrsUUID(first_uuid, second_uuid string) ([]ChatData, error) {
 	return initialChats, nil
 }
 
-func InsertChatAndGetChatID(text_body, writer_id, write_time string, is_file int) (int, error) {
-	_, err1 := db.Query(`INSERT INTO chat (text_body, writer_id, write_time, is_file) VALUES ("`+text_body+`", "`+writer_id+`", "`+write_time+`", "`+strconv.Itoa(is_file)+`")`)
+func InsertChatAndGetChatID(text_body, writer_id, write_time string, is_file, is_image int) (int, error) {
+	_, err1 := db.Query(`INSERT INTO chat (text_body, writer_id, write_time, is_file, is_image) VALUES ("`+text_body+`", "`+writer_id+`", "`+write_time+`", "`+strconv.Itoa(is_file)+`", "`+strconv.Itoa(is_image)+`")`)
 	if err1 != nil {
 		return 0, err1
 	}
@@ -722,6 +723,17 @@ func GetChatIDFromRecentFileChatByUUID(uuid string) (int, error) {
 	}
 	
 	return 0, err	
+}
+
+func GetTextBodyByChatID(chat_id int) (string, error){
+	r, err := db.Query("SELECT text_body FROM chat WHERE chat_id = "+strconv.Itoa(chat_id))
+	if err != nil {
+		return "", err
+	}
+	var text_data string
+	r.Next()
+	r.Scan(&text_data)
+	return text_data, nil
 }
 
 // TEST

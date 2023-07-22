@@ -32,23 +32,31 @@ const Inputbox = (props) => {
     }
   };
 
-  const imgHandler = (e) => {
-    const fileKind = "image";
+  const fileHandler = (e) => {
     const file = new FormData();
     file.set("file", e.target.files[0]);
     axios
-      .post(process.env.REACT_APP_HOST_URL + "/api/file/" + fileKind, file, {
+      .post(process.env.REACT_APP_HOST_URL + "/api/file", file, {
         withCredentials: true,
         "Content-Type": "multipart/form-data",
       })
       .then((response) => {
         alert("파일전송 성공");
-        props.onSendMessage(0);
+        if (e.target.files[0].type.includes("image/")) {
+          props.onSendMessage(0);
+        } else {
+          props.onSendMessage(1);
+        }
+        
         setChat("");
       })
       .catch((error) => {
-        alert("파일전송 실패");
-        console.log(error);
+        if (error.response.status === 400) {
+          alert("전송할 수 없는 파일 형식입니다.");
+        } else {
+          alert("파일전송 실패");
+          console.log(error);
+        }
       });
   };
 
@@ -67,7 +75,7 @@ const Inputbox = (props) => {
         id="imgfile"
         name="imgfile"
         className="file-button"
-        onChange={imgHandler}
+        onChange={fileHandler}
       />
     </div>
   );

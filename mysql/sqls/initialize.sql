@@ -19,7 +19,8 @@ CREATE TABLE `chat` (
         `write_time` DATETIME NOT NULL,
         `text_body` TEXT NOT NULL,
         `is_answer` TINYINT(1) DEFAULT 0,
-        `is_file` TINYINT(1) DEFAULT 0);
+        `is_file` TINYINT(1) DEFAULT 0,
+        `is_image` TINYINT(1) DEFAULT 0);
 
 CREATE TABLE `request` (
         `request_id` INT AUTO_INCREMENT NOT NULL PRIMARY KEY,

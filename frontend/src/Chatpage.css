@@ -177,6 +177,19 @@
   border-radius: 10px;
   cursor: pointer;
 }
+.chat__file{
+  display: flex;
+  max-width: 30vw;
+  overflow-x: hidden;
+  background-color: white;
+  padding: 0.5vw;
+  margin-right: 0.5vw;
+  margin-left: 0.5vw;
+  font-size: 18px;
+  border: 1px solid black;
+  cursor: pointer;
+}
+
 .chat__answer {
   display: flex;
   background-color: rgb(212, 183, 250);

@@ -93,7 +93,7 @@ func Test(){
 
 	r, _ = model.TestChat()
 	for r.Next(){
-		r.Scan(&chatData.Chat_id, &chatData.Writer_id, &chatData.Write_time, &chatData.Text_body, &chatData.Is_answer,&chatData.Is_file)
+		r.Scan(&chatData.Chat_id, &chatData.Writer_id, &chatData.Write_time, &chatData.Text_body, &chatData.Is_answer,&chatData.Is_file, &chatData.Is_image)
 		chatDatas = append(chatDatas, chatData)
 	}
 	fmt.Println("chat DB : ", chatDatas)
@@ -796,7 +796,7 @@ func UpgradeHandler(c *gin.Context){
 						return err
 					}
 					if !info.IsDir() {
-						if strings.Contains(info.Name(), strconv.Itoa(chatData[0].Chat_id)+".") {
+						if strings.Contains(info.Name(), strconv.Itoa(chatData[0].Chat_id)+"-") {
 							err := os.Remove(path)
 							if err != nil {
 								return err
@@ -808,11 +808,6 @@ func UpgradeHandler(c *gin.Context){
 				if err != nil {
 					fmt.Println("ERROR #138 : ", err.Error())
 				}
-
-				// err := os.Remove("assets/"+strconv.Itoa(chatData[0].Chat_id)+".*")
-				// if err != nil {
-				// 	fmt.Println("ERROR #136 : ", err.Error())
-				// }
 			}
 			err = model.DeleteChatByChatID(chatData[0].Chat_id)
 			if err != nil {
@@ -820,7 +815,7 @@ func UpgradeHandler(c *gin.Context){
 			}
 			
 		} else if chatData[0].Is_file != 1 {
-			chat_id, err := model.InsertChatAndGetChatID(chatData[0].Text_body, uuid, chatData[0].Write_time, chatData[0].Is_file)
+			chat_id, err := model.InsertChatAndGetChatID(chatData[0].Text_body, uuid, chatData[0].Write_time, 0, 0)
 			// 어차피 커넥션 당 메시지 하나씩 전송 받으니까 slice index는 0으로 설정
 			if err != nil {
 				fmt.Println("ERROR #40 : ", err.Error())
@@ -832,6 +827,11 @@ func UpgradeHandler(c *gin.Context){
 				fmt.Println("ERROR #134 : ", err.Error())
 			}
 			chatData[0].Chat_id = chatID
+			text_body, err2 := model.GetTextBodyByChatID(chatID)
+			if err2 != nil {
+				fmt.Println("ERROR #135 : ", err2.Error())
+			}
+			chatData[0].Text_body = text_body
 		}
 		
 		target_conn := []*websocket.Conn{}
@@ -1306,33 +1306,32 @@ func InsertFileHandler(c *gin.Context) {
 		fmt.Println("ERROR #130 : ", err1.Error())
 	}
 
-	fileKind := c.Param("filekind")
+	f, err4 := c.FormFile("file")
+	if err4 != nil {
+		fmt.Println("ERROR #132 : ", err4.Error())
+	}
 
-	
-	switch fileKind {
-	case "image" :
-		f, err4 := c.FormFile("file")
-		if err4 != nil {
-			fmt.Println("ERROR #132 : ", err4.Error())
-		}
-		
-		splitFileName := strings.Split(f.Filename, ".")
-		extension := splitFileName[len(splitFileName)-1]
+	mimeType := f.Header.Get("Content-Type")
 
-		chatID, err3 := model.InsertChatAndGetChatID(f.Filename, uuid, getTimeNow().Format("2006-01-02 03:04:05"), 1)
-		if err3 != nil {
-			fmt.Println("ERROR #132 : ", err3.Error())
-		}
+	if  !strings.Contains(mimeType,"application/") && !strings.Contains(mimeType,"text/") && !strings.Contains(mimeType,"audio/") && !strings.Contains(mimeType,"video/") && !strings.Contains(mimeType,"image/"){
+		c.Writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
-		if extension != "jpg" && extension != "JPG" && extension != "PNG" &&  extension != "png" && extension != "jpeg" && extension != "JPEG" {
-			c.Writer.WriteHeader(http.StatusBadRequest)
-			return
-		}
+	var err3 error
+	var chatID int
+	if strings.Contains(mimeType,"image/") {
+		chatID, err3 = model.InsertChatAndGetChatID(f.Filename, uuid, getTimeNow().Format("2006-01-02 03:04:05"), 1, 1)
+	} else {
+		chatID, err3 = model.InsertChatAndGetChatID(f.Filename, uuid, getTimeNow().Format("2006-01-02 03:04:05"), 1, 0)
+	}
+	if err3 != nil {
+		fmt.Println("ERROR #132 : ", err3.Error())
+	}
 
-		err5 := c.SaveUploadedFile(f, "assets/"+strconv.Itoa(chatID)+"-"+f.Filename)
-		if err5 != nil {
-			fmt.Println("ERROR #133 : ", err5.Error())
-		}
+	err5 := c.SaveUploadedFile(f, "assets/"+strconv.Itoa(chatID)+"-"+f.Filename)
+	if err5 != nil {
+		fmt.Println("ERROR #133 : ", err5.Error())
 	}
 }
 
@@ -1359,22 +1358,12 @@ func GetImageThumbnailHandler(c *gin.Context) {
 	}
 	defer file.Close()
 
-	// file, err1 := os.Open("assets/"+chatID+".png")
-	// if err1 != nil {
-	// 	fmt.Println("ERROR #131 : ", err1.Error())
-	// 	c.Writer.WriteHeader(http.StatusInternalServerError)
-	// 	return
-	// }
-	// defer file.Close()
-
 	_, err2 := io.Copy(c.Writer, file)
 	if err2 != nil {
 		fmt.Println("ERROR #132 : ", err2.Error())
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	
-	// c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 }
 
 func GetFileNameHandler(c *gin.Context) {
@@ -1389,7 +1378,6 @@ func GetFileNameHandler(c *gin.Context) {
 				}{
 					FileName: fileName,
 				}
-
 				marshaledData, err := json.Marshal(sendData)
 				if err != nil {
 					fmt.Println("ERROR #139 : ", err.Error())

@@ -24,9 +24,14 @@ const Answer = () => {
             <div className="answer-container__question">
               {item.question_contents}
             </div>
+
             <div className="answer-container__seperate">
-              <div className="answer__first">{item.first_answer}</div>
-              <div className="answer__first">{item.second_answer}</div>
+              <div className="answer__second">
+                {item.order === 1 ? item.second_answer : item.first_answer}
+              </div>
+              <div className="answer__first">
+                {item.order === 1 ? item.first_answer : item.second_answer}
+              </div>
             </div>
             <div className="answer__date">{item.answer_date}</div>
             <br />

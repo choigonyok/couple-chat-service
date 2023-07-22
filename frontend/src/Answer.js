@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import "./Answer.css";
 
 const Answer = () => {
   const [answers, setAnswers] = useState([]);
@@ -17,16 +18,17 @@ const Answer = () => {
 
   return (
     <div>
-      ANSWER
       {answers.length > 0 &&
         answers.map((item, index) => (
-          <div>
-            <div>
-              질문 {index + 1} : {item.question_contents}
+          <div className="answer-container">
+            <div className="answer-container__question">
+              {item.question_contents}
             </div>
-            <div>첫 번째 대답 : {item.first_answer}</div>
-            <div>두 번째 대답 : {item.second_answer}</div>
-            <div>대답한 날짜 : {item.answer_date}</div>
+            <div className="answer-container__seperate">
+              <div className="answer__first">{item.first_answer}</div>
+              <div className="answer__first">{item.second_answer}</div>
+            </div>
+            <div className="answer__date">{item.answer_date}</div>
             <br />
           </div>
         ))}

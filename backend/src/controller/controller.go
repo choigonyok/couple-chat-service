@@ -658,14 +658,18 @@ func DeleteOneRequestHandler(c *gin.Context){
 
 // answers 불러오기
 func GetAnswerHandler(c *gin.Context){
-	conn_id, err := GetConnIDByCookie(c)
+	uuid, err := model.CookieExist(c)
+
+	conn_id, err := model.SelectConnIDByUUID(uuid)
 	if err != nil {
 		fmt.Println("ERROR #123 : ",  err.Error())
 		c.Writer.WriteHeader(http.StatusInternalServerError)
 		return 
 	}
 
-	answerDatas, err := model.GetAnswerandQuestionContentsByConnID(conn_id)
+	order, err := model.GetUsrOrderByUUID(uuid)
+
+	answerDatas, err := model.GetAnswerandQuestionContentsByConnIDWithOrder(conn_id, order)
 	if err != nil {
 		fmt.Println("ERROR #31 : ", err.Error())
 		c.Writer.WriteHeader(http.StatusInternalServerError)

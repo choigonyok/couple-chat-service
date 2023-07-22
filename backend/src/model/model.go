@@ -55,6 +55,7 @@ type AnswerData struct {
 	SecondAnswer string `json:"second_answer"`
 	AnswerDate string `json:"answer_date"`
 	Question_id int
+	Order int `json:"order"`
 }
 
 type BeAboutToDeleteData struct {
@@ -304,7 +305,7 @@ func SelectConnIDByUUID(uuid string) (int, error) {
 	return connID, nil
 }
 
-func GetAnswerandQuestionContentsByConnID(connection_id int) ([]AnswerData, error) {
+func GetAnswerandQuestionContentsByConnIDWithOrder(connection_id, order int) ([]AnswerData, error) {
 	r, err1 := db.Query(`SELECT first_answer, second_answer, answer_date, question_id FROM answer WHERE connection_id = "`+strconv.Itoa(connection_id)+`"`)
 	defer r.Close()
 	if err1 != nil {
@@ -328,6 +329,7 @@ func GetAnswerandQuestionContentsByConnID(connection_id int) ([]AnswerData, erro
 		if answerData.FirstAnswer == "not-written" || answerData.SecondAnswer == "not-written" {
 			continue
 		}
+		answerData.Order = order
 		answerDatas = append(answerDatas, answerData)
 	}
 	return answerDatas, nil
@@ -786,16 +788,16 @@ func TestAnniversary() (*sql.Rows, error) {
 
 func DeleteAll(){
 	// _, _ = db.Query("DELETE FROM usrs")
-	_, _ = db.Query("DELETE FROM chat")
-	_, _ = db.Query("DELETE FROM request")
+	// _, _ = db.Query("DELETE FROM chat")
+	// _, _ = db.Query("DELETE FROM request")
 	// _, _ = db.Query("DELETE FROM connection")
-	_, _ = db.Query("DELETE FROM answer")
-	_, _ = db.Query("DELETE FROM exceptionword")
-	_, _ = db.Query("DELETE FROM anniversary")
+	// _, _ = db.Query("DELETE FROM answer")
+	// _, _ = db.Query("DELETE FROM exceptionword")
+	// _, _ = db.Query("DELETE FROM anniversary")
 	// _, _ = db.Query("DELETE FROM question")
-	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("강아지", "강아지와 고양이 중 뭐가 더 좋아?")`)
-	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("운동", "운동하는 거 좋아해?")`)
-	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("남사친", "남사친/여사친 어디까지 허용 가능하다!")`)
-	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("엄마", "부모님께 존댓말 써?")`)
-	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("결혼", "결혼은 언제쯤 하고싶어?")`)
+	_,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("강아지", "강아지와 고양이 중 뭐가 더 좋아?")`)
+	_,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("운동", "운동하는 거 좋아해?")`)
+	_,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("남사친", "남사친/여사친 어디까지 허용 가능하다!")`)
+	_,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("엄마", "부모님께 존댓말 써?")`)
+	_,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("결혼", "결혼은 언제쯤 하고싶어?")`)
 }

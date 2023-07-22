@@ -351,9 +351,10 @@ func LogOutHandler(c *gin.Context){
 // 기존 로그인 되있던 상태인지 쿠키 확인	
 func AlreadyLogInCheckHandler(c *gin.Context){
 	conn_id, err := GetConnIDByCookie(c)
+
 	if err != nil {
 		fmt.Println("ERROR #121 : ",  err.Error())
-		c.Writer.WriteHeader(http.StatusInternalServerError)
+		c.Writer.WriteHeader(http.StatusUnauthorized)
 		return 
 	}
 

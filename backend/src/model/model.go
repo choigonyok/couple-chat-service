@@ -288,7 +288,7 @@ func DeleteRequestByRequestID(request_id string) error {
 }
 
 func SelectConnIDByUUID(uuid string) (int, error) {
-	r, err1 := db.Query(`SELECT connection_id FROM connection WHERE first_usr = "`+uuid+`" or second_usr = "`+uuid+`"`)
+	r, err1 := db.Query(`SELECT conn_id FROM usrs WHERE uuid = "`+uuid+`"`)
 	defer r.Close()
 	if err1 != nil {
 		return 0, err1
@@ -774,13 +774,13 @@ func TestAnniversary() (*sql.Rows, error) {
 }
 
 func DeleteAll(){
-	// _, _ = db.Query("DELETE FROM usrs")
+	_, _ = db.Query("DELETE FROM usrs")
 	_, _ = db.Query("DELETE FROM chat")
-	// _, _ = db.Query("DELETE FROM request")
-	// _, _ = db.Query("DELETE FROM connection")
-	// _, _ = db.Query("DELETE FROM answer")
-	// _, _ = db.Query("DELETE FROM exceptionword")
-	// _, _ = db.Query("DELETE FROM anniversary")
+	_, _ = db.Query("DELETE FROM request")
+	_, _ = db.Query("DELETE FROM connection")
+	_, _ = db.Query("DELETE FROM answer")
+	_, _ = db.Query("DELETE FROM exceptionword")
+	_, _ = db.Query("DELETE FROM anniversary")
 	// _, _ = db.Query("DELETE FROM question")
 	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("강아지", "강아지와 고양이 중 뭐가 더 좋아?")`)
 	// _,_=db.Query(`INSERT INTO QUESTION (target_word, question_contents) VALUES ("운동", "운동하는 거 좋아해?")`)

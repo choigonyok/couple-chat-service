@@ -18,8 +18,6 @@ const Dday = () => {
           dday.setMonth(response.data[0].month - 1);
           dday.setDate(response.data[0].date);
           const subTime = dday.getTime() - now.getTime();
-          console.log("now : ", now.toDateString());
-          console.log("dday : ", dday.toDateString());
           setSubDate(subTime / 1000 / 3600 / 24);
         }
       })

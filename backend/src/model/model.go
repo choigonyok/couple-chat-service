@@ -727,8 +727,7 @@ func GetChatIDFromRecentFileChatByUUID(uuid string) (int, error) {
 
 func GetTextBodyByChatID(chat_id int) (string, error){
 	r, err := db.Query("SELECT text_body FROM chat WHERE chat_id = "+strconv.Itoa(chat_id))
-	if err != nil {
-		return "", err
+	if err != nil {		return "", err
 	}
 	var text_data string
 	r.Next()

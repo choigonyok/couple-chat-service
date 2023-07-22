@@ -422,6 +422,32 @@ func setConnDeleteTimer(uuid string, connection_id int) {
 		if err1 != nil {
 			fmt.Println("ERROR #129 : ", err1.Error())
 		}
+
+		// 서버에 저장되어있던 채팅 파일 삭제
+		chatDatas, _ := model.SelectChatByUsrsUUID(first_usr, second_usr)
+		for _, v := range chatDatas {
+			if v.Is_file == 1 {
+				err := filepath.Walk("assets", func(path string, info os.FileInfo, err error) error {
+					if err != nil {
+						return err
+					}
+					if !info.IsDir() {
+						if strings.Contains(info.Name(), strconv.Itoa(v.Chat_id)+"-") {
+							err := os.Remove(path)
+							if err != nil {
+								return err
+							}
+						}
+					}
+					return nil
+				})
+				if err != nil {
+					fmt.Println("ERROR #140 : ", err.Error())
+				}
+			}
+		}
+
+		// connection 관련 db 레코드 삭제
 		err2 := model.DeleteConnectionByConnID(first_usr, second_usr, conn_id)
 		if err2 != nil {
 			fmt.Println("ERROR #90 : ", err2.Error())

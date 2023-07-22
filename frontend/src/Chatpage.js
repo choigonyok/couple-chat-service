@@ -251,12 +251,12 @@ const Chatpage = () => {
 
   const saveFileHandler = () => {
     axios
-      .get(process.env.REACT_APP_HOST_URL + "/api/file/extension/" + fileClick)
+      .get(process.env.REACT_APP_HOST_URL + "/api/file/" + fileClick)
       .then((response) => {
         const link = document.createElement("a");
         link.href =
           process.env.REACT_APP_HOST_URL + "/api/file/img/" + fileClick;
-        link.download = "ChatImage." + response.data.extension; // 다운로드되는 파일 이름을 설정합니다.
+        link.download = response.data.filename; // 다운로드되는 파일 이름을 설정합니다.
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

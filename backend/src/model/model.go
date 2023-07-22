@@ -774,10 +774,10 @@ func TestAnniversary() (*sql.Rows, error) {
 }
 
 func DeleteAll(){
-	_, _ = db.Query("DELETE FROM usrs")
+	// _, _ = db.Query("DELETE FROM usrs")
 	_, _ = db.Query("DELETE FROM chat")
 	_, _ = db.Query("DELETE FROM request")
-	_, _ = db.Query("DELETE FROM connection")
+	// _, _ = db.Query("DELETE FROM connection")
 	_, _ = db.Query("DELETE FROM answer")
 	_, _ = db.Query("DELETE FROM exceptionword")
 	_, _ = db.Query("DELETE FROM anniversary")

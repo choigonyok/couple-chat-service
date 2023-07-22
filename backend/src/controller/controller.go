@@ -1329,7 +1329,7 @@ func InsertFileHandler(c *gin.Context) {
 			return
 		}
 
-		err5 := c.SaveUploadedFile(f, "assets/"+strconv.Itoa(chatID)+"."+extension)
+		err5 := c.SaveUploadedFile(f, "assets/"+strconv.Itoa(chatID)+"-"+f.Filename)
 		if err5 != nil {
 			fmt.Println("ERROR #133 : ", err5.Error())
 		}
@@ -1345,7 +1345,7 @@ func GetImageThumbnailHandler(c *gin.Context) {
 			return err
 		}
 		if !info.IsDir() {
-			if strings.Contains(info.Name(), chatID+".") {
+			if strings.Contains(info.Name(), chatID+"-") {
 				file, err = os.Open(path)
 				if err != nil {
 					return err
@@ -1377,18 +1377,17 @@ func GetImageThumbnailHandler(c *gin.Context) {
 	// c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 }
 
-func GetFileExtensionHandler(c *gin.Context) {
+func GetFileNameHandler(c *gin.Context) {
 	chatID := c.Param("chatID")
-
 
 	err := filepath.Walk("assets", func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
-			if strings.Contains(info.Name(), chatID+".") {
-				_, extension, _ := strings.Cut(info.Name(),".")
+			if strings.Contains(info.Name(), chatID+"-") {
+				fileName := strings.TrimPrefix(info.Name(),chatID+"-")
 				sendData := struct {
-					Extension string `json:"extension"`
+					FileName string `json:"filename"`
 				}{
-					Extension: extension,
+					FileName: fileName,
 				}
 
 				marshaledData, err := json.Marshal(sendData)

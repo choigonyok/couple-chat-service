@@ -7,7 +7,6 @@
 
 .inputbox {
   display: flex;
-  background-color: transparent;
   border: 2px solid white;
   width: 70vw;
   margin-top: 1vh;

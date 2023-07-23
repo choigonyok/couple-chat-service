@@ -3,4 +3,4 @@ go.sum
 .DS_store
 .env
 main
-assets
+/assets

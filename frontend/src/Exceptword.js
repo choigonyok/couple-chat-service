@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import "./Exceptword.css";
 
 const Exceptword = () => {
   const [inputWord, setInputWord] = useState("");
@@ -93,63 +94,82 @@ const Exceptword = () => {
   const tenWordsHandler = () => {
     setWordNum("10");
   };
-  
+
   return (
-    <div>
-      <div>
+    <div className="exceptword-container">
+      <div className="exceptword-container__seperate">
+        지난 한 주 우리가 많이 말한 단어 TOP {wordNum}
+      </div>
+      <div className="exceptword-container__seperate">
+        <input type="button" value="3개" onClick={threeWordsHandler} className="exceptword-ranknum"/>
+        <input type="button" value="5개" onClick={fiveWordsHandler} className="exceptword-ranknum"/>
+        <input type="button" value="10개" onClick={tenWordsHandler} className="exceptword-ranknum"/>
+      </div>
+      <div className="exceptword-container__lists">
+        <div className="exceptword-container__rank">
+          <div className="exceptword-container__rank__other">
+            <div>상대방이 쓴 단어</div>
+
+            {otherWords.map((item, index) => (
+              <div>
+                {index + 1}위 : {item}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="exceptword-container__rank">
+          <div className="exceptword-container__rank__mine">
+            <div>내가 쓴 단어</div>
+            {myWords.map((item, index) => (
+              <div>
+                {index + 1}위 : {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="exceptword-container__seperate">
         <input
           type="text"
           placeholder="제외할 단어롤 입력해주세요"
           value={inputWord}
           onChange={inputWordHandler}
+          className="exceptword-input"
         />
-        <input type="button" value="확인" onClick={clickHandler} />
+        <input
+          type="button"
+          value="확인"
+          onClick={clickHandler}
+          className="exceptword-button"
+        />
       </div>
-      <div>현재 순위에서 제외된 단어들</div>
-      <div>
+      <div className="exceptword-container__seperate">
+        <div className="exceptword-font">현재 순위에서 제외된 단어들</div>
+      </div>
+      <div className="exceptword-container__seperate">
         {exceptWords.length > 1 &&
           exceptWords.map((item, index) => (
-            <div>
+            <div className="exceptword-words">
               {item}
               <input
                 type="button"
                 value="X"
+                className="exceptword-words__button"
                 onClick={() => deleteExceptWordHandler(item)}
               />
             </div>
           ))}
         {exceptWords.length === 1 && (
-          <div>
+          <div className="exceptword-words">
             {exceptWords[0]}
             <input
               type="button"
               value="X"
+              className="exceptword-words__button"
               onClick={() => deleteExceptWordHandler(exceptWords[0])}
             />
           </div>
         )}
-      </div>
-      <div>많이 쓴 단어 상위 {wordNum}개</div>
-      <input type="button" value="3개" onClick={threeWordsHandler} />
-      <input type="button" value="5개" onClick={fiveWordsHandler} />
-      <input type="button" value="10개" onClick={tenWordsHandler} />
-      <div>
-        내가 쓴 단어
-        <br />
-        {myWords.map((item, index) => (
-          <div>
-            {index + 1}위 : {item}
-          </div>
-        ))}
-      </div>
-      <div>
-        상대방이 쓴 단어
-        <br />
-        {otherWords.map((item, index) => (
-          <div>
-            {index + 1}위 : {item}
-          </div>
-        ))}
       </div>
     </div>
   );

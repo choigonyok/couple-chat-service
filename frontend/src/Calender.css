@@ -10,6 +10,65 @@
     color: black;
     cursor: pointer;
 }
+
+.calender-container {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.calender-anniversary{
+  display: flex;
+  width: fit-content;
+  font-size: 16px;
+  border: none;
+  margin-top: 1vh;
+  border-radius: 30px;
+  padding: 1vw;
+  background-color: rgb(176, 176, 176);
+  font-weight: 600;
+  color: black;
+}
+
+.calender-aniversary__button {
+  display: flex;
+  border: none;
+  color: black;
+margin-left: 0.5vw;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+
+.calender-lists {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.calender-container__row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 1vw;
+  gap: 10px;
+}
+
+.calender-font {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.calender-container__column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
 .calender {
   display: flex;
   width: auto;
@@ -25,6 +84,38 @@
   flex-direction: row;
   width: auto;
   height: auto;
+}
+
+
+.calender-input {
+  display: flex;
+  width: 15vw;
+  font-size: 16px;
+  border: 2px solid white;
+
+  margin-top: 1vh;
+  border-radius: 30px;
+
+  padding: 1vw;
+
+  background-color: rgb(174, 214, 255);
+  font-weight: 600;
+}
+.calender-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 4vw;
+  font-size: 16px;
+  margin-top: 1vh;
+  border: none;
+  border-radius: 30px;
+
+  padding: 0.5vw;
+
+  background-color: white;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .date {
@@ -75,4 +166,19 @@
 
 .date__date{
   display: flex;
+}
+
+.calender-month__button {
+  display: flex;
+  width: auto;
+  font-size: 16px;
+  border-radius: 30px;
+  padding: 0.5vw;
+  font-weight: 700;
+  color: black;
+  padding-left: 1vw;
+  padding-right: 1vw;
+  background-color: white;
+  font-weight: 600; 
+  cursor: pointer;
 }

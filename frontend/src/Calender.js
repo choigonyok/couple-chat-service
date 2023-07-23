@@ -104,12 +104,11 @@ const Calender = () => {
   };
 
   const dateClickHandler = (value) => {
+    if (dateInfo === value) {
+      setDateInfo(0);
+      return;
+    }
     setDateInfo(value);
-  };
-
-  const deleteBoxHandler = () => {
-    setDateInfo(0);
-    setInputAnniversary("");
   };
 
   const sendAnniversaryHandler = () => {
@@ -160,53 +159,59 @@ const Calender = () => {
   };
 
   return (
-    <div>
+    <div className="calender-container">
       <div>
-        <br />
         <div>
           <Dday />
         </div>
-        <br />
-        <div>
-          {year}년 {month + 1 <= 0 ? ((month + 1) % 12) + 12 : (month % 12) + 1}
-          월
+        <div className="calender-container__row">
+          {dateInfo === 0 && (
+            <div>
+              {year}년{" "}
+              {month + 1 <= 0 ? ((month + 1) % 12) + 12 : (month % 12) + 1}월
+            </div>
+          )}
         </div>
         {dateInfo !== 0 && (
           <div>
-            <div>
-              {year}년
-              {month + 1 <= 0 ? ((month + 1) % 12) + 12 : (month % 12) + 1}월
+            <div className="calender-container__row">
+              {year}년{" "}
+              {month + 1 <= 0 ? ((month + 1) % 12) + 12 : (month % 12) + 1}월{" "}
               {dateInfo}일
             </div>
             {anniversaries.length !== 0 &&
               anniversaries.map(
                 (item, index) =>
                   item.date === dateInfo && (
-                    <div>
-                      {item.contents}
-                      <input
-                        type="button"
-                        value="X"
-                        onClick={() =>
-                          deleteAniversaryHandler(item.anniversary_id)
-                        }
-                      />
+                    <div className="calender-lists">
+                      <div className="calender-anniversary">
+                        {item.contents}
+                        <input
+                          type="button"
+                          value="X"
+                          className="calender-aniversary__button"
+                          onClick={() =>
+                            deleteAniversaryHandler(item.anniversary_id)
+                          }
+                        />
+                      </div>
                     </div>
                   )
               )}
-            <div>
+            <div className="calender-container__row">
               <input
                 type="text"
                 value={inputAnniversary}
                 onChange={inputAnniversaryHandler}
                 placeholder="일정을 입력해주세요"
+                className="calender-input"
               />
               <input
                 type="button"
-                value="일정 저장하기"
+                value="저장"
                 onClick={sendAnniversaryHandler}
+                className="calender-button"
               />
-              <input type="button" value="X" onClick={deleteBoxHandler} />
             </div>
             <div>
               <input
@@ -215,14 +220,31 @@ const Calender = () => {
                 id="dday"
                 onChange={dDayHandler}
               />
-              <label for="dday">D-DAY 설정</label>
+              <label for="dday" className="calender-font">
+                D-DAY 설정
+              </label>
             </div>
           </div>
         )}
-        <div>
-          <input type="button" value="prev" onClick={prevMonthHandler} />
-          <input type="button" value="today" onClick={setTodayHanndler} />
-          <input type="button" value="next" onClick={nextMonthHandler} />
+        <div className="calender-container__row">
+          <input
+            type="button"
+            value="prev"
+            onClick={prevMonthHandler}
+            className="calender-month__button"
+          />
+          <input
+            type="button"
+            value="today"
+            onClick={setTodayHanndler}
+            className="calender-month__button"
+          />
+          <input
+            type="button"
+            value="next"
+            onClick={nextMonthHandler}
+            className="calender-month__button"
+          />
         </div>
         <div className="calender">
           <div className="calender-day__container">

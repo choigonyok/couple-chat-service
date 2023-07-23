@@ -265,11 +265,11 @@ const Chatpage = () => {
 
   const saveFileHandler = (value) => {
     axios
-      .get(process.env.REACT_APP_HOST_URL + "/api/file/" + value)
+      .get(process.env.REACT_APP_HOST_URL + "/api/file/name/" + value)
       .then((response) => {
         const link = document.createElement("a");
         link.href =
-          process.env.REACT_APP_HOST_URL + "/api/file/img/" + value;
+          process.env.REACT_APP_HOST_URL + "/api/file/" + value;
         link.download = response.data.filename;
         document.body.appendChild(link);
         link.click();
@@ -283,11 +283,11 @@ const Chatpage = () => {
 
   const saveImageHandler = () => {
     axios
-      .get(process.env.REACT_APP_HOST_URL + "/api/file/" + fileClick)
+      .get(process.env.REACT_APP_HOST_URL + "/api/file/name/" + fileClick)
       .then((response) => {
         const link = document.createElement("a");
         link.href =
-          process.env.REACT_APP_HOST_URL + "/api/file/img/" + fileClick;
+          process.env.REACT_APP_HOST_URL + "/api/file/" + fileClick;
         link.download = response.data.filename;
         document.body.appendChild(link);
         link.click();
@@ -306,7 +306,7 @@ const Chatpage = () => {
           <div>
             <img
               src={
-                process.env.REACT_APP_HOST_URL + "/api/file/img/" + fileClick
+                process.env.REACT_APP_HOST_URL + "/api/file/" + fileClick
               }
             />
           </div>
@@ -372,7 +372,7 @@ const Chatpage = () => {
                         <img
                           src={
                             process.env.REACT_APP_HOST_URL +
-                            "/api/file/img/" +
+                            "/api/file/" +
                             item.chat_id
                           }
                           className="chat__image"
@@ -406,7 +406,7 @@ const Chatpage = () => {
                         <img
                           src={
                             process.env.REACT_APP_HOST_URL +
-                            "/api/file/img/" +
+                            "/api/file/" +
                             item.chat_id
                           }
                           className="chat__image"

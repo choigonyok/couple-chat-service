@@ -63,8 +63,8 @@ func main() {
 	e.GET("/api/answer", controller.GetAnswerHandler)							// 그동안 답한 내용들을 모아서 보여주기 위한 API
 
 	e.POST("/api/file", controller.InsertFileHandler)							// 채팅으로 보낸 파일 서버에 저장
-	e.GET("/api/file/img/:chatID", controller.GetImageThumbnailHandler)			// chatpage 렌더링용 썸네일 이미지 불러오기
-	e.GET("/api/file/:chatID", controller.GetFileNameHandler)					// 파일이름+확장자 찾기
+	e.GET("/api/file/:chatID", controller.GetFileHandler)					// chatpage 렌더링용 썸네일 이미지 불러오기
+	e.GET("/api/file/name/:chatID", controller.GetFileNameHandler)					// 파일이름+확장자 찾기
 
 	e.GET("/api/chat/word/:param", controller.GetChatWordHandler)				// 단어 기반 채팅 검색
 	e.GET("/api/chat/date", controller.GetChatDateHandler)						// 날짜 기반 채팅 검색

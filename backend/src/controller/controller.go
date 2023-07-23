@@ -893,7 +893,6 @@ func UpgradeHandler(c *gin.Context){
 				}
 			}
 		}
-
 		sendQuestion(chatData, conn_id, target_conn)
 	}
 }
@@ -1365,7 +1364,7 @@ func InsertFileHandler(c *gin.Context) {
 	}
 }
 
-func GetImageThumbnailHandler(c *gin.Context) {
+func GetFileHandler(c *gin.Context) {
 	chatID := c.Param("chatID")
 
 	var file *os.File
@@ -1410,7 +1409,7 @@ func GetFileNameHandler(c *gin.Context) {
 				}
 				marshaledData, err := json.Marshal(sendData)
 				if err != nil {
-					fmt.Println("ERROR #139 : ", err.Error())
+					return err
 				}
 
 				c.Writer.Write(marshaledData)

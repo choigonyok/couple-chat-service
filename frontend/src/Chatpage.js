@@ -33,11 +33,10 @@ const Chatpage = () => {
   const [fileClick, setFileClick] = useState(0);
   const [highLight, setHighLight] = useState(0);
   const [latestChatID, setLatestChatID] = useState(0);
-  
-
-  useEffect (()=>{
+  const [imageLoad, setImageLoad] = useState(false);
+  useEffect(() => {
     setHighLight(0);
-  },[searchButton])
+  }, [searchButton]);
 
   const [chatID, setChatID] = useState(0);
 
@@ -50,10 +49,10 @@ const Chatpage = () => {
       sum = sum + tag.scrollHeight;
     });
     if (flexboxRef.current) {
-      flexboxRef.current.scrollTop = scrollPositions['tag'+id];
+      flexboxRef.current.scrollTop = scrollPositions["tag" + id];
       setHighLight(id);
-    }    
-  }
+    }
+  };
 
   useEffect(() => {
     axios
@@ -89,7 +88,7 @@ const Chatpage = () => {
           setChatID(parsedData[0].chat_id);
         } else {
           setRecievedMessage((prev) => [...prev, ...parsedData]);
-          setLatestChatID(parsedData[(parsedData.length)-1].chat_id);
+          setLatestChatID(parsedData[parsedData.length - 1].chat_id);
           if (parsedData.length !== 0) {
             if (parsedData[0].is_answer === 1) {
               setHideInputBox(true);
@@ -124,10 +123,14 @@ const Chatpage = () => {
     }
   }, [recievedMessage]);
 
-  useEffect(()=>{
+  useEffect(() => {
     onChangeScroll(latestChatID);
     setHighLight(0);
-  },[chatDate])
+  }, [chatDate, imageLoad]);
+
+  const imageLoadHandler = () => {
+    setImageLoad(!imageLoad);
+  }
 
   useEffect(() => {
     const deletedArray = recievedMessage.filter((m) => m.chat_id !== chatID);
@@ -297,8 +300,7 @@ const Chatpage = () => {
       .get(process.env.REACT_APP_HOST_URL + "/api/file/name/" + value)
       .then((response) => {
         const link = document.createElement("a");
-        link.href =
-          process.env.REACT_APP_HOST_URL + "/api/file/" + value;
+        link.href = process.env.REACT_APP_HOST_URL + "/api/file/" + value;
         link.download = response.data.filename;
         document.body.appendChild(link);
         link.click();
@@ -315,8 +317,7 @@ const Chatpage = () => {
       .get(process.env.REACT_APP_HOST_URL + "/api/file/name/" + fileClick)
       .then((response) => {
         const link = document.createElement("a");
-        link.href =
-          process.env.REACT_APP_HOST_URL + "/api/file/" + fileClick;
+        link.href = process.env.REACT_APP_HOST_URL + "/api/file/" + fileClick;
         link.download = response.data.filename;
         document.body.appendChild(link);
         link.click();
@@ -334,9 +335,7 @@ const Chatpage = () => {
         <div>
           <div>
             <img
-              src={
-                process.env.REACT_APP_HOST_URL + "/api/file/" + fileClick
-              }
+              src={process.env.REACT_APP_HOST_URL + "/api/file/" + fileClick}
             />
           </div>
           <div>
@@ -382,7 +381,9 @@ const Chatpage = () => {
         </div>
       </div>
       <div>
-        <div>{searchButton && <Searchword onWordSearch={onChangeScroll}/>}</div>
+        <div>
+          {searchButton && <Searchword onWordSearch={onChangeScroll} />}
+        </div>
         <div>{answerButton && <Answer />}</div>
         <div>{rankingButton && <Exceptword />}</div>
         <div>{calenderButton && <Calender />}</div>
@@ -390,11 +391,17 @@ const Chatpage = () => {
       <div className="chat-container" ref={flexboxRef}>
         {recievedMessage &&
           recievedMessage.map((item, index) => (
-            <div className="chat-box" id={"tag"+item.chat_id}>
+            <div className="chat-box" id={"tag" + item.chat_id}>
               {item.is_answer === 0 && item.writer_id === myUUID && (
-                <div className="chat-container__chat__usr" >
+                <div className="chat-container__chat__usr">
                   <div className="chat-container__chatandbutton">
-                    <div className={item.is_file === 0 && highLight === item.chat_id ? "chat__usr__highlight" : "chat__usr"}>
+                    <div
+                      className={
+                        item.is_file === 0 && highLight === item.chat_id
+                          ? "chat__usr__highlight"
+                          : "chat__usr"
+                      }
+                    >
                       {item.is_file === 0 ? (
                         item.text_body
                       ) : item.is_image === 1 ? (
@@ -404,11 +411,15 @@ const Chatpage = () => {
                             "/api/file/" +
                             item.chat_id
                           }
+                          onLoad={imageLoadHandler}
                           className="chat__image"
                           onClick={() => fileClickHandler(item)}
                         />
                       ) : (
-                        <div className="chat__file" onClick={()=>saveFileHandler(item.chat_id)}>
+                        <div
+                          className="chat__file"
+                          onClick={() => saveFileHandler(item.chat_id)}
+                        >
                           <div>{item.text_body}</div>
                         </div>
                       )}
@@ -428,7 +439,13 @@ const Chatpage = () => {
               {item.is_answer === 0 && item.writer_id !== myUUID && (
                 <div className="chat-container__chat__other">
                   <div>
-                    <div className={item.is_file === 0 && highLight === item.chat_id ? "chat__other__highlight" : "chat__other"}>
+                    <div
+                      className={
+                        item.is_file === 0 && highLight === item.chat_id
+                          ? "chat__other__highlight"
+                          : "chat__other"
+                      }
+                    >
                       {item.is_file === 0 ? (
                         item.text_body
                       ) : item.is_image === 1 ? (
@@ -438,11 +455,15 @@ const Chatpage = () => {
                             "/api/file/" +
                             item.chat_id
                           }
+                          onLoad={imageLoadHandler}
                           className="chat__image"
                           onClick={() => fileClickHandler(item)}
                         />
                       ) : (
-                        <div className="chat__file" onClick={()=>saveFileHandler(item.chat_id)}>
+                        <div
+                          className="chat__file"
+                          onClick={() => saveFileHandler(item.chat_id)}
+                        >
                           <div>{item.text_body}</div>
                         </div>
                       )}

@@ -2,7 +2,7 @@ import axios from "axios";
 import { useState } from "react";
 import "./Searchword.css";
 
-const Searchword = () => {
+const Searchword = (props) => {
   const now = new Date();
 
   const [inputWord, setInputWord] = useState("");
@@ -28,8 +28,10 @@ const Searchword = () => {
         setWordsIndex(0);
         if (response.data === 1) {
           setSearchedWords(response.data);
+          props.onWordSearch(response.data.chat_id);
         } else {
           setSearchedWords([...response.data]);
+          props.onWordSearch(response.data[0].chat_id);
         }
       })
       .catch((error) => {
@@ -51,11 +53,11 @@ const Searchword = () => {
         },
       })
       .then((response) => {
-        console.log(response.data);
         if (response.status === 204) {
           alert("해당 날짜의 채팅 기록이 없습니다.");
         } else {
           setSearchedDate(response.data);
+          props.onWordSearch(response.data[0].chat_id);
         }
       })
       .catch((error) => {
@@ -68,6 +70,7 @@ const Searchword = () => {
       alert("첫번째 검색 결과입니다.");
       return;
     }
+    props.onWordSearch(searchedWords[wordsIndex - 1].chat_id);
     setWordsIndex(wordsIndex - 1);
   };
 
@@ -76,6 +79,7 @@ const Searchword = () => {
       alert("마지막 검색 결과입니다.");
       return;
     }
+    props.onWordSearch(searchedWords[wordsIndex + 1].chat_id);
     setWordsIndex(wordsIndex + 1);
   };
 
@@ -105,34 +109,28 @@ const Searchword = () => {
           onClick={sendWordHandler}
           className="searchword-button"
         />
+        <div>
+          {searchedWords.length === 1 && (
+            <div>
+              <div>1/1</div>
+            </div>
+          )}
+        </div>
+        <div>
+          {searchedWords.length > 1 && (
+            <div>
+              <div>
+                {wordsIndex + 1}/{searchedWords.length}
+              </div>
+              <div>
+                <input type="button" value="prev" onClick={prevClickHandler} />
+                <input type="button" value="next" onClick={nextClickHandler} />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div>
-        {searchedWords.length === 1 && (
-          <div>
-            <div>1/1</div>
-            <div>{searchedWords[0].text_body}</div>
-            <div>{searchedWords[0].write_time}</div>
-          </div>
-        )}
-      </div>
-      <div>
-        {searchedWords.length > 1 && (
-          <div>
-            <div>
-              {wordsIndex + 1}/{searchedWords.length}
-            </div>
-            <div>
-              {searchedWords[wordsIndex].text_body}
-              {searchedWords[wordsIndex].write_time}
-            </div>
-            <div>
-              <input type="button" value="prev" onClick={prevClickHandler} />
-              <input type="button" value="next" onClick={nextClickHandler} />
-            </div>
-          </div>
-        )}
-      </div>
       <div className="searchword-container__seperate">
         <div>
           <select name="select" id="year" onChange={yearHandler}>
@@ -196,15 +194,6 @@ const Searchword = () => {
             className="searchword-button"
           />
         </div>
-      </div>
-
-      <div>
-        {searchedDate.length !== 0 && (
-          <div>
-            {searchedDate[0].text_body}
-            {searchedDate[0].write_time}
-          </div>
-        )}
       </div>
     </div>
   );

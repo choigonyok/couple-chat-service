@@ -1,4 +1,4 @@
-import REACT, { useEffect, useState } from "react";
+import REACT, { useEffect, useRef, useState } from "react";
 // NULL을 사용하려면 REACT를 import 해줘야함
 import "./Chatpage.css";
 import Inputbox from "./Inputbox";
@@ -15,6 +15,8 @@ import Answer from "./Answer";
 import Canclecutconn from "./Canclecutconn";
 
 const Chatpage = () => {
+  const flexboxRef = useRef({});
+
   const navigator = useNavigate();
 
   const [newSocket, setNewSocket] = useState(null);
@@ -29,8 +31,29 @@ const Chatpage = () => {
   const [rankingButton, setRankingButton] = useState(false);
   const [calenderButton, setCalenderButton] = useState(false);
   const [fileClick, setFileClick] = useState(0);
+  const [highLight, setHighLight] = useState(0);
+  const [latestChatID, setLatestChatID] = useState(0);
+  
+
+  useEffect (()=>{
+    setHighLight(0);
+  },[searchButton])
 
   const [chatID, setChatID] = useState(0);
+
+  const onChangeScroll = (id) => {
+    const tags = flexboxRef.current.querySelectorAll('[id^="tag"]');
+    const scrollPositions = {};
+    let sum = 18;
+    tags.forEach((tag) => {
+      scrollPositions[tag.id] = sum;
+      sum = sum + tag.scrollHeight;
+    });
+    if (flexboxRef.current) {
+      flexboxRef.current.scrollTop = scrollPositions['tag'+id];
+      setHighLight(id);
+    }    
+  }
 
   useEffect(() => {
     axios
@@ -66,6 +89,7 @@ const Chatpage = () => {
           setChatID(parsedData[0].chat_id);
         } else {
           setRecievedMessage((prev) => [...prev, ...parsedData]);
+          setLatestChatID(parsedData[(parsedData.length)-1].chat_id);
           if (parsedData.length !== 0) {
             if (parsedData[0].is_answer === 1) {
               setHideInputBox(true);
@@ -99,6 +123,11 @@ const Chatpage = () => {
       }
     }
   }, [recievedMessage]);
+
+  useEffect(()=>{
+    onChangeScroll(latestChatID);
+    setHighLight(0);
+  },[chatDate])
 
   useEffect(() => {
     const deletedArray = recievedMessage.filter((m) => m.chat_id !== chatID);
@@ -353,19 +382,19 @@ const Chatpage = () => {
         </div>
       </div>
       <div>
-        <div>{searchButton && <Searchword />}</div>
+        <div>{searchButton && <Searchword onWordSearch={onChangeScroll}/>}</div>
         <div>{answerButton && <Answer />}</div>
         <div>{rankingButton && <Exceptword />}</div>
         <div>{calenderButton && <Calender />}</div>
       </div>
-      <div className="chat-container">
+      <div className="chat-container" ref={flexboxRef}>
         {recievedMessage &&
           recievedMessage.map((item, index) => (
-            <div>
+            <div className="chat-box" id={"tag"+item.chat_id}>
               {item.is_answer === 0 && item.writer_id === myUUID && (
-                <div className="chat-container__chat__usr">
+                <div className="chat-container__chat__usr" >
                   <div className="chat-container__chatandbutton">
-                    <div className="chat__usr">
+                    <div className={item.is_file === 0 && highLight === item.chat_id ? "chat__usr__highlight" : "chat__usr"}>
                       {item.is_file === 0 ? (
                         item.text_body
                       ) : item.is_image === 1 ? (
@@ -399,7 +428,7 @@ const Chatpage = () => {
               {item.is_answer === 0 && item.writer_id !== myUUID && (
                 <div className="chat-container__chat__other">
                   <div>
-                    <div className="chat__other">
+                    <div className={item.is_file === 0 && highLight === item.chat_id ? "chat__other__highlight" : "chat__other"}>
                       {item.is_file === 0 ? (
                         item.text_body
                       ) : item.is_image === 1 ? (

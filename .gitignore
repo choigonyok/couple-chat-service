@@ -2,3 +2,7 @@
 FORBLOG.md
 DockerPost.md
 .env
+demo.tf
+MSA.md
+.terraform.lock.hcl
+AWSCLIV2.pkg

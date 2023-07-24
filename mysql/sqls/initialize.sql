@@ -67,7 +67,7 @@ CREATE TABLE `anniversary` (
         `month` INT NOT NULL,
         `date` INT NOT NULL,
         `contents` VARCHAR(255) NOT NULL,
-        `d_day` TINYINT(1) NOT NULL);        
+        `d_day` TINYINT(1) NOT NULL);
 
 -- 이거 작동 안함 왜 그런겨? chat DB create까지만 작동함
 

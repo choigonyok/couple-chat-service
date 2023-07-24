@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"choigonyok.com/couple-chat-service-project-docker/src/model"
+	"github.com/choigonyok/couple-chat-service/src/model"
 	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 

@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 node:16-alpine AS build
+FROM --platform=linux/amd64 node:latest AS build
 # 이미지를 node:10으로 당겨왔다가 1시간동안 뻘짓함
 # 도커 이미지 빌드 중 npm run build에서 막히길래 한참 찾았음
 

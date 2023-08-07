@@ -15,7 +15,6 @@ import (
 
 	"github.com/choigonyok/couple-chat-service/src/model"
 	"github.com/gorilla/websocket"
-	"github.com/joho/godotenv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -52,14 +51,6 @@ func getTimeNow() time.Time {
 	now := time.Now()
 	t := now.In(loc)
 	return t
-}
-
-// 환경변수 .env파일 로딩
-func LoadEnv(){
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("ERROR #1 : ", err.Error())
-	}
 }
 
 // ID, Password 유효성 검사
@@ -211,7 +202,6 @@ func ChangePasswordHandler(c *gin.Context) {
 
 // 로그아웃
 func LogOutHandler(c *gin.Context){
-	LoadEnv()
 	uuid, err := model.CookieExist(c)
 	if err != nil {
 		c.Writer.WriteHeader(http.StatusUnauthorized)

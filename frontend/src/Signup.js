@@ -23,7 +23,7 @@ const Signup = () => {
       input_id: inputID,
     };
     axios
-      .post(process.env.REACT_APP_HOST_URL + "/api/id", JSON.stringify(data))
+      .post("http://backend-service:8080/api/id", JSON.stringify(data))
       .then((response) => {
         setIsIDChecked(true);
       })

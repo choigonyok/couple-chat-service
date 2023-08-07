@@ -1,8 +1,8 @@
-FROM --platform=linux/amd64 golang:latest
+FROM golang:latest
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
+COPY . .
 # go.mod를 따로 먼저 카피해서 종속성을 설치해줘야 함
 # 안그러면 나중에 종속성과 관련 없는 부분이 수정되어도 빌드하면 종속성까지 다 다시 다운 받게 됨
 # go.sum도 여기 넣어줘야함 이거 안넣어주면 컨테이너 빌드할 때 오류남
@@ -13,16 +13,13 @@ COPY go.mod go.sum ./
 RUN go mod download
 # go mod tidy 같은 느낌
 
-COPY . .
 # go mod, go.sum 제외한 파일 모두 복사
 
-RUN cd src && GOOS=linux GOARCH=amd64 go build main.go
+RUN cd src && go build main.go
 
 EXPOSE 8080
 
-WORKDIR /app/src
-
-CMD ["./main" ]
+CMD ["./src/main" ]
 
 # RUN go build -o /main 대신 go build main.go 로 빌드 가능
 # 이렇게 하면 CMD ["/main"] 대신 CMD ["./main] 써야함

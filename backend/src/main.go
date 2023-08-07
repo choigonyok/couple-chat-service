@@ -1,22 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/choigonyok/couple-chat-service/src/controller"
-	"github.com/joho/godotenv"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
-
-func LoadEnv(){
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("ERROR #1 : ", err.Error())
-	}
-}
 
 func originConfig() cors.Config{
 	config := cors.DefaultConfig()
@@ -31,14 +22,13 @@ func originConfig() cors.Config{
 }
 
 func main() {
-	LoadEnv()	// 환경변수 로딩
 	
 	e := gin.Default()
 	
 	config := originConfig()	// Origin 설정
 	e.Use(cors.New(config)) 	// Origin 적용
 	
-	controller.ConnectDB("mysql", os.Getenv("DB_USER")+":"+os.Getenv("DB_PASSWORD")+`@tcp("DB_HOST"))/`+os.Getenv("DB_NAME"))	// DB 초기 연결
+	controller.ConnectDB("mysql", os.Getenv("DB_USER")+":"+os.Getenv("DB_PASSWORD")+`@tcp(`+os.Getenv("DB_HOST")+`)/`+os.Getenv("DB_NAME"))	// DB 초기 연결
 	defer controller.UnConnectDB()
 	
 	e.POST("/api/usr", controller.SignUpHandler)								// 회원가입

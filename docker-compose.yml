@@ -42,7 +42,7 @@ services:
 
   backend:
     build:
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
       # 안쓰면 Dockerfile만 읽음
       context: ./backend
       # docker-compose.yml파일의 directory 기준으로 상대경로 작성

@@ -1,5 +1,4 @@
-
-FROM golang:1.18.1-buster
+FROM --platform=linux/amd64 golang:latest
 
 WORKDIR /app
 
@@ -17,7 +16,7 @@ RUN go mod download
 COPY . .
 # go mod, go.sum 제외한 파일 모두 복사
 
-RUN cd src && go build main.go
+RUN cd src && GOOS=linux GOARCH=amd64 go build main.go
 
 EXPOSE 8080
 

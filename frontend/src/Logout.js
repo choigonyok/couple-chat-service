@@ -10,7 +10,7 @@ const Logout = () => {
         axios
         .delete(process.env.REACT_APP_HOST_URL+"/api/log")
         .then((response)=>{
-                alert(response.data);
+                alert("로그아웃 되었습니다.");
                 navigator("/");
         })
         .catch((error)=>{

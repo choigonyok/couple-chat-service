@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"choigonyok.com/couple-chat-service-project-docker/src/controller"
+	"github.com/choigonyok/couple-chat-service/src/controller"
 	"github.com/joho/godotenv"
 
 	"github.com/gin-contrib/cors"
@@ -38,7 +38,7 @@ func main() {
 	config := originConfig()	// Origin 설정
 	e.Use(cors.New(config)) 	// Origin 적용
 	
-	controller.ConnectDB("mysql", os.Getenv("DB_USER")+":"+os.Getenv("DB_PASSWORD")+"@tcp(mysql)/"+os.Getenv("DB_NAME"))	// DB 초기 연결
+	controller.ConnectDB("mysql", os.Getenv("DB_USER")+":"+os.Getenv("DB_PASSWORD")+`@tcp("DB_HOST"))/`+os.Getenv("DB_NAME"))	// DB 초기 연결
 	defer controller.UnConnectDB()
 	
 	e.POST("/api/usr", controller.SignUpHandler)								// 회원가입
@@ -81,8 +81,6 @@ func main() {
 	e.GET("/api/except", controller.GetExceptWordsHandler)						// FrequentUsedWords에서 제외된 단어 불러오기
 	e.POST("/api/except", controller.InsertExceptWordHandler)					// FrequentUsedWords에서 제외할 단어 입력받기
 	e.DELETE("/api/except/:param", controller.DeleteExceptWordHandler)			// FrequentUsedWords에서 단어 제외 취소하기
-
-	controller.Test() // DB 저장 데이터 출력 TEST
 	
 	e.Run(":8080")
 }

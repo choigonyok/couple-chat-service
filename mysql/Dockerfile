@@ -1,5 +1,4 @@
-FROM mysql:8.0
-# 5.7 version으로 했다가 오류나서 수정
+FROM --platform=linux/amd64 wmysql:8.0
 
 ADD ./sqls/my.cnf ./etc/mysql/conf.d/my.cnf
 # 한글 인식할 수 있게 설정 변경

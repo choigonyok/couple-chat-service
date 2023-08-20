@@ -16,6 +16,6 @@ COPY . .
 # build 뿐만 아니라 run도 코드 수정을 반영할 수 없음
 # 그래서 compileDaemon 오픈 소스 활용
 
-ENTRYPOINT CompileDaemon -polling -log-prefix=false -build="go build -o main ./src" -command="./main" -directory="./"
+ENTRYPOINT CompileDaemon -polling -log-prefix=false -build="go build -o main ./cmd" -command="./main" -directory="./"
 # build로 build 명령어 작성하고
 # command로 빌드한 빌드파일을 실행할 명령어 작성

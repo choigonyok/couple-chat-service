@@ -20,5 +20,15 @@
 
 .file-button {
   display: flex;
-  width: fit-content;
+  border: 2px solid white;
+  width: auto;
+  margin-left: 2vh;
+  margin-top: 1vh;
+  border-radius: 30px;
+  flex-direction: column;
+  padding: 1.1vw;
+  font-size: 15px;
+  background-color: transparent;
+  font-weight: 600;
+  color: white;
 }

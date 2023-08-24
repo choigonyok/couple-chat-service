@@ -7,7 +7,7 @@ const Cutconn = () => {
     axios
       .delete(process.env.REACT_APP_HOST_URL + "/api/conn")
       .then((response) => {
-        alert("3분 뒤에 상대방과의 커넥션이 끊어질 예정입니다.");
+        alert("TEST : 1분 뒤에 상대방과의 커넥션이 끊어질 예정입니다. \n 실제 Procution에서는 7일로 설정됩니다.");
       })
       .catch((error) => {
         if (error.response.status === 400) {

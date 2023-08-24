@@ -256,6 +256,8 @@ const Chatpage = () => {
             setInputAnswer("");
             setHideInputBox(false);
             setSeeAnswerBox(false);
+            const deletedArray = recievedMessage.filter((m) => m.chat_id !== item.chat_id);
+            setRecievedMessage(deletedArray);
           } else alert("상대방에게 메세지를 보낼 수 없는 상태입니다.");
         }
       }

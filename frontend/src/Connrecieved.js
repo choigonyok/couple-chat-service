@@ -8,6 +8,7 @@ const Connrecieved = (props) => {
 
   const [requested, setRequested] = useState([]);
   const [requesting, setRequesting] = useState({});
+  const [inputId, setInputId] = useState("");
   const [render, setRender] = useState(false);
 
   useEffect(() => {
@@ -23,7 +24,6 @@ const Connrecieved = (props) => {
     axios
       .get(process.env.REACT_APP_HOST_URL + "/api/request/recieved")
       .then((response) => {
-        console.log("RR,", response.data);
         setRequested([...response.data]);
       })
       .catch((error) => {
@@ -62,8 +62,6 @@ const Connrecieved = (props) => {
         console.log(error);
       });
   };
-
-  const [inputId, setInputId] = useState("");
 
   const sendConnHandler = () => {
     if (inputId !== "") {

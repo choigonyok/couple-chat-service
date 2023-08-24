@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/choigonyok/couple-chat-service/src/controller"
+	"github.com/joho/godotenv"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -24,7 +25,9 @@ func originConfig() cors.Config{
 func main() {
 	
 	e := gin.Default()
-	
+
+	godotenv.Load()
+
 	config := originConfig()	// Origin 설정
 	e.Use(cors.New(config)) 	// Origin 적용
 	

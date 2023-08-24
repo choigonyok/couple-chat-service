@@ -603,7 +603,6 @@ func UpgradeHandler(c *gin.Context){
 		return
 	}
 
-	
 	initialChats, err4 := model.SelectChatByUsrsUUID(first_uuid, second_uuid)
 	if err4 != nil {
 		fmt.Println("ERROR #37 : ", err4.Error())

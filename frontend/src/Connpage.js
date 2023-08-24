@@ -2,10 +2,10 @@ import { useNavigate } from "react-router-dom";
 import Logout from "./Logout";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import Connsend from "./Connsend";
 import Connrecieved from "./Connrecieved";
 import Withdrawal from "./Withdrawal";
 import Changepw from "./Changepw";
+import "./Connpage.css";
 
 const Connpage = () => {
   const [reRender, setReRender] = useState(false);
@@ -30,15 +30,12 @@ const Connpage = () => {
       });
   }, []);
 
-  const renderHandler = () => {
-    setReRender(!reRender);
-  };
+
 
   return (
     <div>
-      <Connrecieved />
-      <Connsend />
-      <div>
+      <Connrecieved/>
+      <div className="buttons-bottom">
         <Changepw/>
         <Logout />
         <Withdrawal />

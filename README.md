@@ -1,281 +1,135 @@
-# COUPLE CHAT SERVICE PROJECT
+# Couple Chat Service 🚀
 
-## **프로젝트명 : 도커로 바위치기**
+### **_Make A Couple Chat Service that Can Increase Trust_**
 
-<br>
+## ⭐ Dependencies
 
-![도커로-바위치기](https://github.com/choigonyok/couple-chat-service-project-docker/assets/129271363/2022cff4-9750-484c-b62d-2294f09d2120)
+<img src="https://img.shields.io/badge/1.21-00ADD8?style=flat&logo=go&logoColor=white&label=GO"/> <img src="https://img.shields.io/badge/1.5.0-00ADD8?style=flat&label=GORILLA"/> <img src="https://img.shields.io/badge/1.9.1-00ADD8?style=flat&label=GIN"/> <img src="https://img.shields.io/badge/18.2.0-61DAFB?style=flat&logo=react&logoColor=white&label=REACT"/> <img src="https://img.shields.io/badge/16-009639?style=flat&label=NPM"/> <img src="https://img.shields.io/badge/24.0.6-2496ED?style=flat&logo=docker&logoColor=white&label=DOCKER"/> <img src="https://img.shields.io/badge/1.28.1-326CE5?style=flat&logo=kubernetes&logoColor=white&label=KUBERNETES"/>
 
+<br/>
 
-<br>
+## ⭐ Motivation
 
-# **개요**
+[[Techlog] #1. 커플채팅 서비스 개발하기](http://www.choigonyok.com/post/39)
 
-**연인 간 신뢰 쌓기를 도와줄 수 있는 채팅 웹 어플리케이션을 개발해보자!**
+<br/>
 
-## **1-1 개발기간**
+## ⭐ Related Blog Posts
 
-        23.06.26 ~ (-일)
+[[Techlog] #1. 커플채팅 서비스 개발하기](http://www.choigonyok.com/post/39)
 
-## **1-2 역할**
+[[Techlog] #2. 개발환경 도커파일 설정하기](http://www.choigonyok.com/post/40)
 
-        최윤석 (경희대 컴퓨터공학과)
+[[Techlog] #3. docker-compose.yaml 작성하기](http://www.choigonyok.com/post/41)
 
-* #### [instagram](https://www.instagram.com/choigonyok)
+[[Techlog] #4. 리액트로 캘린더 구현하기](http://www.choigonyok.com/post/42)
 
-* #### [blog](https://www.choigonyok.com)
+[[Techlog] #5. 웹소켓으로 실시간 채팅 구현하기](http://www.choigonyok.com/post/50)
 
-> 설계, BE, FE 및 배포 담당
+[[Techlog] #6. 커플채팅 서비스 시연영상 & 회고](http://www.choigonyok.com/post/51)
 
-## **1-3 결과물**
+</br>
 
+## ⭐ Result
 
+### 🚀 [[Youtube] Couple-Chat-Service](https://www.youtube.com/embed/eciM1M9p2E4?si=rCm5wBqr4AZiUp-c) 🚀
 
-<br>
+</br>
 
-# **개발이유**
+## ⭐ Duration
 
-## **기존 커플 어플들의 문제점**
+<table>
+<tr>
+<td align=center>
+Development
+</td>
+<td align=center>
+23.06.26 ~ 23.08.10 (46 days)
+</td>
+</tr>
+</table>
 
-사용자 1위 커플 채팅 어플리케이션에는 연인의 현재 위치를 확인할 수 있는 기능이 있다.
-  
-화면이 켜져있는지, 현재 위치가 어딘지부터 시작해서 상대방의 통화, 메세지 내역을 확인할 수 있게 해주는 커플 앱도 등장했다.
+</br>
 
-## **신뢰는 연인간의 중요한 문제다.**
+## ⭐ Features
 
-이러한 기능들은 커플 어플리케이션의 목적과 반대로 오히려 연인간의 신뢰를 무너뜨릴 수 있다.
-연인 간 서로를 믿지 못해 감시/확인하기 위한 기능들보다 서로를 더 믿을 수 있게 돕기위한 기능들이 더 필요하다.
+* MVC Design Pattern
+* Deploy in Kubernetes
+* Infrastructure Provisioning w/ Terraform
 
-## **신뢰를 쌓는 3가지 원칙**
-> 출처 : [네이버 블로그](https://post.naver.com/viewer/postView.nhn?volumeNo=27272214&memberNo=253010)
+<br/>
 
-1. 자기 이해
-   - 나는 어떤 사람인지, 내가 무엇을 중요하게 여기는지 파악하는 것
+### Account (Login/out, Singup, Changing Password)
 
-2. 상대방 이해
-   - 상대는 무엇을 좋아하고 싫어하는지 상대의 가치관을 파악하는 것
+![커플 채팅 서비스 개발 시연 영상](https://github.com/choigonyok/couple-chat-service/assets/129271363/1b4b9dd6-8c4f-4afb-8d6f-b79da3241693)
 
-3. 상호 이해
-   - 내 가치관과 상대의 가치관 모두 중요하다는 것을 이해하는 것
+<br/>
 
-<br>
+### Connection Request/Approve/Refuse among Users
 
-이 원칙을 바탕으로 핵심기능과 요구사항을 분석했다.
+![커플 채팅 서비스 개발 시연 영상](https://github.com/choigonyok/couple-chat-service/assets/129271363/036320b3-6ca5-46a7-a5bc-f3e68c374c14)
 
-<br>
+<br/>
 
-# **핵심기능**
+### Websocket Real-Time Chat
 
-* 최근 1주일동안 커플 채팅에서 많이 사용된 단어 순위를 분석해서 제공하는 기능
+![커플 채팅 서비스 개발 시연 영상](https://github.com/choigonyok/couple-chat-service/assets/129271363/98e30f06-1423-47b0-b85a-d90f5b8f12e5)
 
-> 자신과 상대방이 어떤 말을 자주 하는지 확인, 상대방에 대한 스스로의 태도를 점검하거나 관계의 현상을 가시적으로 확인할 수 있다.
+<br/>
 
-  - 몇 순위까지 확인할 지 사용자가 선택할 수 있다 (3, 5, 10순위)
-  - 의미없는 단어들(아, 음, 앗 등...)은 사용자가 지정해서 단어 순위에서 제외시키거나, 제외된 단어를 취소할 수 있다.
-  
-* 채팅 중 특정 단어가 나오면 해당 단어에 대한 질문이 팝업되고 해당 질문에 대해 대답하도록 하는 기능
-  
-> 질문들을 통해 자신과 상대방에 대해 더 알아가게 되고, 이를 바탕으로 더 깊은 관계로 이어지도록 유도할 수 있다.
+### Auto Question and Answering based on Chat Word
 
-  - ex) : '음식'이라는 단어가 채팅 중 나오면 "못먹는 음식이 무엇인지" 에 대한 질문이 채팅장에 팝업되고, 각 사용자는 이 질문에 대답해야 일반 채팅을 이어갈 수 있다.
-  
-* 그 동안 진행했던 질문과 대답을 정리해서 볼 수 있게 해주는 기능
+![커플 채팅 서비스 개발 시연 영상](https://github.com/choigonyok/couple-chat-service/assets/129271363/3b657589-92ff-4fd2-99da-dfce3c23ac49)
 
-* 예정된 일정의 D-DAY를 설정/삭제/확인해서 연인 간 신뢰가 깨지지 않도록 하는 기능
+<br/>
 
-* 연인 간 커넥션을 끊을 때(이별) 바로 연결이 끊기지 않고 7일의 유예기간을 두어서 커넥션 해제를 취소할 수 있게 하는 기능
+### Transfer Files including IMG in Chat
 
-<br>
+![커플 채팅 서비스 개발 시연 영상](https://github.com/choigonyok/couple-chat-service/assets/129271363/815486b2-b465-4e24-8955-0c9399bcfa84)
 
-# **요구사항분석**
+<br/>
 
-* 여러 사용자들이 서비스를 이용해도 커넥션(연인)간 간섭이 없어야 한다.
+### Chat Searching based on Word/Date
 
-* 회원가입, 회원탈퇴, 로그인, 로그아웃, 비밀번호 변경, ~~비밀번호 찾기~~ 기능
+![커플 채팅 서비스 개발 시연 영상](https://github.com/choigonyok/couple-chat-service/assets/129271363/a423d11b-5434-420a-9a4b-d13504a247b8)
 
-> 비밀번호 찾기 기능은 이메일 API를 통해 인증번호를 받아 변경하는 방식으로 구현하려했으나 네이버 이메일 API가 유료라 구현 불가
+<br/>
 
-* 사용자끼리 커넥션 신청/승인/삭제/취소/해제 기능
+### Most Frequently Used Word Ranking
 
-* 실시간 채팅 기능
-  - 웹소켓을 이용한 실시간 채팅
-  - 채팅 전송 시간 표시
-  - 채팅으로 영상/사진 등 파일 전송
-  - 이미지파일 전송 시 채팅에 썸네일 표시
-  - ~~알림이 울리지 않게 메시지 전송~~
-  - 단어 기반 채팅 검색
-  - 날짜 기반 채팅 검색
-  - 내가 보낸 채팅 삭제
-
-> 실시간 채팅 전송시 상대방이 웹소켓 연결되어있지 않은 상태면 푸시알림을 통해 모바일 알람을 전송하려했으나 ADP가 유료라 구현 불가
-
-* 캘린더 기능
-  - 일정 추가
-  - 일정 삭제
-  - D=Day 설정 및 표시
-  - 전월/이월로 캘린더 이동
-  - 현재 달로 캘린더 이동
-
-<br>
-
-# **기술스택**
-
-* BE : Go, Gin, Gorilla Websocket
-* FE : React.js
-* Publishing : CSS, HTML
-* DB : MySQL
-* Version Management : Git / Github
-* Deployment : Docker, AWS Elastic Beanstalk
-* Web Server : Nginx
-  
-<br>
-
-# **도입기술**
-
-* Terraform을 활용한 인프라 프로비저닝
-* Kubeadm과 Containerd를 활용한 클러스터 프로비저닝
-* Kubernetes를 활용한 컨테이너 배포
-* Backend MVC패턴 적용
-* 웹소켓 프로토콜 활용한 실시간 채팅 서비스
-* 환경변수 설정
-* Go Convention 적용한 디렉토리 구성
-
-<br>
-
-# **관련 Posts**
-
-* [[CHAT-SERVICE #1] 커플을 위한 채팅 서비스를 개발해보자 !](https://choigonyok.com/post/15)
-
-
-
-ID 1 : 중복확인 하지 않고 바로 가입하기 누르기 (ID 중복 체크)
-ID 1 : 중복확인 하고 비밀번호에 스페이스 포함시키기 (패스워드 유효성 검사)
-ID 1 : 회원가입 하기
-ID 1 : 로그인 비밀번호 틀리기 (ID, PW 확인)
-ID 1 : 로그인 하기
-ID 1 : 커넥션 창에서 자기 아이디 입력하기 (커넥션 요청 유효성 검사)
-ID 1 : 커넥션 창에서 없는 아이디 입력하기 (커넥션 요청 유효성 검사)
-ID 1 : 로그아웃하기
-ID 2 : 첫번째 아이디로 회원가입하기 (ID 중복 체크)
-ID 2 : 정상적으로 회원가입하기
-ID 2 : 로그인하기
-ID 2 : 커넥션 창에서 ID 1에 커넥션 요청 보내기
-ID 2 : 새로 고침해서 보낸 커넥션 확인하기 (보낸 커넥션 확인)
-ID 2 : 한 번 더 ID 1에 커넥션 요청 보내기 (중복 커넥션 검사)
-ID 2 : 로그아웃하기
-ID 3 : 회원가입하기
-ID 3 : 로그인하기
-ID 3 : ID 1에 커넥션 보내기
-ID 3 : 로그아웃하기
-ID 4 : 회원가입하기
-ID 4 : 로그인하기
-ID 4 : 첫번쨰 아이디에 커넥션 보내기
-ID 4 : 로그아웃하기
-ID 1 : 로그인하기
-ID 1 : 받은 커넥션 확인하기 (받은 커넥션 확인)
-ID 1 : 로그아웃하기
-ID 2 : 로그인하기
-ID 2 : 회원탈퇴하기
-ID 2 : 로그인하기 (회원탈퇴 여부 검사)
-ID 1 : 로그인하기
-ID 1 : ID 3과 커넥션 맺기
-ID 1 : 로그아웃하기
-ID 4 : 로그인하기 (보낸 커넥션 사리진 것 확인하기)
-ID 4 : 비밀번호 변경하기 길게
-ID 4 : 변경된 비밀번호로 로그인 하기
-ID 4 : 회원탈퇴하기
-ID 3 : 로그인 하기
-실시간 채팅 하기 양쪽에서 길게
-중간중간 질문 타임 생기게 하기
-질문 중복 안되는 것 확인
-질문 둘 다 작성해야 ANSWER에 뜨는 거 확인
-질문 생긴 후에 한쪽이 로그아웃하고 반대쪽은 질문 작성 후 채팅 이어가기
-상대 로그인해도 그대로 질문 작성해야하는 거 보여주기
-사진 보내기
-사진 미리보기 보기
-사진 미리보기 닫기
-사진 미리보기 보기
-사진 미리보기에서 사진 다운로드하기
-정상 다운로드 확인하기
-파일 보내기
-파일 정상 다운로드 확인하기
-SEARCH 단어기반 검색하기
-날짜기반 검색하기
-ANSWER 확인하기
-RANK 확인하기 
-RANK 에서 단어 제외시키기
-다시 복구시키기
-CALENDER 열기
-일정 추가하기
-다음 달 일정 추가하기
-같은날에 여러 일정 추가하기
-디데이 설정하기 
-디데이 당일로 설정하기
-디데이 지난걸로 설정하기
-달력 전년도 다음년도 확인하고 today 눌러서 이번달로 돌아오기
-연결끊기 
-연결끊기 한 번 더 (중복불가 확인)
-연결끊기 취소
-연결끊기 취소 한 번 더 (중복불가 확인)
-로그아웃하기
-새로운 인원 2개 만들어서 커넥션 맺고 별개의 채팅방이 운영됨을 확인
-다시 원래 ID 1,2 커넥션 돌아와서 확인하기
-회원탈퇴 누르기
-커넥션 끊기 누르기
-2분 후에 새로고침하고 커넥션창으로 돌아간 것 확인
-회원탈퇴하기
-ID 3,4  커넥션 돌아가서 정상 작동 확인
-
-대화내용
-
-1 : 안녕 내 이름은 최윤석이야
-1 : 나는 컴퓨터공학과에 재학 중이야
-
-2: 안녕 반가워!!
-
-1 : 오늘 뭐 할 예정이야?
-
-2 : 나는 운동갔다가 저녁 먹고 쉬려고!
-Q : 운동 - 운동하는 거 좋아해?
-
-1 : 대단하다 운동하는 거 너무 귀찮아
-1 : 어떤 운동 하러가?
-
-2 : 나는 헬스하는데 그래도 일주일에 네다섯번은 가는 것 같아
-2 : 어제 운동 가는 길에 길고양이 봤는데 너무 귀엽더라
-Q : 고양이랑 강아지 중에 누굴 더 좋아해?
-
-2 : 사진 보여줄게!
-사진 전송
-
-1 : 너무 귀엽다 나도 사진 보내줄게!!
-사진 전송
-사진 전송
-
-2 : 너무 귀엽다 ㅠㅠ
-사진 전송
-
-1 : 그러니까 ㅠㅜ
-1 : 아 나는 밥 먹으러 갔다 와야겠다!
-Q : 한식 / 중식 / 양식 / 일식 중에 뭘 제일 좋아해?
-
-2 : 응응 맛있게 먹고 와!!
-
-1 : 아 근데 혹시 과제 코드 보내줄 수 있어?
-
-2 : 응 그럼!! 잠깐만!
-go파일 전송
-
-2: 텍스트 파일도 같이 보내줄게!!
-텍스트 파일 전송
-
-1 : 고마워 ㅎㅎㅎ
-
-
-일정
-
-데이트
-첫만남
-생일
-알바
-수강신청
+![커플 채팅 서비스 개발 시연 영상](https://github.com/choigonyok/couple-chat-service/assets/129271363/19f512f8-a3c4-428e-85ce-eaec526dd521)
+
+<br/>
+
+### Calendar (D-Day, Appointment Scheduling)
+
+![커플 채팅 서비스 개발 시연 영상](https://github.com/choigonyok/couple-chat-service/assets/129271363/5db1572c-78e2-48e8-9bff-9d68a2b4d820)
+
+<br/>
+
+### Usability for Multiple Users
+
+![커플 채팅 서비스 개발 시연 영상](https://github.com/choigonyok/couple-chat-service/assets/129271363/7c8940f7-3485-4c82-ab37-c74dade11207)
+
+</br>
+
+## ⭐ Technical Stacks
+
+<img src="https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=Go&logoColor=white"> <img src="https://img.shields.io/badge/Gin-00ADD8?style=for-the-badge&logoColor=white"> <img src="https://img.shields.io/badge/Gorilla-00ADD8?style=for-the-badge&logoColor=white"> <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=React&logoColor=black"> <img src="https://img.shields.io/badge/HTML-E34F26?style=for-the-badge&logo=html5&logoColor=black"> <img src="https://img.shields.io/badge/CSS-1572B6?style=for-the-badge&logo=css3&logoColor=black"> <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white"> <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=Docker&logoColor=white"> <img src="https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=Kubernetes&logoColor=white"> <img src="https://img.shields.io/badge/Containerd-575757?style=for-the-badge&logo=Containerd&logoColor=white"> <img src="https://img.shields.io/badge/Kubeadm-575757?style=for-the-badge"> <img src="https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=Terraform&logoColor=white"> <img src="https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=Nginx&logoColor=white"> <img src="https://img.shields.io/badge/HAProxy-2496ED?style=for-the-badge&logoColor=white"> <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=Git&logoColor=white"> <img src="https://img.shields.io/badge/Github-181717?style=for-the-badge&logo=Github&logoColor=white"> <img src="https://img.shields.io/badge/EC2-FF9900?style=for-the-badge&logo=Amazon EC2&logoColor=white"> <img src="https://img.shields.io/badge/ELB-FF9900?style=for-the-badge&logo=Amazon&logoColor=white"> <img src="https://img.shields.io/badge/EBS-FF9900?style=for-the-badge&logo=Amazon&logoColor=white"> <img src="https://img.shields.io/badge/EIP-FF9900?style=for-the-badge&logo=Amazon&logoColor=white"> <img src="https://img.shields.io/badge/VPC-FF9900?style=for-the-badge&logo=Amazon&logoColor=white"> <img src="https://img.shields.io/badge/ROUTE53-4053D6?style=for-the-badge&logo=Amazon&logoColor=white">
+
+</br>
+
+## ⭐ Contributor
+
+<table>
+<tr>
+<td align=center>
+<img src="https://github.com/choigonyok/blog-project/assets/129271363/40334291-9fab-44f1-bacd-f06b56a0242d" height="150" width="150"/>
+</td>
+</tr>
+<tr>
+<td align=center>
+최윤석
+</td>
+</tr>
+</table>

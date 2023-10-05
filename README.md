@@ -16,16 +16,11 @@
 
 ## ⭐ Related Blog Posts
 
-[[Techlog] #1. 커플채팅 서비스 개발하기](http://www.choigonyok.com/post/39)
-
-[[Techlog] #2. 개발환경 도커파일 설정하기](http://www.choigonyok.com/post/40)
-
-[[Techlog] #3. docker-compose.yaml 작성하기](http://www.choigonyok.com/post/41)
-
-[[Techlog] #4. 리액트로 캘린더 구현하기](http://www.choigonyok.com/post/42)
-
-[[Techlog] #5. 웹소켓으로 실시간 채팅 구현하기](http://www.choigonyok.com/post/50)
-
+[[Techlog] #1. 커플채팅 서비스 개발하기](http://www.choigonyok.com/post/39) </br>
+[[Techlog] #2. 개발환경 도커파일 설정하기](http://www.choigonyok.com/post/40)</br>
+[[Techlog] #3. docker-compose.yaml 작성하기](http://www.choigonyok.com/post/41)</br>
+[[Techlog] #4. 리액트로 캘린더 구현하기](http://www.choigonyok.com/post/42)</br>
+[[Techlog] #5. 웹소켓으로 실시간 채팅 구현하기](http://www.choigonyok.com/post/50)</br>
 [[Techlog] #6. 커플채팅 서비스 시연영상 & 회고](http://www.choigonyok.com/post/51)
 
 </br>

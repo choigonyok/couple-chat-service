@@ -1,4 +1,4 @@
-# Couple Chat Service 🚀
+# Trustalk 🚀
 
 ### **_Make A Couple Chat Service that Can Increase Trust_**
 
@@ -27,7 +27,7 @@
 
 ## ⭐ Result
 
-### 🚀 [[Youtube] Couple-Chat-Service](https://www.youtube.com/embed/eciM1M9p2E4?si=rCm5wBqr4AZiUp-c) 🚀
+### 🚀 [[Youtube] Trustalk](https://www.youtube.com/embed/eciM1M9p2E4?si=rCm5wBqr4AZiUp-c) 🚀
 
 </br>
 
